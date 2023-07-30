@@ -34,7 +34,7 @@
               mkdir -p "$out"
               ## TODO: Figure out why this needs `HOME` set.
               HOME="$out"
-              nix --accept-flake-config flake \
+              nix --accept-flake-config --extra-experimental-features "flakes nix-command" flake \
                 new "${name}-example" --template "${src}#${name}"
               cd "${name}-example"
               find . -type f -exec bash -c \
@@ -45,8 +45,8 @@
               ## TODO: Make files resilient to template formatting, so we can
               ##       remove this, and then have the formatter in this file
               ##       skip ./templates/.
-              nix --accept-flake-config fmt
-              nix --accept-flake-config --print-build-logs flake check
+              nix --accept-flake-config --extra-experimental-features "flakes nix-command" fmt
+              nix --accept-flake-config --extra-experimental-features "flakes nix-command" --print-build-logs flake check
             '';
         };
 
