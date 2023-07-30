@@ -1,0 +1,13 @@
+#+title: {{project.name}}
+
+{{project.description}}
+
+* building
+
+** preferred
+
+Especially if you are unfamiliar with the Emacs ecosystem, there is a flake-based Nix build.
+
+** traditional
+
+This project is built with [[https://doublep.github.io/eldev/][Eldev]].

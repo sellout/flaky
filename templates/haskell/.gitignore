@@ -1,0 +1,10 @@
+# Direnv
+/.direnv
+
+# Nix build
+/outputs
+/result
+/source
+
+# Cabal build
+dist-newstyle

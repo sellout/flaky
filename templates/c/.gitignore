@@ -1,0 +1,4 @@
+# Nix build
+/outputs
+/result
+/source

@@ -1,0 +1,43 @@
+cabal-version:  2.4
+
+name:           {{project.name}}
+version:        {{project.version}}
+synopsis:       {{project.summary}}
+description:    {{project.description}}
+homepage:       https://github.com/{{project.repo}}#readme
+bug-reports:    https://github.com/{{project.repo}}/issues
+build-type:     Custom
+license:        AGPL-3.0-or-later
+license-file:   LICENSE
+tested-with:    GHC==8.6.1,
+                GHC==8.8.1,
+                GHC==8.10.1, GHC==8.10.7,
+                GHC==9.0.1, GHC==9.0.2,
+                GHC==9.2.1, GHC==9.2.8,
+                GHC==9.4.1, GHC==9.4.5,
+                GHC==9.6.1
+
+source-repository head
+  type: git
+  location: https://github.com/{{project.repo}}
+
+custom-setup
+  setup-depends:
+    base          >= 4.14.3 && < 4.19,
+    cabal-doctest >= 1.0.0  && < 1.1
+
+library
+  build-depends:
+    base >= 4.14.3 && < 4.19
+  default-language: Haskell2010
+  exposed-modules:
+  ghc-options: -Wall
+
+test-suite {{project.name}}-doctests
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests
+  main-is: doctests.hs
+  build-depends:
+    base    >= 4.14.3 && < 4.19,
+    doctest >= 0.15.0 && < 0.22,
+    {{project.name}}

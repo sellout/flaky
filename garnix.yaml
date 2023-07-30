@@ -1,0 +1,4 @@
+builds:
+  exclude:
+    # TODO: Remove this once NixOS/nix#4119 is fixed.
+    - homeConfigurations.greg@Tiamat
