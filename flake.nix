@@ -293,7 +293,8 @@
 
     treefmt-nix = {
       inputs.nixpkgs.follows = "nixpkgs";
-      url = "github:numtide/treefmt-nix";
+      ## TODO: Switch back to upstream once numtide/treefmt-nix#96 is fixed.
+      url = "github:sellout/treefmt-nix/fix-shfmt";
     };
   };
 }

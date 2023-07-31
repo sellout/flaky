@@ -10,11 +10,11 @@
         "shellcheck-nix-attributes": "shellcheck-nix-attributes"
       },
       "locked": {
-        "lastModified": 1690771089,
-        "narHash": "sha256-tqPgG/Q3hcSSQ7xlmw4rStEjrS39k9WEaIWO3GzS0ys=",
+        "lastModified": 1690777876,
+        "narHash": "sha256-BpgF3mIhj5m9OJQlGvL5IppjRx++Dj0eMx4ErU5PrII=",
         "owner": "sellout",
         "repo": "bash-strict-mode",
-        "rev": "45b9d988d62b2b1aca0172e055b0d2bf749aecc0",
+        "rev": "35300695ac3cdf7b3ddc7422f980b26625e6f0c1",
         "type": "github"
       },
       "original": {
@@ -753,15 +753,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1689620039,
-        "narHash": "sha256-BtNwghr05z7k5YMdq+6nbue+nEalvDepuA7qdQMAKoQ=",
-        "owner": "numtide",
+        "lastModified": 1690780289,
+        "narHash": "sha256-Pvn8pvis2pGd8CkChFME2oJnI+mnE1XC3R0YivC9/2U=",
+        "owner": "sellout",
         "repo": "treefmt-nix",
-        "rev": "719c2977f958c41fa60a928e2fbc50af14844114",
+        "rev": "4a9e7ed76ec4c1a088b8a115b91d2d400ec65e90",
         "type": "github"
       },
       "original": {
-        "owner": "numtide",
+        "owner": "sellout",
+        "ref": "fix-shfmt",
         "repo": "treefmt-nix",
         "type": "github"
       }
