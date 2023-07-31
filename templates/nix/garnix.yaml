@@ -1,7 +1,7 @@
 builds:
   exclude:
     # TODO: Remove once garnix-io/garnix#285 is fixed.
-    - "homeConfigurations.x86_64-darwin-example"
+    - "homeConfigurations.x86_64-darwin-{{project-name}}-example"
   include:
     - "*.aarch64-darwin"
     - "*.aarch64-darwin.*"

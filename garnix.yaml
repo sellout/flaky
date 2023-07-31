@@ -1,4 +1,18 @@
 builds:
+  ## TODO: These currently fail because they need Internet access.
   exclude:
-    # TODO: Remove this once NixOS/nix#4119 is fixed.
-    - homeConfigurations.greg@Tiamat
+    - "checks.*.bash-template-validity"
+    - "checks.*.c-template-validity"
+    - "checks.*.default-template-validity"
+    - "checks.*.nix-template-validity"
+  include:
+    - "*.aarch64-darwin"
+    - "*.aarch64-darwin.*"
+    - "*.aarch64-linux"
+    - "*.aarch64-linux.*"
+    - "*.x86_64-darwin"
+    - "*.x86_64-darwin.*"
+    - "*.x86_64-linux"
+    - "*.x86_64-linux.*"
+    - "homeConfigurations.*"
+    - "nixosConfigurations.*"
