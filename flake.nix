@@ -86,7 +86,12 @@
                 ## Web/JSON/Markdown/TypeScript/YAML formatter
                 prettier.enable = true;
                 ## Shell formatter
-                shfmt.enable = true;
+                shfmt = {
+                  enable = true;
+                  ## NB: This has to be unset to allow the .editorconfig
+                  ##     settings to be used. See numtide/treefmt-nix#96.
+                  indent_size = null;
+                };
               };
             }
             // config))
@@ -293,8 +298,7 @@
 
     treefmt-nix = {
       inputs.nixpkgs.follows = "nixpkgs";
-      ## TODO: Switch back to upstream once numtide/treefmt-nix#96 is fixed.
-      url = "github:sellout/treefmt-nix/fix-shfmt";
+      url = "github:numtide/treefmt-nix";
     };
   };
 }
