@@ -43,10 +43,14 @@
               ## Format before checking, because templating may affect
               ## formatting.
               ## TODO: Make files resilient to template formatting, so we can
-              ##       remove this, and then have the formatter in this file
-              ##       skip ./templates/.
-              nix --accept-flake-config --extra-experimental-features "flakes nix-command" fmt
-              nix --accept-flake-config --extra-experimental-features "flakes nix-command" --print-build-logs flake check
+              ##       remove this.
+              nix --accept-flake-config \
+                  --extra-experimental-features "flakes nix-command" \
+                  fmt
+              nix --accept-flake-config \
+                  --extra-experimental-features "flakes nix-command" \
+                  --print-build-logs \
+                  flake check
             '';
         };
 

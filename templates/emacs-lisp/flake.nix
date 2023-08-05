@@ -35,7 +35,14 @@
         (builtins.map
           (inputs.flaky.lib.homeConfigurations.example
             pname
-            [./nix/home-manager-example.nix])
+            inputs.self
+            [({pkgs, ...}: {
+              home.packages = [
+                (pkgs.emacs.withPackages (epkgs: [
+                  epkgs.${pname}
+                ]))
+              ];
+            })])
           inputs.flake-utils.lib.defaultSystems);
     }
     // inputs.flake-utils.lib.eachDefaultSystem (system: let

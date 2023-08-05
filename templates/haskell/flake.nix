@@ -71,10 +71,11 @@
         (builtins.map
           (inputs.flaky.lib.homeConfigurations.example
             pname
+            inputs.self
             [({pkgs, ...}: {
               home.packages = [
                 (pkgs.haskellPackages.ghcWithPackages (hpkgs: [
-                  hpkgs.{{project.name}}
+                  hpkgs.${pname}
                 ]))
               ];
             })])
@@ -91,8 +92,6 @@
         ##     be able to find other packages in this flake as dependencies.
         overlays = [inputs.self.overlays.default];
       };
-
-      src = pkgs.lib.cleanSource ./.;
 
       format = inputs.flaky.lib.format pkgs {
           programs = {
