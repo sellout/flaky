@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+source strict-mode.bash
+shopt -s dotglob
+
+## Updates the current project with the latest from the upstream template.
+
+## Caveats:
+## - this does not remove files that have been removed from the template since
+##   the last update and
+## - this applies mustache if the expected .config/mustache.yaml exists in the
+##   repo, but that doesn’t yet support renaming files, so some may need to be
+##   manually renamed after they’re created.
+
+project_type="${1}"
+project_dir="${PWD}"
+temp_dir="$(mktemp --directory --tmpdir "${project_type}-template.XXXX")"
+
+(
+  cd "${temp_dir}" \
+    && nix flake init --template "github:sellout/flaky#${project_type}"
+)
+
+mustache_file="${project_dir}/.config/mustache.yaml"
+if [[ -f ${mustache_file} ]]; then
+  find "${temp_dir}" -type f -exec bash -c \
+    'mustache "${1}" "${0}" | sponge "${0}"' \
+    {} "${mustache_file}" \;
+fi
+
+cp -pr "${temp_dir:?}"/* "${project_dir}"
+rm -rf "${temp_dir:?}"/*
+rmdir "${temp_dir:?}"
