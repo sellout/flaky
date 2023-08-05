@@ -20,7 +20,7 @@
       };
 
       lib = import ./nix/lib.nix {
-        inherit (inputs) bash-strict-mode home-manager nixpkgs self treefmt-nix;
+        inherit (inputs) bash-strict-mode home-manager nixpkgs treefmt-nix;
       };
 
       templates = let
