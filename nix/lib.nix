@@ -11,22 +11,37 @@
     in {
       doctor = pkgs: src:
         bash-strict-mode.lib.checkedDrv pkgs
-        (pkgs.runCommand "eldev doctor" {
-            inherit src;
+        (pkgs.stdenv.mkDerivation {
+          inherit src;
 
-            ELDEV_LOCAL = self.lib.elisp.ELDEV_LOCAL pkgs;
+          ELDEV_LOCAL = self.lib.elisp.ELDEV_LOCAL pkgs;
 
-            nativeBuildInputs = [
-              pkgs.emacs
-              # Emacs-lisp build tool, https://doublep.github.io/eldev/
-              pkgs.emacsPackages.eldev
-            ];
-          } ''
+          name = "eldev doctor";
+
+          nativeBuildInputs = [
+            pkgs.emacs
+            # Emacs-lisp build tool, https://doublep.github.io/eldev/
+            pkgs.emacsPackages.eldev
+          ];
+
+          buildPhase = ''
+            runHook preBuild
+            ## TODO: Currently needed to make a temp file in
+            ##      `eldev--create-internal-pseudoarchive-descriptor`.
+            export HOME="$PWD/fake-home"
+            mkdir -p "$HOME/.cache/eldev"
             eldev doctor
-            mkdir -p "$out"
-          '');
+            runHook postBuild
+          '';
 
-      lint = pkgs: src:
+          installPhase = ''
+            runHook preInstall
+            mkdir -p "$out"
+            runHook postInstall
+          '';
+        });
+
+      lint = pkgs: src: epkgs:
       ## TODO: Can’t currently use `bash-strict-mode.lib.checkedDrv`
       ##       because the `emacs` wrapper script checks for existence of a
       ##       variable with `-n` intead of `-v`.
@@ -39,7 +54,7 @@
           name = "eldev lint";
 
           nativeBuildInputs = [
-            pkgs.emacs
+            (pkgs.emacsWithPackages epkgs)
             pkgs.emacsPackages.eldev
           ];
 
@@ -204,7 +219,7 @@
       (emacsOverlay final prev);
   };
 
-  packages.elisp = pkgs: src: pname:
+  packages.elisp = pkgs: src: pname: epkgs:
     bash-strict-mode.lib.checkedDrv pkgs
     (pkgs.emacsPackages.trivialBuild {
       inherit pname src;
@@ -214,9 +229,7 @@
       version = self.lib.elisp.readVersion "${src}/${pname}.el";
 
       nativeBuildInputs = [
-        (pkgs.emacsWithPackages (epkgs: [
-          epkgs.buttercup
-        ]))
+        (pkgs.emacsWithPackages (e: [e.buttercup] ++ epkgs e))
         # Emacs-lisp build tool, https://doublep.github.io/eldev/
         pkgs.emacsPackages.eldev
       ];
