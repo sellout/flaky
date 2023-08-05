@@ -20,7 +20,7 @@
     {
       overlays = {
         default =
-          inputs.flaky.lib.overlays.elisp.default inputs.self.overlays.emacs;
+          inputs.flaky.lib.elisp.overlays.default inputs.self.overlays.emacs;
 
         emacs = final: prev: efinal: eprev: {
           "${pname}" = inputs.self.packages.${final.system}.${ename};
@@ -54,15 +54,15 @@
     in {
       packages = {
         default = inputs.self.packages.${system}.${ename};
-        "${ename}" = inputs.flaky.lib.packages.elisp pkgs src pname;
+        "${ename}" = inputs.flaky.lib.elisp.package pkgs src pname (_: []);
       };
 
       devShells.default =
         inputs.flaky.lib.devShells.default pkgs inputs.self [] "";
 
       checks = {
-        elisp-doctor = inputs.flaky.lib.checks.elisp.doctor pkgs src;
-        elisp-lint = inputs.flaky.lib.checks.elisp.lint pkgs src;
+        elisp-doctor = inputs.flaky.lib.elisp.checks.doctor pkgs src;
+        elisp-lint = inputs.flaky.lib.elisp.checks.lint pkgs src (_: []);
         format = format.check inputs.self;
       };
 
