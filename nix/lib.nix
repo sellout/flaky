@@ -6,15 +6,83 @@
   treefmt-nix,
 }: {
   checks = {
-    elisp = let
-      emacsPath = self.lib.elisp.emacsPath;
-    in {
+    simple = pkgs: src: name: nativeBuildInputs: cmd:
+      bash-strict-mode.lib.checkedDrv pkgs
+      (pkgs.runCommand name {inherit nativeBuildInputs src;} ''
+        ${cmd}
+        mkdir -p "$out"
+      '');
+
+    validate-template = name: pkgs: src:
+      self.lib.checks.simple
+      pkgs
+      src
+      "nix flake init"
+      [pkgs.cacert pkgs.mustache-go pkgs.nix pkgs.moreutils]
+      ''
+        mkdir -p "$out"
+        ## TODO: Figure out why this needs `HOME` set.
+        HOME="$out"
+        nix --accept-flake-config --extra-experimental-features "flakes nix-command" flake \
+          new "${name}-example" --template "${src}#${name}"
+        cd "${name}-example"
+        find . -type f -exec bash -c \
+          'mustache "${src}/templates/example.yaml" "$0" | sponge "$0"' \
+          {} \;
+        ## Format before checking, because templating may affect
+        ## formatting.
+        ## TODO: Make files resilient to template formatting, so we can
+        ##       remove this.
+        nix --accept-flake-config \
+            --extra-experimental-features "flakes nix-command" \
+            fmt
+        nix --accept-flake-config \
+            --extra-experimental-features "flakes nix-command" \
+            --print-build-logs \
+            flake check
+      '';
+  };
+
+  devShells.default = pkgs: self: nativeBuildInputs: shellHook:
+    bash-strict-mode.lib.checkedDrv pkgs
+    (pkgs.mkShell {
+      inherit shellHook;
+
+      inputsFrom =
+        builtins.attrValues self.checks.${pkgs.system}
+        ++ builtins.attrValues (
+          if self ? packages
+          then self.packages.${pkgs.system}
+          else {}
+        );
+
+      nativeBuildInputs =
+        [
+          # Nix language server,
+          # https://github.com/oxalica/nil#readme
+          pkgs.nil
+          # Bash language server,
+          # https://github.com/bash-lsp/bash-language-server#readme
+          pkgs.nodePackages.bash-language-server
+        ]
+        ++ nativeBuildInputs;
+    });
+
+  elisp = let
+    emacsPath = package: "${package}/share/emacs/site-lisp/elpa/${package.pname}-${package.version}";
+
+    ## We need to tell Eldev where to find its Emacs package.
+    ELDEV_LOCAL = pkgs: emacsPath pkgs.emacsPackages.eldev;
+  in {
+    inherit ELDEV_LOCAL emacsPath;
+
+    checks = {
       doctor = pkgs: src:
         bash-strict-mode.lib.checkedDrv pkgs
         (pkgs.stdenv.mkDerivation {
           inherit src;
 
-          ELDEV_LOCAL = self.lib.elisp.ELDEV_LOCAL pkgs;
+          ELDEV_LOCAL = ELDEV_LOCAL pkgs;
 
           name = "eldev doctor";
 
@@ -49,7 +117,7 @@
         (pkgs.stdenv.mkDerivation {
           inherit src;
 
-          ELDEV_LOCAL = self.lib.elisp.ELDEV_LOCAL pkgs;
+          ELDEV_LOCAL = ELDEV_LOCAL pkgs;
 
           name = "eldev lint";
 
@@ -91,72 +159,56 @@
         });
     };
 
-    simple = pkgs: src: name: nativeBuildInputs: cmd:
+    overlays.default = emacsOverlay: final: prev: {
+      emacsPackagesFor = emacs:
+        (prev.emacsPackagesFor emacs).overrideScope'
+        (emacsOverlay final prev);
+    };
+
+    package = pkgs: src: pname: epkgs:
       bash-strict-mode.lib.checkedDrv pkgs
-      (pkgs.runCommand name {inherit nativeBuildInputs src;} ''
-        ${cmd}
-        mkdir -p "$out"
-      '');
+      (pkgs.emacsPackages.trivialBuild {
+        inherit pname src;
 
-    validate-template = name: pkgs: src:
-      self.lib.checks.simple
-      pkgs
-      src
-      "nix flake init"
-      [pkgs.cacert pkgs.mustache-go pkgs.nix pkgs.moreutils]
-      ''
-        mkdir -p "$out"
-        ## TODO: Figure out why this needs `HOME` set.
-        HOME="$out"
-        nix --accept-flake-config --extra-experimental-features "flakes nix-command" flake \
-          new "${name}-example" --template "${src}#${name}"
-        cd "${name}-example"
-        find . -type f -exec bash -c \
-          'mustache "${src}/templates/example.yaml" "$0" | sponge "$0"' \
-          {} \;
-        ## Format before checking, because templating may affect
-        ## formatting.
-        ## TODO: Make files resilient to template formatting, so we can
-        ##       remove this.
-        nix --accept-flake-config \
-            --extra-experimental-features "flakes nix-command" \
-            fmt
-        nix --accept-flake-config \
-            --extra-experimental-features "flakes nix-command" \
-            --print-build-logs \
-            flake check
-      '';
-  };
-  devShells.default = pkgs: self: nativeBuildInputs: shellHook:
-    bash-strict-mode.lib.checkedDrv pkgs
-    (pkgs.mkShell {
-      inherit shellHook;
+        ELDEV_LOCAL = ELDEV_LOCAL pkgs;
 
-      inputsFrom =
-        builtins.attrValues self.checks.${pkgs.system}
-        ++ builtins.attrValues (
-          if self ? packages
-          then self.packages.${pkgs.system}
-          else {}
-        );
+        version = self.lib.elisp.readVersion "${src}/${pname}.el";
 
-      nativeBuildInputs =
-        [
-          # Nix language server,
-          # https://github.com/oxalica/nil#readme
-          pkgs.nil
-          # Bash language server,
-          # https://github.com/bash-lsp/bash-language-server#readme
-          pkgs.nodePackages.bash-language-server
-        ]
-        ++ nativeBuildInputs;
-    });
+        nativeBuildInputs = [
+          (pkgs.emacsWithPackages (e: [e.buttercup] ++ epkgs e))
+          # Emacs-lisp build tool, https://doublep.github.io/eldev/
+          pkgs.emacsPackages.eldev
+        ];
 
-  elisp = {
-    emacsPath = package: "${package}/share/emacs/site-lisp/elpa/${package.pname}-${package.version}";
-    ## We need to tell Eldev where to find its Emacs package.
-    ELDEV_LOCAL = pkgs:
-      self.lib.elisp.emacsPath pkgs.emacsPackages.eldev;
+        postPatch = ''
+          {
+            echo
+            echo "(mapcar"
+            echo " 'eldev-use-local-dependency"
+            echo " '(\"${emacsPath pkgs.emacsPackages.buttercup}\"))"
+          } >> Eldev
+        '';
+
+        doCheck = true;
+
+        checkPhase = ''
+          runHook preCheck
+          ## TODO: Currently needed to make a temp file in
+          ##      `eldev--create-internal-pseudoarchive-descriptor`.
+          export HOME="$PWD/fake-home"
+          mkdir -p "$HOME"
+          eldev --external test
+          runHook postCheck
+        '';
+
+        doInstallCheck = true;
+
+        installCheckPhase = ''
+          runHook preInstallCheck
+          eldev --external --packaged test
+          runHook postInstallCheck
+        '';
+      });
 
     ## Read version in format: ;; Version: x.y(.z)?
     readVersion = fp:
@@ -212,55 +264,4 @@
         ++ modules;
     };
   };
-
-  overlays.elisp.default = emacsOverlay: final: prev: {
-    emacsPackagesFor = emacs:
-      (prev.emacsPackagesFor emacs).overrideScope'
-      (emacsOverlay final prev);
-  };
-
-  packages.elisp = pkgs: src: pname: epkgs:
-    bash-strict-mode.lib.checkedDrv pkgs
-    (pkgs.emacsPackages.trivialBuild {
-      inherit pname src;
-
-      ELDEV_LOCAL = self.lib.elisp.ELDEV_LOCAL pkgs;
-
-      version = self.lib.elisp.readVersion "${src}/${pname}.el";
-
-      nativeBuildInputs = [
-        (pkgs.emacsWithPackages (e: [e.buttercup] ++ epkgs e))
-        # Emacs-lisp build tool, https://doublep.github.io/eldev/
-        pkgs.emacsPackages.eldev
-      ];
-
-      postPatch = ''
-        {
-          echo
-          echo "(mapcar"
-          echo " 'eldev-use-local-dependency"
-          echo " '(\"${self.lib.elisp.emacsPath pkgs.emacsPackages.buttercup}\"))"
-        } >> Eldev
-      '';
-
-      doCheck = true;
-
-      checkPhase = ''
-        runHook preCheck
-        ## TODO: Currently needed to make a temp file in
-        ##      `eldev--create-internal-pseudoarchive-descriptor`.
-        export HOME="$PWD/fake-home"
-        mkdir -p "$HOME"
-        eldev --external test
-        runHook postCheck
-      '';
-
-      doInstallCheck = true;
-
-      installCheckPhase = ''
-        runHook preInstallCheck
-        eldev --external --packaged test
-        runHook postInstallCheck
-      '';
-    });
 }
