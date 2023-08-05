@@ -1,5 +1,5 @@
 {
-  description = "{{project.description}}";
+  description = "{{project.summary}}";
 
   nixConfig = {
     ## https://github.com/NixOS/rfcs/blob/master/rfcs/0045-deprecate-url-syntax.md

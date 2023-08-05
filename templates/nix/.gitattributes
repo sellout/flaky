@@ -1,2 +1,0 @@
-# Don’t render generated files by default in GitHub diffs
-flake.lock linguist-generated

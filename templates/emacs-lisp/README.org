@@ -1,5 +1,7 @@
 #+title: {{project.name}}
 
+{{project.summary}}
+
 {{project.description}}
 
 * building
