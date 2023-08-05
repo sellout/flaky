@@ -18,7 +18,7 @@
       simple
       pkgs
       src
-      "nix flake init"
+      "validate ${name}"
       [pkgs.cacert pkgs.mustache-go pkgs.nix pkgs.moreutils]
       ''
         mkdir -p "$out"
@@ -36,7 +36,7 @@
         ##       remove this.
         nix --accept-flake-config \
             --extra-experimental-features "flakes nix-command" \
-            fmt
+            fmt README.md
         nix --accept-flake-config \
             --extra-experimental-features "flakes nix-command" \
             --print-build-logs \

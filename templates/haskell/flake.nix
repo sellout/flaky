@@ -72,13 +72,15 @@
           (inputs.flaky.lib.homeConfigurations.example
             pname
             inputs.self
-            [({pkgs, ...}: {
-              home.packages = [
-                (pkgs.haskellPackages.ghcWithPackages (hpkgs: [
-                  hpkgs.${pname}
-                ]))
-              ];
-            })])
+            [
+              ({pkgs, ...}: {
+                home.packages = [
+                  (pkgs.haskellPackages.ghcWithPackages (hpkgs: [
+                    hpkgs.${pname}
+                  ]))
+                ];
+              })
+            ])
           inputs.flake-utils.lib.defaultSystems);
     }
     ## NB: This uses `eachSystem defaultSystems` instead of `eachDefaultSystem`

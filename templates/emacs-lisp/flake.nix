@@ -33,13 +33,15 @@
           (inputs.flaky.lib.homeConfigurations.example
             pname
             inputs.self
-            [({pkgs, ...}: {
-              home.packages = [
-                (pkgs.emacsWithPackages (epkgs: [
-                  epkgs.${pname}
-                ]))
-              ];
-            })])
+            [
+              ({pkgs, ...}: {
+                home.packages = [
+                  (pkgs.emacsWithPackages (epkgs: [
+                    epkgs.${pname}
+                  ]))
+                ];
+              })
+            ])
           inputs.flake-utils.lib.defaultSystems);
     }
     // inputs.flake-utils.lib.eachDefaultSystem (system: let

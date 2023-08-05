@@ -15,14 +15,12 @@ Especially if you are unfamiliar with the {{type.name}} ecosystem, there is a Ni
 `nix develop` will put you into an environment where the traditional build tooling works. If you also have `direnv` installed, then you should automatically be in that environment when you're in a directory in this project.
 
 {{#build}}
-
 ### traditional build
 
 {{!describe language-specific build instructions, including benchmarking,
 testing, etc.}}
 {{description}}
 {{/build}}
-
 ## versioning
 
 In the absolute, almost every change is a breaking change. This section describes how we mitigate that to provide minor updates and revisions.

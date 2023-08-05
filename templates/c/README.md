@@ -10,18 +10,20 @@ Especially if you are unfamiliar with the {{type.name}} ecosystem, there is a Ni
 
 ### if you have `nix` installed
 
-`nix build` will build and test the project fully.
+`nix build` will build the project and run tests.
+
+`nix flake check` will validate the state of the repo – formatting, linting, etc.
 
 `nix develop` will put you into an environment where the traditional build tooling works. If you also have `direnv` installed, then you should automatically be in that environment when you're in a directory in this project.
 
-{{#build}}
-
 ### traditional build
 
-{{!describe language-specific build instructions, including benchmarking,
-testing, etc.}}
-{{description}}
-{{/build}}
+This project can be built with GNU Autotools
+```bash
+automake
+./configure
+make
+```
 
 ## versioning
 
