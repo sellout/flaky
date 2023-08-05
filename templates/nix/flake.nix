@@ -22,7 +22,7 @@
       homeConfigurations =
         builtins.listToAttrs
         (builtins.map
-          (inputs.flaky.lib.homeConfigurations.example pname [])
+          (inputs.flaky.lib.homeConfigurations.example pname inputs.self [])
           inputs.flake-utils.lib.defaultSystems);
 
       lib = {};
