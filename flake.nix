@@ -15,8 +15,80 @@
 
   outputs = inputs:
     {
+      overlays = {
+        elisp-dependencies = import ./nix/elisp-dependencies.nix;
+      };
+
       lib = {
         checks = {
+          elisp = let
+            emacsPath = inputs.self.lib.elisp.emacsPath;
+          in {
+            doctor = pkgs: src:
+              inputs.bash-strict-mode.lib.checkedDrv pkgs
+              (pkgs.runCommand "eldev doctor" {
+                  inherit src;
+                  inherit (inputs.self.lib.elisp) ELDEV_LOCAL;
+
+                  nativeBuildInputs = [
+                    pkgs.emacs
+                    # Emacs-lisp build tool, https://doublep.github.io/eldev/
+                    pkgs.emacsPackages.eldev
+                  ];
+                } ''
+                  eldev doctor
+                  mkdir -p "$out"
+                '');
+
+            lint = pkgs: src:
+            ## TODO: Can’t currently use `inputs.bash-strict-mode.lib.checkedDrv`
+            ##       because the `emacs` wrapper script checks for existence of a
+            ##       variable with `-n` intead of `-v`.
+              inputs.bash-strict-mode.lib.shellchecked pkgs
+              (pkgs.stdenv.mkDerivation {
+                inherit src;
+                inherit (inputs.self.lib.elisp) ELDEV_LOCAL;
+
+                name = "eldev lint";
+
+                nativeBuildInputs = [
+                  pkgs.emacs
+                  pkgs.emacsPackages.eldev
+                ];
+
+                postPatch = ''
+                  {
+                    echo
+                    echo "(mapcar"
+                    echo " 'eldev-use-local-dependency"
+                    echo " '(\"${emacsPath pkgs.emacsPackages.dash}\""
+                    echo "   \"${emacsPath pkgs.emacsPackages.elisp-lint}\""
+                    echo "   \"${emacsPath pkgs.emacsPackages.package-lint}\""
+                    echo "   \"${emacsPath pkgs.emacsPackages.relint}\""
+                    echo "   \"${emacsPath pkgs.emacsPackages.xr}\"))"
+                  } >> Eldev
+                '';
+
+                buildPhase = ''
+                  runHook preBuild
+                  ## TODO: Currently needed to make a temp file in
+                  ##      `eldev--create-internal-pseudoarchive-descriptor`.
+                  export HOME="$PWD/fake-home"
+                  mkdir -p "$HOME"
+                  ## Need `--external` here so that we don’t try to download any
+                  ## package archives (which would break the sandbox).
+                  eldev --external lint
+                  runHook postBuild
+                '';
+
+                installPhase = ''
+                  runHook preInstall
+                  mkdir -p "$out"
+                  runHook preInstall
+                '';
+              });
+          };
+
           simple = pkgs: src: name: nativeBuildInputs: cmd:
             inputs.bash-strict-mode.lib.checkedDrv pkgs
             (pkgs.runCommand name {inherit nativeBuildInputs src;} ''
@@ -79,6 +151,21 @@
               ++ nativeBuildInputs;
           });
 
+        elisp = {
+          emacsPath = package: "${package}/share/emacs/site-lisp/elpa/${package.pname}-${package.version}";
+          ## We need to tell Eldev where to find its Emacs package.
+          ELDEV_LOCAL = pkgs:
+            inputs.self.lib.elisp.emacsPath pkgs.emacsPackages.eldev;
+
+          ## Read version in format: ;; Version: x.y(.z)?
+          readVersion = fp:
+            builtins.elemAt
+            (builtins.match
+              ".*(;; Version: ([[:digit:]]+\.[[:digit:]]+(\.[[:digit:]]+)?)).*"
+              (builtins.readFile fp))
+            1;
+        };
+
         format = pkgs: config:
           (inputs.treefmt-nix.lib.evalModule pkgs ({
               projectRootFile = "flake.nix";
@@ -124,6 +211,58 @@
               ++ modules;
           };
         };
+
+        overlays.elisp.default = emacsOverlay: final: prev: {
+          emacsPackagesFor = emacs:
+            (prev.emacsPackagesFor emacs).overrideScope'
+            (emacsOverlay final prev);
+        };
+
+        packages.elisp = pkgs: src: pname:
+          inputs.bash-strict-mode.lib.checkedDrv pkgs
+          (pkgs.emacsPackages.trivialBuild {
+            inherit pname src;
+            inherit (inputs.self.lib.elisp) ELDEV_LOCAL;
+
+            version = inputs.self.lib.elisp.readVersion ./${pname}.el;
+
+            nativeBuildInputs = [
+              (pkgs.emacsWithPackages (epkgs: [
+                epkgs.buttercup
+              ]))
+              # Emacs-lisp build tool, https://doublep.github.io/eldev/
+              pkgs.emacsPackages.eldev
+            ];
+
+            postPatch = ''
+              {
+                echo
+                echo "(mapcar"
+                echo " 'eldev-use-local-dependency"
+                echo " '(\"${inputs.self.lib.elisp.emacsPath pkgs.emacsPackages.buttercup}\"))"
+              } >> Eldev
+            '';
+
+            doCheck = true;
+
+            checkPhase = ''
+              runHook preCheck
+              ## TODO: Currently needed to make a temp file in
+              ##      `eldev--create-internal-pseudoarchive-descriptor`.
+              export HOME="$PWD/fake-home"
+              mkdir -p "$HOME"
+              eldev --external test
+              runHook postCheck
+            '';
+
+            doInstallCheck = true;
+
+            installCheckPhase = ''
+              runHook preInstallCheck
+              eldev --external --packaged test
+              runHook postInstallCheck
+            '';
+          });
       };
 
       templates = let
