@@ -2,30 +2,33 @@
 
 ## Goals
 ## • have automated formatting to avoid wasting time editing and debating
-## • minimize diff-sensitivity to things like changing function names (e.g., don’t want whitespace
-##   diffs on all the parameter lines)
+## • minimize diff-sensitivity to things like changing function names (e.g.,
+##   don’t want whitespace diffs on all the parameter lines)
 
 ## Decisions
-## • break before operators – it’s much easier to understand multi-line expressions when the
-##   interior operators are aligned up front
-## • no bin-packing – subexpressions at the same level should either _all_ be on one line, or each
-##   on their own line for readability, bin packing makes it easy to miss elements
+## • break before operators – it’s much easier to understand multi-line
+##   expressions when the interior operators are aligned up front
+## • no bin-packing – subexpressions at the same level should either _all_ be on
+##   one line, or each on their own line for readability, bin packing makes it
+##   easy to miss elements
 
-# NB: If clang-format can’t parse this file (or doesn’t understand any of the values), it will
-#     format with the default settings. If this happens it’s important to _revert_ the formatting,
-#     not just reformat after fixing it. This is because some formatting changes aren’t reversible,
-#     so you may introduce formatting regressions if you simply reformat.
+# NB: If clang-format can’t parse this file (or doesn’t understand any of the
+#     values), it will format with the default settings. If this happens it’s
+#     important to _revert_ the formatting, not just reformat after fixing it.
+#     This is because some formatting changes aren’t reversible, so you may
+#     introduce formatting regressions if you simply reformat.
 
-# NB: Any disabling of auto-formatting needs a justification. This can be provided like
+# NB: Any disabling of auto-formatting needs a justification. This can be
+#     provided like
 #
 #     // clang-format off: why we’re disabling
 
-## TODO: I’m not really sure how much my style aligns with any particular style, but it might be
-## good to fall back to one for the cases where I don’t have a strong opinion, leaving this file
-## clearer in its intent.
+## TODO: I’m not really sure how much my style aligns with any particular style,
+##       but it might be good to fall back to one for the cases where I don’t
+##       have a strong opinion, leaving this file clearer in its intent.
 # BasedOnStyle: LLVM
 
-AccessModifierOffset: -4
+AccessModifierOffset: 0 # ignored anyway, because of `IndentAccessModifiers`
 AlignAfterOpenBracket: AlwaysBreak # prevents spurious whitespace diffs
 AlignArrayOfStructures: None # prevents spurious whitespace diffs
 AlignConsecutiveAssignments: None # prevents spurious whitespace diffs
@@ -34,7 +37,7 @@ AlignConsecutiveDeclarations: None # prevents spurious whitespace diffs
 AlignConsecutiveMacros: None # prevents spurious whitespace diffs
 AlignEscapedNewlines: DontAlign # prevents spurious whitespace diffs
 AlignOperands: DontAlign # prevents spurious whitespace diffs
-AlignTrailingComments: false # Never in clang 16 # prevents spurious whitespace diffs
+AlignTrailingComments: Never # prevents spurious whitespace diffs
 AllowAllArgumentsOnNextLine: true # compact
 AllowAllConstructorInitializersOnNextLine: true # compact
 AllowAllParametersOfDeclarationOnNextLine: true # compact
@@ -50,26 +53,26 @@ AlwaysBreakTemplateDeclarations: Yes # uncertain, but seems like they should be 
 BinPackArguments: false # consistent
 BinPackParameters: false # consistent
 BitFieldColonSpacing: Both # consistent
-# BreakAfterAttributes: Never # uncertain, but compact # new in clang 16
+BreakAfterAttributes: Never # uncertain, but compact
 BreakAfterJavaFieldAnnotations: false # uncertain, but compact
-# BreakArrays: false # only for JSON, but compact # new in clang 16
+BreakArrays: false # only for JSON, but compact
 BreakBeforeBinaryOperators: All # consistent
 BreakBeforeBraces: Attach # compact & consistent
 BreakBeforeConceptDeclarations: Always # seems redundant with AlwaysBreakTemplateDeclarations
-# BreakBeforeInlineASMColon: OnlyMultiline # compact & consistent # new in clang 16
+BreakBeforeInlineASMColon: OnlyMultiline # compact & consistent
 BreakBeforeTernaryOperators: true # consistent
 BreakConstructorInitializers: BeforeColon # consistent
 BreakInheritanceList: BeforeColon # consistent
 BreakStringLiterals: false # these should be manually broken … but maybe play with the long-line penalty
 ColumnLimit: 80
 CompactNamespaces: false # consistent with avoiding bin packing
-ConstructorInitializerIndentWidth: 4 # consistent
-ContinuationIndentWidth: 4 # TODO: maybe make this different from IndentWidth to allow distinctions in first line of function or after long if conditional
+ConstructorInitializerIndentWidth: 2 # consistent
+ContinuationIndentWidth: 2 # TODO: maybe make this different from IndentWidth to allow distinctions in first line of function or after long if conditional
 Cpp11BracedListStyle: true # consistent with function call style (see doc), even if inconsistent with other braces
 DerivePointerAlignment: false # non-Wadler
 DisableFormat: false
 EmptyLineAfterAccessModifier: Never
-EmptyLineAfterAccessModifier: Always
+EmptyLineBeforeAccessModifier: Always
 FixNamespaceComments: false # I don’t support maintaining standardized comments
 IncludeBlocks: Regroup
 # NB: It’s important to format includes “inside out” to minimize the impact they can have on each
@@ -84,23 +87,23 @@ IncludeCategories:
       Priority:        2
     - Regex:           '.*'
       Priority:        1
-IndentAccessModifiers: false # TODO: This is inconsistent with, say, `case`
+IndentAccessModifiers: true # consistent
 IndentCaseBlocks: true # consistent, case blocks aren’t blocks, they only scope, so don’t format like blocks
-IndentCaseLabels: true # TODO: This is inconsistent with, say, `public`
+IndentCaseLabels: true # consistent
 IndentExternBlock: Indent # consistent
 IndentFunctionDeclarationAfterType: false
 IndentGotoLabels: false # should never use this anyway, but they are not part of the containing block
 IndentPPDirectives: AfterHash
 IndentRequiresClause: true # TODO: Don’t know why this doesn’t have an effect with `RequiresClausePosition: WithPreceding`
-IndentWidth: 4
+IndentWidth: 2
 IndentWrappedFunctionNames: true # consistent (but uncommon)
 InsertBraces: true # consistent, avoids accidentally breaking control flow when an additional statement is added
-# InsertNewlineAtEOF: true # POSIX! # new in clang 16
+InsertNewlineAtEOF: true # POSIX!
 InsertTrailingCommas: Wrapped # consistent, prevents spurious whitespace diffs
-# IntegerLiteralSeparator: # readability (although 8-digit groups may be too large) # new in clang 16
-#     Binary: 8 # byte
-#     Decimal: 3 # many standards, see https://en.wikipedia.org/wiki/Decimal_separator#Digit_grouping
-#     Hex: 8 # common machine word (64b)
+IntegerLiteralSeparator: # readability (although 8-digit groups may be too large)
+    Binary: 8 # byte
+    Decimal: 3 # many standards, see https://en.wikipedia.org/wiki/Decimal_separator#Digit_grouping
+    Hex: 8 # common machine word (64b)
 JavaImportGroups: [] # unimportant, unlike C includes
 JavaScriptQuotes: Double # consistent with interpolated strings elsewhere, interior quotes should be non-ASCII when possible, escaped otherwise
 KeepEmptyLinesAtTheStartOfBlocks: true # TODO: Change to false if we can get indentation to be non-ambiguous
@@ -108,7 +111,7 @@ KeepEmptyLinesAtTheStartOfBlocks: true # TODO: Change to false if we can get ind
 MaxEmptyLinesToKeep: 1 # multiple breaks usually indicates sections, which should have intervening docs or comments instead
 NamespaceIndentation: All # consistent
 ObjCBinPackProtocolList: Never # no bin packing
-ObjCBlockIndentWidth: 4 # same as IndentWidth
+ObjCBlockIndentWidth: 2 # same as IndentWidth
 ObjCBreakBeforeNestedBlockParam: true # consistent
 ObjCSpaceAfterProperty: false # consistent
 ObjCSpaceBeforeProtocolList: false # consistent

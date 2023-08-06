@@ -1,8 +1,8 @@
 # {{project.name}}
 
-{{project.description}}
+{{project.summary}}
 
-## building
+{{project.description}}
 
 ## building & development
 
@@ -20,7 +20,7 @@ Especially if you are unfamiliar with the {{type.name}} ecosystem, there is a Ni
 
 This project can be built with GNU Autotools
 ```bash
-automake
+autoreconf
 ./configure
 make
 ```

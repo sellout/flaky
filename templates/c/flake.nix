@@ -32,6 +32,10 @@
 
       src = pkgs.lib.cleanSource ./.;
 
+      ## TODO: This _should_ be done with an overlay, but I can’t seem to avoid
+      ##       getting infinite recursion with it.
+      stdenv = pkgs.llvmPackages_16.stdenv;
+
       format = inputs.flaky.lib.format pkgs {
         ## C/C++/Java/JavaScript/Objective-C/Protobuf/C# formatter
         programs.clang-format.enable = true;
@@ -41,9 +45,15 @@
         default = inputs.self.packages.${system}.${pname};
 
         "${pname}" =
-          inputs.bash-strict-mode.lib.checkedDrv pkgs
-          (pkgs.stdenv.mkDerivation {
+          ## TODO: Doesn’t use `strict-bash` because `libtoolize` has some bad
+          ##       behavior.
+          inputs.bash-strict-mode.lib.shellchecked pkgs
+          (stdenv.mkDerivation {
             inherit pname src;
+
+            buildInputs = [
+              pkgs.autoreconfHook
+            ];
 
             version = "{{project.version}}";
           });
