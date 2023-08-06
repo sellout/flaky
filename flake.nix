@@ -1,5 +1,5 @@
 {
-  description = "Templates for dev environments.";
+  description = "Templates for dev environments";
 
   nixConfig = {
     ## https://github.com/NixOS/rfcs/blob/master/rfcs/0045-deprecate-url-syntax.md
@@ -252,12 +252,6 @@
     };
 
     nixpkgs.url = "github:NixOS/nixpkgs/release-23.05";
-
-    ## Nix unit-testing
-    nixt = {
-      inputs.nixpkgs.follows = "nixpkgs";
-      url = "github:nix-community/nixt";
-    };
 
     treefmt-nix = {
       inputs.nixpkgs.follows = "nixpkgs";

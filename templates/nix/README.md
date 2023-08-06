@@ -1,8 +1,8 @@
 # {{project.name}}
 
-{{project.description}}
+{{project.summary}}
 
-## building
+{{project.description}}
 
 ## building & development
 
@@ -21,6 +21,7 @@ Especially if you are unfamiliar with the {{type.name}} ecosystem, there is a Ni
 testing, etc.}}
 {{description}}
 {{/build}}
+
 ## versioning
 
 In the absolute, almost every change is a breaking change. This section describes how we mitigate that to provide minor updates and revisions.

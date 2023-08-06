@@ -2,13 +2,13 @@
   description = "{{project.summary}}";
 
   nixConfig = {
-    # https://github.com/NixOS/rfcs/blob/master/rfcs/0045-deprecate-url-syntax.md
+    ## https://github.com/NixOS/rfcs/blob/master/rfcs/0045-deprecate-url-syntax.md
     extra-experimental-features = ["no-url-literals"];
     extra-trusted-public-keys = [
       "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
     ];
     extra-trusted-substituters = ["https://cache.garnix.io"];
-    # Isolate the build.
+    ## Isolate the build.
     registries = false;
     sandbox = true;
   };
