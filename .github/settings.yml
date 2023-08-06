@@ -3,7 +3,7 @@
 # See https://docs.github.com/en/rest/reference/repos#update-a-repository for all available settings.
 repository:
   name: flaky
-  description: Templates for dev environments.
+  description: Templates for dev environments
   # homepage: https://example.github.io/
   topics: development, nix-flakes, nix-templates
   private: false

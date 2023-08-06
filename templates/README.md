@@ -2,7 +2,7 @@
 
 These directories contain templates for getting started with various types of projects.
 
-`nix flake init -t $sysconf#<project-type>` will copy the template to your current directory. Unfortunately, due to limitations with Nix flakes, they’re less templates and more skeletons. The skeletons use [Mustache](https://mustache.github.io/) templating, which can be manually replaced by grepping for `{{` to replace with the values for your project (or use one of the implementations listed on the [Mustache](https://mustache.github.io/) site, like [Handlebars](https://handlebarsjs.com/)).
+`nix flake init -t flaky#<project-type>` will copy the template to your current directory. Unfortunately, due to limitations with Nix flakes, they’re less templates and more skeletons. The skeletons use [Mustache](https://mustache.github.io/) templating, which can be manually replaced by grepping for `{{` to replace with the values for your project (or use one of the implementations listed on the [Mustache](https://mustache.github.io/) site, like [Handlebars](https://handlebarsjs.com/)).
 
 ## usage
 
@@ -12,12 +12,24 @@ Flakes benefit from a [Git](https://git-scm.com/) repo, so the usual way to set 
 mkdir -p <project-path>
 cd <project-path>
 git init
-nix flake init "${sysconf}#<project-type>"
+nix flake init "flaky#<project-type>"
 ```
 
 This will automatically add all of the template files to the new repository, but not stage any of the contents.
 
 The templates then contain [Mustache](http://mustache.github.io/)-style templating, which can either be auto-populated with Mustache or a related tool, or can be manually replaced by searching for `{{.*?}}`.
+
+### syncing changes to the templates
+
+If you have created projects with a template, the template may have changed since then. and it can be difficult to keep them in sync as things diverge. This can be eased a bit with `sync-template`.
+
+Simply run
+
+```bash
+nix run flaky#sync-template -- <name of template>
+```
+
+to have the latest template files updated in your repo. This will automatically apply `mustache` if you have a .config/mustache.yaml file in your repo. Also, since it overwrites files in ways you may not like, it’s best to do this in a clean work tree. After running it, the changes can be manually evaluated.
 
 ## new templates
 

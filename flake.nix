@@ -1,5 +1,5 @@
 {
-  description = "Templates for dev environments.";
+  description = "Templates for dev environments";
 
   nixConfig = {
     ## https://github.com/NixOS/rfcs/blob/master/rfcs/0045-deprecate-url-syntax.md
@@ -70,11 +70,14 @@
         ## NB: This is normally "flake.nix", but since this repo contains
         ##     sub-flakes, we use the .git/config because it is unique.
         projectRootFile = ".git/config";
-        ## Each template has its own formatter that is run during checks, so we
-        ## don’t check them here. The `*/*` is needed so that we don’t miss
-        ## formatting anything in the templates directory that is not part of a
-        ## specific template.
-        settings.global.excludes = ["templates/*/*"];
+        settings = {
+          formatter.shfmt.includes = ["scripts/*"];
+          ## Each template has its own formatter that is run during checks, so
+          ## we don’t check them here. The `*/*` is needed so that we don’t miss
+          ## formatting anything in the templates directory that is not part of
+          ## a specific template.
+          global.excludes = ["templates/*/*"];
+        };
       };
     in {
       ## These shells are quick-and-dirty development environments for various
@@ -154,6 +157,65 @@
         scala = extendDevShell "nix" [pkgs.sbt];
       };
 
+      apps.sync-template = {
+        type = "app";
+        program = "${inputs.self.packages.${system}.management-scripts}/bin/sync-template";
+      };
+
+      packages.management-scripts =
+        inputs.bash-strict-mode.lib.checkedDrv pkgs
+        (pkgs.stdenv.mkDerivation {
+          pname = "flaky-management-scripts";
+          version = "0.1.0";
+          src = ./scripts;
+          meta = {
+            description = "Scripts for managing poly-repo projects";
+            longDescription = ''
+              Making it simpler to manage poly-repo projects (and
+              projectiverses).
+            '';
+          };
+
+          nativeBuildInputs = [pkgs.bats pkgs.makeWrapper];
+
+          patchPhase = ''
+            runHook prePatch
+            ( # Remove +u (and subshell) once NixOS/nixpkgs#207203 is merged
+              set +u
+              patchShebangs .
+            )
+            runHook postPatch
+          '';
+
+          # doCheck = true;
+
+          # checkPhase = ''
+          #   bats --print-output-on-failure ./test/all-tests.bats
+          # '';
+
+          ## This isn’t executable, but putting it in `bin/` makes it possible
+          ## for `source` to find it without a path.
+          installPhase = ''
+            runHook preInstall
+            mkdir -p "$out/bin/"
+            cp ./* "$out/bin/"
+            runHook postInstall
+          '';
+
+          postFixup = ''
+            ( # Remove +u (and subshell) once NixOS/nixpkgs#247410 is fixed
+              set +u
+              wrapProgram $out/bin/sync-template \
+                --prefix PATH : ${pkgs.lib.makeBinPath [
+              pkgs.moreutils
+              pkgs.mustache-go
+            ]}
+            )
+          '';
+
+          # doInstallCheck = true;
+        });
+
       checks = let
         src = pkgs.lib.cleanSource ./.;
       in
@@ -190,12 +252,6 @@
     };
 
     nixpkgs.url = "github:NixOS/nixpkgs/release-23.05";
-
-    ## Nix unit-testing
-    nixt = {
-      inputs.nixpkgs.follows = "nixpkgs";
-      url = "github:nix-community/nixt";
-    };
 
     treefmt-nix = {
       inputs.nixpkgs.follows = "nixpkgs";
