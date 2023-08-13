@@ -9,7 +9,7 @@ function usage() {
   cat << EOF >&2
 Usage:
 
-    ${script_name} [-h] [PROJECT_TYPE]
+    ${script_name} [-h] [-t PROJECT_TYPE]
 
   Updates the current project with the latest from the upstream template.
 
@@ -29,11 +29,14 @@ Usage:
 EOF
 }
 
-while getopts "h" option; do
+while getopts "ht:" option; do
   case "${option}" in
     h)
       usage
       exit 0
+      ;;
+    t)
+      project_type="${OPTARG}"
       ;;
     ?)
       usage
@@ -42,6 +45,7 @@ while getopts "h" option; do
   esac
 done
 if [[ -v ${OPTIND} ]]; then
+  echo "Unsupported options provided: ${*:OPTIND}" >&2
   usage
   exit 1
 fi
@@ -49,9 +53,7 @@ fi
 project_dir="${PWD}"
 mustache_file="${project_dir}/.config/mustache.yaml"
 
-if [[ -v 1 ]]; then
-  project_type="${1}"
-else
+if [[ ! -v project_type ]]; then
   if [[ -f ${mustache_file} ]]; then
     project_type="$(yq '.type.name' "${mustache_file}")"
   else
