@@ -2,18 +2,65 @@
 
 source strict-mode.bash
 shopt -s dotglob
+IFS=$'\n'
+script_name=$(basename "${0}")
 
-## Updates the current project with the latest from the upstream template.
+function usage() {
+  cat << EOF >&2
+Usage:
 
-## Caveats:
-## - this does not remove files that have been removed from the template since
-##   the last update and
-## - this applies mustache if the expected .config/mustache.yaml exists in the
-##   repo, but that doesn’t yet support renaming files, so some may need to be
-##   manually renamed after they’re created.
+    ${script_name} [-h] [PROJECT_TYPE]
 
-project_type="${1}"
+  Updates the current project with the latest from the upstream template.
+
+  PROJECT_TYPE is the name of the template to sync. If it’s not provided, an
+               attempt will be made to read it from the $(type.name) field in the
+               mustache YAML file if it exists.
+
+  This script looks for .config/mustache.yaml in the repository root. If found,
+  it will apply template substitution, but this will still run without it.
+
+  Caveats:
+  - this does not remove files that have been removed from the template since
+    the last update and
+  - this applies mustache if the expected .config/mustache.yaml exists in the
+    repo, but that doesn’t yet support renaming files, so some may need to be
+    manually renamed after they’re created.
+EOF
+}
+
+while getopts "h" option; do
+  case "${option}" in
+    h)
+      usage
+      exit 0
+      ;;
+    ?)
+      usage
+      exit 1
+      ;;
+  esac
+done
+if [[ -v ${OPTIND} ]]; then
+  usage
+  exit 1
+fi
+
 project_dir="${PWD}"
+mustache_file="${project_dir}/.config/mustache.yaml"
+
+if [[ -v 1 ]]; then
+  project_type="${1}"
+else
+  if [[ -f ${mustache_file} ]]; then
+    project_type="$(yq '.type.name' "${mustache_file}")"
+  else
+    echo "Unable to determine project type." >&2
+    usage
+    exit 1
+  fi
+fi
+
 temp_dir="$(mktemp --directory --tmpdir "${project_type}-template.XXXX")"
 
 (
@@ -21,7 +68,6 @@ temp_dir="$(mktemp --directory --tmpdir "${project_type}-template.XXXX")"
     && nix flake init --template "github:sellout/flaky#${project_type}"
 )
 
-mustache_file="${project_dir}/.config/mustache.yaml"
 if [[ -f ${mustache_file} ]]; then
   find "${temp_dir}" -type f -exec bash -c \
     'mustache "${1}" "${0}" | sponge "${0}"' \

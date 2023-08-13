@@ -207,9 +207,10 @@
               set +u
               wrapProgram $out/bin/sync-template \
                 --prefix PATH : ${pkgs.lib.makeBinPath [
-              pkgs.moreutils
-              pkgs.mustache-go
-            ]}
+                  pkgs.moreutils
+                  pkgs.mustache-go
+                  pkgs.yq
+                ]}
             )
           '';
 
