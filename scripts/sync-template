@@ -14,7 +14,7 @@ Usage:
   Updates the current project with the latest from the upstream template.
 
   PROJECT_TYPE is the name of the template to sync. If it’s not provided, an
-               attempt will be made to read it from the $(type.name) field in the
+               attempt will be made to read it from the ‘type.name’ field in the
                mustache YAML file if it exists.
 
   This script looks for .config/mustache.yaml in the repository root. If found,
