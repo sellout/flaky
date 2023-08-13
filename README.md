@@ -4,6 +4,8 @@ Templates for Sellout’s personal projects, plus a flake `lib` to make the temp
 
 This also contains dev shells to make it easy to work on projects I don’t manage (that don’t have a flake).
 
+Some files that might be considered “templatey” are instead in a [community health file repo](https://github.com/sellout/.github) that is shared by all repos under the “sellout” user. Individual repos may override these files as necessary, and repositories in a different org won’t benefit from the repo. Some of these files may eventually transition to templates (e.g., CONTRIBUTING.md) if it is deemed important for them to be part of the source tree.
+
 ## usage
 
 Optional one-time setup (this gives you a shorthand for referencing the flake later):
