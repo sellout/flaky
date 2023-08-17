@@ -40,6 +40,11 @@
           description = "C project template";
           path = ./templates/c;
         };
+        dhall = {
+          inherit welcomeText;
+          description = "Dhall project template";
+          path = ./templates/dhall;
+        };
         emacs-lisp = {
           inherit welcomeText;
           description = "Emacs-lisp project template";
@@ -128,6 +133,10 @@
           pkgs.cmake
           pkgs.gcc
           pkgs.gnumake
+        ];
+        dhall = extendDevShell "nix" [
+          pkgs.dhall
+          pkgs.dhall-docs
         ];
         emacs-lisp = extendDevShell "nix" [
           pkgs.cask
