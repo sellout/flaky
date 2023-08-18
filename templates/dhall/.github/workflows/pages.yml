@@ -1,5 +1,4 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy generated docs to Pages
+name: Deploy  modules & generated docs to Pages
 
 on:
   # Runs on pushes targeting the default branch
@@ -37,10 +36,14 @@ jobs:
       - uses: lriesebos/nix-develop-command@v1
         with:
           command: |
-            dhall-docs --input ./dhall
+            dhall-docs \
+              --input ./dhall \
+              --base-import-url "https://sellout.github.io/{{project.name}}" \
+              --package-name "{{project.name}}"
             ## We copy here to fix the permissions from the Nix symlinks
             cp -r ./docs ./_site
             chmod --recursive +rwx ./_site
+            cp -r ./dhall/* ./_site/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
   deploy:
