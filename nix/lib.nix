@@ -30,6 +30,9 @@
         find . -type f -exec bash -c \
           'mustache "${src}/templates/example.yaml" "$0" | sponge "$0"' \
           {} \;
+        ## Speed up the check by priming the lockfile.
+        cp "$src/flake.lock" ./
+        chmod +w ./flake.lock
         ## Format before checking, because templating may affect
         ## formatting.
         ## TODO: Make files resilient to template formatting, so we can

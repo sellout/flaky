@@ -58,13 +58,11 @@
       src = pkgs.lib.cleanSource ./.;
 
       format = inputs.flaky.lib.format pkgs {
-        ## subsumes dhall (format)
-        ## TODO: Add an option like `programs.dhall.lint = true;` to treefmt-nix
-        settings.formatter.dhall-lint = {
-          command = pkgs.dhall;
-          includes = ["dhall/*"];
-          options = ["lint"];
+        programs.dhall = {
+          enable = true;
+          lint = true;
         };
+        settings.formatter.dhall.includes = ["dhall/*"];
       };
     in {
       packages = {
@@ -83,7 +81,11 @@
         inputs.flaky.lib.devShells.default
         pkgs
         inputs.self
-        [pkgs.dhall pkgs.dhall-docs]
+        [
+          pkgs.dhall
+          pkgs.dhall-docs
+          pkgs.dhall-lsp-server
+        ]
         "";
 
       checks.format = format.check inputs.self;
