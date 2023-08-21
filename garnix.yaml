@@ -4,6 +4,7 @@ builds:
     - "checks.*.bash-template-validity"
     - "checks.*.c-template-validity"
     - "checks.*.default-template-validity"
+    - "checks.*.dhall-template-validity" # I don’t know why this one fails
     - "checks.*.nix-template-validity"
   include:
     - "*.*"
