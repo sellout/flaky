@@ -65,3 +65,29 @@ This is what I use, so it's the most comprehensive section. This doesn't list ev
 
 - [direnv](https://github.com/wbolster/emacs-direnv) or [envrc](https://github.com/purcell/envrc) - updates your Emacs environment based on the local direnv. There are tradeoffs between these two that seem to be best captured in [envrc’s design notes](https://github.com/purcell/envrc#design-notes).
 - [editorconfig](https://github.com/editorconfig/editorconfig-emacs) - plugin to configure Emacs based on the project-specific EditorConfig file
+
+## template-specific notes
+
+These would normally be in a README in the relevant subdirectory, but that would include them in the template, which isn’t what we want.
+
+### C
+
+This builds with Clang, and has a rather idiosyncratic clang-format file.
+
+### Dhall
+
+This template prefers configuration files in Dhall format, using `dhall-nix`, `dhall-json`, `dhall-yaml`, etc. to produce the target format.
+
+### Emacs-lisp
+
+This template uses [Eldev](https://emacs-eldev.github.io/eldev/) to build elisp packages.
+
+It also prefers documents (like READMEs) in [Org](https://emacs-eldev.github.io/eldev/) format instead of Markdown.
+
+#### TODO
+
+- package zipped source and byte-compiled files, no bare source
+
+### Haskell
+
+This builds using Cabal. For API-insensitivity, it also package-qualifies all imports and makes all imports either qualified or explicit.
