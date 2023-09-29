@@ -6,6 +6,10 @@
 
 {{project.description}}
 
+## documentation
+
+API docs are on [GitHub Pages](https://sellout.github.io/{{project-name}}).
+
 ## development environment
 
 We recommend the following steps to make working in this repo as easy as possible.
