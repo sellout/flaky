@@ -101,8 +101,6 @@
         "checks.*.default-template-validity"
         "checks.*.dhall-template-validity" # I don’t know why this one fails
         "checks.*.nix-template-validity"
-        ## TODO: Fails because it doesn’t work in a sandbox.
-        "checks.*.vale"
       ];
     };
     github = {
