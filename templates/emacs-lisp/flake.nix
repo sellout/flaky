@@ -18,6 +18,17 @@
     ename = "emacs-${pname}";
   in
     {
+      schemas = {
+        inherit (inputs.project-manager.schemas)
+          overlays
+          homeConfigurations
+          packages
+          devShells
+          projectConfigurations
+          checks
+          formatter;
+      };
+
       overlays = {
         default =
           inputs.flaky.lib.elisp.overlays.default inputs.self.overlays.emacs;
@@ -51,8 +62,6 @@
       };
 
       src = pkgs.lib.cleanSource ./.;
-
-      format = inputs.flaky.lib.format pkgs {};
     in {
       packages = {
         default = inputs.self.packages.${system}.${ename};
@@ -62,18 +71,40 @@
       devShells.default =
         inputs.flaky.lib.devShells.default pkgs inputs.self [] "";
 
-      checks = {
-        elisp-doctor = inputs.flaky.lib.elisp.checks.doctor pkgs src;
-        elisp-lint = inputs.flaky.lib.elisp.checks.lint pkgs src (_: []);
-        format = format.check inputs.self;
+      projectConfigurations = inputs.flaky.lib.projectConfigurations.default {
+        inherit pkgs;
+        inherit (inputs) self;
       };
 
-      formatter = format.wrapper;
+      checks = inputs.self.projectConfigurations.${system}.checks
+               // {
+        elisp-doctor = inputs.flaky.lib.elisp.checks.doctor pkgs src;
+        elisp-lint = inputs.flaky.lib.elisp.checks.lint pkgs src (_: []);
+      };
+
+      formatter = inputs.self.projectConfigurations.${system}.formatter;
     });
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
-    flaky.url = "github:sellout/flaky";
+
+    flaky = {
+      inputs = {
+        flake-utils.follows = "flake-utils";
+        nixpkgs.follows = "nixpkgs";
+        project-manager.follows = "project-manager";
+      };
+      url = "github:sellout/flaky";
+    };
+
     nixpkgs.url = "github:NixOS/nixpkgs/release-23.05";
+
+    project-manager = {
+      inputs = {
+        flaky.follows = "flaky";
+        nixpkgs.follows = "nixpkgs";
+      };
+      url = "github:sellout/project-manager";
+    };
   };
 }

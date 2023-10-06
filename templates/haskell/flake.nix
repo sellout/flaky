@@ -52,6 +52,17 @@
       });
   in
     {
+      schemas = {
+        inherit (inputs.project-manager.schemas)
+          overlays
+          homeConfigurations
+          packages
+          devShells
+          projectConfigurations
+          checks
+          formatter;
+      }
+
       # see these issues and discussions:
       # - NixOS/nixpkgs#16394
       # - NixOS/nixpkgs#25887
@@ -86,22 +97,13 @@
     ## NB: This uses `eachSystem defaultSystems` instead of `eachDefaultSystem`
     ##     because users often have to locally replace `defaultSystems` with
     ##     their specific system to avoid issues with IFD.
-    // inputs.flake-utils.lib.eachSystem ["aarch64-darwin"]
+    // inputs.flake-utils.lib.eachSystem inputs.flake-utils.lib.defaultSystems
     (system: let
       pkgs = import inputs.nixpkgs {
         inherit system;
         ## NB: This uses `inputs.self.overlays.default` because packages need to
         ##     be able to find other packages in this flake as dependencies.
         overlays = [inputs.self.overlays.default];
-      };
-
-      format = inputs.flaky.lib.format pkgs {
-        programs = {
-          ## Haskell linter
-          hlint.enable = true;
-          ## Haskell formatter
-          ormolu.enable = true;
-        };
       };
 
       ## TODO: Extract this automatically from `pkgs.haskellPackages`.
@@ -123,9 +125,14 @@
           pkgs.graphviz
         ]);
 
-      checks.format = format.check inputs.self;
+      projectConfigurations = inputs.flaky.lib.projectConfigurations.default {
+        inherit pkgs;
+        inherit (inputs) self;
+      };
 
-      formatter = format.wrapper;
+      checks = inputs.self.projectConfigurations.${system}.checks;
+
+      formatter = inputs.self.projectConfigurations.${system}.formatter;
     });
 
   inputs = {

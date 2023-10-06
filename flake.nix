@@ -10,17 +10,37 @@
     ];
     ## Isolate the build.
     registries = false;
-    sandbox = true;
+    ## Disabled so that checks that require Internet access can run.
+    sandbox = false;
   };
 
   outputs = inputs:
     {
+      schemas = {
+        inherit (inputs.project-manager.schemas)
+          overlays
+          # lib
+          templates
+          projectModules
+          projectConfigurations
+          devShells
+          apps
+          packages
+          checks
+          formatter;
+      };
+
       overlays = {
         elisp-dependencies = import ./nix/elisp-dependencies.nix;
       };
 
       lib = import ./nix/lib.nix {
-        inherit (inputs) bash-strict-mode home-manager nixpkgs treefmt-nix;
+        inherit (inputs)
+          bash-strict-mode
+          home-manager
+          nixpkgs
+          project-manager
+          self;
       };
 
       templates = let
@@ -63,28 +83,26 @@
           path = ./templates/nix;
         };
       };
+
+      ## The settings shared across my projects.
+      projectModules.default = ./base/.config/project;
     }
     // inputs.flake-utils.lib.eachSystem inputs.flake-utils.lib.defaultSystems
     (system: let
       pkgs = import inputs.nixpkgs {
         inherit system;
-        overlays = [inputs.bash-strict-mode.overlays.default];
-      };
-
-      format = inputs.self.lib.format pkgs {
-        ## NB: This is normally "flake.nix", but since this repo contains
-        ##     sub-flakes, we use the .git/config because it is unique.
-        projectRootFile = ".git/config";
-        settings = {
-          formatter.shfmt.includes = ["scripts/*"];
-          ## Each template has its own formatter that is run during checks, so
-          ## we don’t check them here. The `*/*` is needed so that we don’t miss
-          ## formatting anything in the templates directory that is not part of
-          ## a specific template.
-          global.excludes = ["templates/*/*"];
-        };
+        overlays = [
+          inputs.bash-strict-mode.overlays.default
+          inputs.project-manager.overlays.default
+        ];
       };
     in {
+      projectConfigurations =
+        inputs.self.lib.projectConfigurations.default {
+          inherit pkgs;
+          inherit (inputs) self;
+        };
+
       ## These shells are quick-and-dirty development environments for various
       ## programming languages. They’re meant to be used in projects that don’t
       ## have any Nix support provided. There should be a
@@ -108,8 +126,8 @@
           inputs.self.devShells.${system}.${shell}.overrideAttrs (old: {
             nativeBuildInputs = old.nativeBuildInputs ++ nativeBuildInputs;
           });
-      in {
-        default = inputs.self.lib.devShells.default pkgs inputs.self [] "";
+      in inputs.self.projectConfigurations.${system}.devShells // {
+        # inputs.self.lib.devShells.default pkgs inputs.self [] "";
         ## This provides tooling that could be useful in _any_ Nix project, if
         ## there’s not a specific one.
         nix = inputs.bash-strict-mode.lib.checkedDrv pkgs (pkgs.mkShell {
@@ -229,9 +247,7 @@
       checks = let
         src = pkgs.lib.cleanSource ./.;
       in
-        {
-          format = format.check inputs.self;
-        }
+        inputs.self.projectConfigurations.${system}.checks
         // builtins.listToAttrs (map (name: {
             name = "${name}-template-validity";
             value = inputs.self.lib.checks.validate-template name pkgs src;
@@ -242,7 +258,7 @@
             (pkgs.lib.remove "haskell"
               (builtins.attrNames inputs.self.templates))));
 
-      formatter = format.wrapper;
+      formatter = inputs.self.projectConfigurations.${system}.formatter;
     });
 
   inputs = {
@@ -263,9 +279,13 @@
 
     nixpkgs.url = "github:NixOS/nixpkgs/release-23.05";
 
-    treefmt-nix = {
-      inputs.nixpkgs.follows = "nixpkgs";
-      url = "github:numtide/treefmt-nix";
+    project-manager = {
+      inputs = {
+        bash-strict-mode.follows = "bash-strict-mode";
+        flake-utils.follows = "flake-utils";
+        nixpkgs.follows = "nixpkgs";
+      };
+      url = "github:sellout/project-manager";
     };
   };
 }

@@ -17,6 +17,18 @@
     pname = "{{project.name}}";
   in
     {
+      schemas = {
+        inherit (inputs.project-manager.schemas)
+          overlays
+          homeConfigurations
+          # lib
+          packages
+          devShells
+          projectConfigurations
+          checks
+          formatter;
+      };
+
       overlays.default = final: prev: {};
 
       homeConfigurations =
@@ -35,11 +47,6 @@
       ## TODO: This _should_ be done with an overlay, but I can’t seem to avoid
       ##       getting infinite recursion with it.
       stdenv = pkgs.llvmPackages_16.stdenv;
-
-      format = inputs.flaky.lib.format pkgs {
-        ## C/C++/Java/JavaScript/Objective-C/Protobuf/C# formatter
-        programs.clang-format.enable = true;
-      };
     in {
       packages = {
         default = inputs.self.packages.${system}.${pname};
@@ -59,10 +66,15 @@
           });
       };
 
-      devShells.default =
-        inputs.flaky.lib.devShells.default pkgs inputs.self [] "";
+      devShells = inputs.self.projectConfigurations.${system}.devShells;
 
-      checks = {
+      projectConfigurations = inputs.flaky.lib.projectConfigurations.default {
+        inherit pkgs;
+        inherit (inputs) self;
+      };
+
+      checks = inputs.self.projectConfigurations.${system}.checks
+               // {
         ## TODO: This doesn’t quite work yet.
         c-lint =
           inputs.flaky.lib.checks.simple
@@ -79,10 +91,9 @@
             find "$src" \( -name '*.c' -o -name '*.cpp' -o -name '*.h' \) \
               -exec clang-tidy {} +
           '';
-        format = format.check inputs.self;
       };
 
-      formatter = format.wrapper;
+      formatter = inputs.self.projectConfigurations.${system}.formatter;
     });
 
   inputs = {
@@ -96,5 +107,14 @@
     flaky.url = "github:sellout/flaky";
 
     nixpkgs.url = "github:NixOS/nixpkgs/release-23.05";
+
+    project-manager = {
+      inputs = {
+        bash-strict-mode.follows = "bash-strict-mode";
+        flaky.follows = "flaky";
+        nixpkgs.follows = "nixpkgs";
+      };
+      url = "github:sellout/project-manager";
+    };
   };
 }

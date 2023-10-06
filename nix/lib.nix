@@ -2,7 +2,8 @@
   bash-strict-mode,
   home-manager,
   nixpkgs,
-  treefmt-nix,
+  project-manager,
+  self,
 }: {
   checks = let
     simple = pkgs: src: name: nativeBuildInputs: cmd:
@@ -19,7 +20,7 @@
       pkgs
       src
       "validate ${name}"
-      [pkgs.cacert pkgs.mustache-go pkgs.nix pkgs.moreutils]
+      [pkgs.cacert pkgs.mustache-go pkgs.nix pkgs.moreutils pkgs.project-manager]
       ''
         mkdir -p "$out"
         ## TODO: Figure out why this needs `HOME` set.
@@ -33,10 +34,9 @@
         ## Speed up the check by priming the lockfile.
         cp "$src/flake.lock" ./
         chmod +w ./flake.lock
-        ## Format before checking, because templating may affect
+        project-manager switch --accept-flake-config
+        ## Format the README before checking, because templating may affect
         ## formatting.
-        ## TODO: Make files resilient to template formatting, so we can
-        ##       remove this.
         nix --accept-flake-config \
             --extra-experimental-features "flakes nix-command" \
             fmt README.md
@@ -74,31 +74,8 @@
 
   elisp = import ./lib/elisp.nix {inherit bash-strict-mode;};
 
-  format = pkgs: config:
-    (treefmt-nix.lib.evalModule pkgs ({
-        projectRootFile = "flake.nix";
-        programs = {
-          ## Nix formatter
-          alejandra.enable = true;
-          ## Shell linter
-          shellcheck.enable = true;
-          ## Web/JSON/Markdown/TypeScript/YAML formatter
-          prettier.enable = true;
-          ## Shell formatter
-          shfmt = {
-            enable = true;
-            ## NB: This has to be unset to allow the .editorconfig
-            ##     settings to be used. See numtide/treefmt-nix#96.
-            indent_size = null;
-          };
-        };
-      }
-      // config))
-    .config
-    .build;
-
   homeConfigurations.example = name: self: modules: system: {
-    name = "${system}-${name}-example";
+    name = "${name}-example [${system}]";
     value = home-manager.lib.homeManagerConfiguration {
       pkgs = import nixpkgs {
         inherit system;
@@ -119,4 +96,22 @@
         ++ modules;
     };
   };
+
+  ## Adds `flaky` as an additional module argument.
+  projectConfigurations.default = {modules ? [], ...} @ args:
+    project-manager.lib.defaultConfiguration (args // {
+      modules = modules ++ [
+        { _module.args.flaky = self;
+        }
+        self.projectModules.default
+      ];
+    });
+
+  garnixChecks = let
+    ## The systems supported by garnix.
+    ##
+    ## TODO: Ideally we would intersect this with the set of systems used in the
+    ##       flake.
+    garnixSystems = ["aarch64-darwin" "aarch64-linux" "x86_64-linux"];
+  in jobNameFn: map jobNameFn garnixSystems;
 }

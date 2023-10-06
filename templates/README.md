@@ -2,11 +2,11 @@
 
 These directories contain templates for getting started with various types of projects.
 
-`nix flake init -t flaky#<project-type>` will copy the template to your current directory. Unfortunately, due to limitations with Nix flakes, they’re less templates and more skeletons. The skeletons use [Mustache](https://mustache.github.io/) templating, which can be manually replaced by grepping for `{{` to replace with the values for your project (or use one of the implementations listed on the [Mustache](https://mustache.github.io/) site, like [Handlebars](https://handlebarsjs.com/)).
+`nix flake init -t flaky#<project-type>` will copy the template to your current directory. Due to limitations with Nix flakes, they’re less templates and more skeletons. The skeletons use [Mustache](https://mustache.github.io/) templating, which can be manually replaced by grepping for `{{` to replace with the values for your project (or use one of the implementations listed on the [Mustache](https://mustache.github.io/) site, like [Handlebars](https://handlebarsjs.com/)).
 
 ## usage
 
-Flakes benefit from a [Git](https://git-scm.com/) repo, so the usual way to set up a new project is
+Flakes benefit from a [Git](https://git-scm.com/) repository, so the usual way to set up a new project is
 
 ```bash
 mkdir -p <project-path>
@@ -15,13 +15,13 @@ git init
 nix flake init "flaky#<project-type>"
 ```
 
-This will automatically add all of the template files to the new repository, but not stage any of the contents.
+This will automatically add all the template files to the new repository, but not stage any of the contents.
 
-The templates then contain [Mustache](http://mustache.github.io/)-style templating, which can either be auto-populated with Mustache or a related tool, or can be manually replaced by searching for `{{.*?}}`.
+The templates then contain [Mustache](http://mustache.github.io/)-style templating, which can either be automatically populated with Mustache or a related tool, or can be manually replaced by searching for `{{.*?}}`.
 
 ### syncing changes to the templates
 
-If you have created projects with a template, the template may have changed since then. and it can be difficult to keep them in sync as things diverge. This can be eased a bit with `sync-template`.
+If you have created projects with a template, the template may have changed since then, and it can be difficult to keep them in sync as things diverge. The `sync-template` script can ease this pain.
 
 Simply run
 
@@ -29,17 +29,17 @@ Simply run
 nix run flaky#sync-template -- <name of template>
 ```
 
-to have the latest template files updated in your repo. This will automatically apply `mustache` if you have a .config/mustache.yaml file in your repo. Also, since it overwrites files in ways you may not like, it’s best to do this in a clean work tree. After running it, the changes can be manually evaluated.
+to have the latest template files updated in your repository. This will automatically apply `mustache` if you have a .config/mustache.yaml file in your repository. Also, since it overwrites files in ways you may not like, it’s best to do this in a clean work tree. After running it, the changes can be manually evaluated.
 
 ## new templates
 
-To create a new template here, `init` the `default` template as a starting point (or one of the other existing templates that may be closer to your project type). Then add an entry to `templates` in ../flake.nix.
+To create a new template here, `init` the `default` template as a starting point (or one of the other existing templates that may be closer to your project type). Then add an entry to `templates` in `../flake.nix`.
 
 ## the goal
 
-The idea is that projects should be managable by both experts in the relevant tooling (programming language, etc.) and outsiders who need to make a change or add a feature while minimizing the amount they have to learn in order to do so.
+The idea is that projects should be manageable by both experts in the relevant tooling (programming language, etc.) and outsiders who need to make a change or add a feature while minimizing the amount they have to learn to do so.
 
-In that vein, projects generated from these templates provide traditional (e.g., language-specific) builds as well as overarching configuration via `direnv` and `nix`, which should be consistent across all projects, regardless of other tooling.
+In that vein, projects generated from these templates provide traditional (for example, language-specific) builds as well as overarching configuration via `direnv` and `nix`, which should be consistent across all projects, regardless of other tooling.
 
 This project strives to both encompass as much project setup as possible while also minimizing the about of boilerplate necessary to create a project.
 
@@ -53,9 +53,9 @@ This also currently has some biases. It defaults licensing to AGPL-3 (this could
 
 These are tools that the project skeleton leverages to provide project-agnostic support.
 
-- [direnv](https://direnv.net/) - automatically set up per-project development environments; e.g., no need to globally install build tooling for languages you rarely use
+- [direnv](https://direnv.net/) - automatically set up per-project development environments; for example., no need to globally install build tooling for languages you rarely use
 - [EditorConfig](https://editorconfig.org/) - provides some basic formatting settings in an editor-agnostic way, provided your editor supports it
-- [Nix](https://nixos.org/) - reproducable builds across toolchains.
+- [Nix](https://nixos.org/) - reproducible builds across tool chains.
 
 ### editor-specific tooling
 
@@ -80,11 +80,11 @@ This template prefers configuration files in Dhall format, using `dhall-nix`, `d
 
 ### Emacs-lisp
 
-This template uses [Eldev](https://emacs-eldev.github.io/eldev/) to build elisp packages.
+This template uses [Eldev](https://emacs-eldev.github.io/eldev/) to build Emacs Lisp packages.
 
-It also prefers documents (like READMEs) in [Org](https://emacs-eldev.github.io/eldev/) format instead of Markdown.
+It also prefers documents (like ReadMes) in [Org](https://emacs-eldev.github.io/eldev/) format instead of Markdown.
 
-#### TODO
+#### ToDo
 
 - package zipped source and byte-compiled files, no bare source
 

@@ -17,22 +17,32 @@
     pname = "{{project.name}}";
   in
     {
+      schemas = {
+        inherit (inputs.project-manager.schemas)
+          overlays
+          # lib
+          homeConfigurations
+          packages
+          devShells
+          projectConfigurations
+          checks
+          formatter;
+      };
+
       overlays.default = final: prev: {};
+
+      lib = {};
 
       homeConfigurations =
         builtins.listToAttrs
         (builtins.map
           (inputs.flaky.lib.homeConfigurations.example pname inputs.self [])
           inputs.flake-utils.lib.defaultSystems);
-
-      lib = {};
     }
     // inputs.flake-utils.lib.eachDefaultSystem (system: let
       pkgs = import inputs.nixpkgs {inherit system;};
 
       src = pkgs.lib.cleanSource ./.;
-
-      format = inputs.flaky.lib.format pkgs {};
     in {
       packages = {
         default = inputs.self.packages.${system}.${pname};
@@ -46,24 +56,49 @@
           });
       };
 
-      devShells.default =
-        inputs.flaky.lib.devShells.default pkgs inputs.self [] "";
+      devShells = inputs.self.projectConfigurations.${system}.devShells;
 
-      checks.format = format.check inputs.self;
+      projectConfigurations = inputs.flaky.lib.projectConfigurations.default {
+        inherit pkgs;
+        inherit (inputs) self;
+      };
 
-      formatter = format.wrapper;
+      checks = inputs.self.projectConfigurations.${system}.checks;
+
+      formatter = inputs.self.projectConfigurations.${system}.formatter;
     });
 
   inputs = {
     bash-strict-mode = {
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        flake-utils.follows = "flake-utils";
+        flaky.follows = "flaky";
+        nixpkgs.follows = "nixpkgs";
+      };
       url = "github:sellout/bash-strict-mode";
     };
 
     flake-utils.url = "github:numtide/flake-utils";
 
-    flaky.url = "github:sellout/flaky";
+    flaky = {
+      inputs = {
+        bash-strict-mode.follows = "bash-strict-mode";
+        flake-utils.follows = "flake-utils";
+        nixpkgs.follows = "nixpkgs";
+        project-manager.follows = "project-manager";
+      };
+      url = "github:sellout/flaky";
+    };
 
     nixpkgs.url = "github:NixOS/nixpkgs/release-23.05";
+
+    project-manager = {
+      inputs = {
+        bash-strict-mode.follows = "bash-strict-mode";
+        flaky.follows = "flaky";
+        nixpkgs.follows = "nixpkgs";
+      };
+      url = "github:sellout/project-manager";
+    };
   };
 }
