@@ -1,0 +1,11 @@
+Dhall
+direnv
+EditorConfig
+editorconfig
+Eldev
+envrc
+fmt
+[Nn]ix
+Probot
+ShellCheck
+shfmt

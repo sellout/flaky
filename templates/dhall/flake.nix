@@ -23,6 +23,17 @@
     pname = "{{project.name}}";
   in
     {
+      schemas = {
+        inherit (inputs.project-manager.schemas)
+          overlays
+          homeConfigurations
+          packages
+          devShells
+          projectConfigurations
+          checks
+          formatter;
+      };
+
       overlays = {
         default = final: prev: {
           dhallPackages = prev.dhallPackages.override (old: {
@@ -56,14 +67,6 @@
       pkgs = import inputs.nixpkgs {inherit system;};
 
       src = pkgs.lib.cleanSource ./.;
-
-      format = inputs.flaky.lib.format pkgs {
-        programs.dhall = {
-          enable = true;
-          lint = true;
-        };
-        settings.formatter.dhall.includes = ["dhall/*"];
-      };
     in {
       packages = {
         default = inputs.self.packages.${system}.${pname};
@@ -88,9 +91,14 @@
         ]
         "";
 
-      checks.format = format.check inputs.self;
+      projectConfigurations = inputs.flaky.lib.projectConfigurations.default {
+        inherit pkgs;
+        inherit (inputs) self;
+      };
 
-      formatter = format.wrapper;
+      checks = inputs.self.projectConfigurations.${system}.checks;
+
+      formatter = inputs.self.projectConfigurations.${system}.formatter;
     });
 
   inputs = {
@@ -104,5 +112,14 @@
     flaky.url = "github:sellout/flaky";
 
     nixpkgs.url = "github:NixOS/nixpkgs/release-23.05";
+
+    project-manager = {
+      inputs = {
+        bash-strict-mode.follows = "bash-strict-mode";
+        flaky.follows = "flaky";
+        nixpkgs.follows = "nixpkgs";
+      };
+      url = "github:sellout/project-manager";
+    };
   };
 }
