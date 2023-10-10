@@ -30,5 +30,7 @@
     ## editors
     ./editorconfig.nix
     ./emacs
+    ## other
+    ./hacktoberfest.nix
   ];
 }

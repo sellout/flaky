@@ -84,8 +84,11 @@
         };
       };
 
-      ## The settings shared across my projects.
-      projectModules.default = ./base/.config/project;
+      projectModules = {
+        ## The settings shared across my projects.
+        default = ./base/.config/project;
+        hacktoberfest = ./base/.config/project/hacktoberfest.nix;
+      };
     }
     // inputs.flake-utils.lib.eachSystem inputs.flake-utils.lib.defaultSystems
     (system: let

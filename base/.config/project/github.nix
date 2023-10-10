@@ -13,7 +13,6 @@
         name = config.project.name;
         description = config.project.summary;
         # homepage = "https://example.github.io/";
-        topics = ["hacktoberfest"];
         private = false;
         has_issues = true;
         has_projects = true;
@@ -30,40 +29,32 @@
         enable_vulnerability_alerts = true;
       };
 
-      labels = [
-        { name = "bug";
+      labels = {
+        bug = {
           color = "#d73a4a";
           description = "Something isn’t working";
-        }
-        { name = "documentation";
-            color = "#0075ca";
-            description = "Improvements or additions to documentation";
-        }
-        { name = "enhancement";
+        };
+        documentation = {
+          color = "#0075ca";
+          description = "Improvements or additions to documentation";
+        };
+        enhancement = {
           color = "#a2eeef";
           description = "New feature or request";
-        }
-        { name = "good first issue";
+        };
+        "good first issue" = {
           color = "#7057ff";
           description = "Good for newcomers";
-        }
-        { name = "hacktoberfest-accepted";
-          color = "#ff7518"; # pumpkin
-          description = "Indicates acceptance for Hacktoberfest criteria, even if not merged yet";
-        }
-        { name = "help wanted";
+        };
+        "help wanted" = {
           color = "#008672";
           description = "Extra attention is needed";
-        }
-        { name = "question";
+        };
+        question = {
           color = "#d876e3";
           description = "Further information is requested";
-        }
-        { name = "spam";
-          color = "#ffc0cb"; # pink
-          description = "Topic created in bad faith. Services like Hacktoberfest use this to identify bad actors";
-        }
-      ];
+        };
+      };
 
       branches = {
         main = {
