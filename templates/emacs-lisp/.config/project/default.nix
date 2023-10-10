@@ -1,4 +1,4 @@
-{config, ...}: {
+{config, flaky, lib, ...}: {
   project = {
     name = "{{project.name}}";
     summary = "{{project.summary}}";
@@ -40,13 +40,18 @@
     github = {
       enable = true;
       settings = {
+        ## FIXME: Shouldn’t need `mkForce` here (or to duplicated the base
+        ##        contexts). Need to improve module merging.
         branches.main.protection.required_status_checks.contexts =
-          lib.concatMap garnixChecks [
+          lib.concatMap flaky.lib.garnixChecks [
             (sys: "check elisp-doctor [${sys}]")
             (sys: "check elisp-lint [${sys}]")
             (sys: "homeConfig ${sys}-${config.project.name}-example")
             (sys: "package default [${sys}]")
             (sys: "package emacs-${config.project.name} [${sys}]")
+            ## FIXME: These are duplicated from the base config
+            (sys: "check formatter [${sys}]")
+            (sys: "devShell default [${sys}]")
           ];
       };
     };

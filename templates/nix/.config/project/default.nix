@@ -1,4 +1,4 @@
-{lib, ...}: {
+{config, lib, ...}: {
   project = {
     name = "{{project.name}}";
     summary = "{{project.summary}}";
@@ -8,7 +8,7 @@
     commit-by-default = lib.mkForce false;
   };
 
-  editor-config.enable = true;
+  editorconfig.enable = true;
 
   programs = {
     direnv = {

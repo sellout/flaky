@@ -20,21 +20,34 @@
       pkgs
       src
       "validate ${name}"
-      [pkgs.cacert pkgs.mustache-go pkgs.nix pkgs.moreutils pkgs.project-manager]
+      [
+        pkgs.cacert
+        pkgs.git
+        pkgs.mustache-go
+        pkgs.nix
+        pkgs.moreutils
+        pkgs.project-manager
+      ]
       ''
         mkdir -p "$out"
-        ## TODO: Figure out why this needs `HOME` set.
-        HOME="$out"
-        nix --accept-flake-config --extra-experimental-features "flakes nix-command" flake \
-          new "${name}-example" --template "${src}#${name}"
+        HOME="$PWD/fake-home"
+        mkdir -p "$HOME/.local/state/nix/profiles"
+
+        nix --accept-flake-config \
+            --extra-experimental-features "flakes nix-command" \
+            flake new "${name}-example" --template "${src}#${name}"
         cd "${name}-example"
         find . -type f -exec bash -c \
           'mustache "${src}/templates/example.yaml" "$0" | sponge "$0"' \
           {} \;
+        ## Reference _this_ version of flaky, rather than a published one.
+        sed -i -e 's#github:sellout/flaky#${self}#g' ./flake.nix
         ## Speed up the check by priming the lockfile.
         cp "$src/flake.lock" ./
         chmod +w ./flake.lock
-        project-manager switch --accept-flake-config
+        git init
+        git add --all
+        project-manager switch
         ## Format the README before checking, because templating may affect
         ## formatting.
         nix --accept-flake-config \
@@ -99,13 +112,15 @@
 
   ## Adds `flaky` as an additional module argument.
   projectConfigurations.default = {modules ? [], ...} @ args:
-    project-manager.lib.defaultConfiguration (args // {
-      modules = modules ++ [
-        { _module.args.flaky = self;
-        }
-        self.projectModules.default
-      ];
-    });
+    project-manager.lib.defaultConfiguration (args
+      // {
+        modules =
+          modules
+          ++ [
+            {_module.args.flaky = self;}
+            self.projectModules.default
+          ];
+      });
 
   garnixChecks = let
     ## The systems supported by garnix.
@@ -113,5 +128,6 @@
     ## TODO: Ideally we would intersect this with the set of systems used in the
     ##       flake.
     garnixSystems = ["aarch64-darwin" "aarch64-linux" "x86_64-linux"];
-  in jobNameFn: map jobNameFn garnixSystems;
+  in
+    jobNameFn: map jobNameFn garnixSystems;
 }

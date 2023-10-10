@@ -17,7 +17,8 @@
   outputs = inputs:
     {
       schemas = {
-        inherit (inputs.project-manager.schemas)
+        inherit
+          (inputs.project-manager.schemas)
           overlays
           # lib
           templates
@@ -27,7 +28,8 @@
           apps
           packages
           checks
-          formatter;
+          formatter
+          ;
       };
 
       overlays = {
@@ -35,12 +37,14 @@
       };
 
       lib = import ./nix/lib.nix {
-        inherit (inputs)
+        inherit
+          (inputs)
           bash-strict-mode
           home-manager
           nixpkgs
           project-manager
-          self;
+          self
+          ;
       };
 
       templates = let
@@ -100,11 +104,10 @@
         ];
       };
     in {
-      projectConfigurations =
-        inputs.self.lib.projectConfigurations.default {
-          inherit pkgs;
-          inherit (inputs) self;
-        };
+      projectConfigurations = inputs.self.lib.projectConfigurations.default {
+        inherit pkgs;
+        inherit (inputs) self;
+      };
 
       ## These shells are quick-and-dirty development environments for various
       ## programming languages. They’re meant to be used in projects that don’t
@@ -129,63 +132,65 @@
           inputs.self.devShells.${system}.${shell}.overrideAttrs (old: {
             nativeBuildInputs = old.nativeBuildInputs ++ nativeBuildInputs;
           });
-      in inputs.self.projectConfigurations.${system}.devShells // {
-        # inputs.self.lib.devShells.default pkgs inputs.self [] "";
-        ## This provides tooling that could be useful in _any_ Nix project, if
-        ## there’s not a specific one.
-        nix = inputs.bash-strict-mode.lib.checkedDrv pkgs (pkgs.mkShell {
-          nativeBuildInputs = [
+      in
+        inputs.self.projectConfigurations.${system}.devShells
+        // {
+          # inputs.self.lib.devShells.default pkgs inputs.self [] "";
+          ## This provides tooling that could be useful in _any_ Nix project, if
+          ## there’s not a specific one.
+          nix = inputs.bash-strict-mode.lib.checkedDrv pkgs (pkgs.mkShell {
+            nativeBuildInputs = [
+              pkgs.bash-strict-mode
+              pkgs.nil
+              pkgs.nodePackages.bash-language-server
+              pkgs.shellcheck
+              pkgs.shfmt
+            ];
+          });
+          bash = extendDevShell "nix" [
+            pkgs.bash
             pkgs.bash-strict-mode
-            pkgs.nil
             pkgs.nodePackages.bash-language-server
             pkgs.shellcheck
             pkgs.shfmt
           ];
-        });
-        bash = extendDevShell "nix" [
-          pkgs.bash
-          pkgs.bash-strict-mode
-          pkgs.nodePackages.bash-language-server
-          pkgs.shellcheck
-          pkgs.shfmt
-        ];
-        c = extendDevShell "nix" [
-          pkgs.clang
-          pkgs.cmake
-          pkgs.gcc
-          pkgs.gnumake
-        ];
-        dhall = extendDevShell "nix" [
-          pkgs.dhall
-          pkgs.dhall-docs
-        ];
-        emacs-lisp = extendDevShell "nix" [
-          pkgs.cask
-          pkgs.emacs
-          pkgs.emacsPackages.eldev
-        ];
-        haskell = extendDevShell "nix" [
-          pkgs.cabal-install
-          # We don’t need `ghcWithPackages` here because the build tool should
-          # handle the dependencies. Stack bundles GHC, but Cabal needs a
-          # version installed.
-          pkgs.ghc
-          pkgs.haskell-language-server
-          pkgs.hpack
-          pkgs.ormolu
-          pkgs.stack
-        ];
-        rust =
-          extendDevShell "nix"
-          (inputs.nixpkgs.lib.optional
-            (system == inputs.flake-utils.lib.system.aarch64-darwin)
-            pkgs.libiconv
-            ++ [
-              pkgs.cargo
-              pkgs.rustc
-            ]);
-        scala = extendDevShell "nix" [pkgs.sbt];
-      };
+          c = extendDevShell "nix" [
+            pkgs.clang
+            pkgs.cmake
+            pkgs.gcc
+            pkgs.gnumake
+          ];
+          dhall = extendDevShell "nix" [
+            pkgs.dhall
+            pkgs.dhall-docs
+          ];
+          emacs-lisp = extendDevShell "nix" [
+            pkgs.cask
+            pkgs.emacs
+            pkgs.emacsPackages.eldev
+          ];
+          haskell = extendDevShell "nix" [
+            pkgs.cabal-install
+            # We don’t need `ghcWithPackages` here because the build tool should
+            # handle the dependencies. Stack bundles GHC, but Cabal needs a
+            # version installed.
+            pkgs.ghc
+            pkgs.haskell-language-server
+            pkgs.hpack
+            pkgs.ormolu
+            pkgs.stack
+          ];
+          rust =
+            extendDevShell "nix"
+            (inputs.nixpkgs.lib.optional
+              (system == inputs.flake-utils.lib.system.aarch64-darwin)
+              pkgs.libiconv
+              ++ [
+                pkgs.cargo
+                pkgs.rustc
+              ]);
+          scala = extendDevShell "nix" [pkgs.sbt];
+        };
 
       apps.sync-template = {
         type = "app";

@@ -1,7 +1,9 @@
-{config, ...}: {
+{config, flaky, lib, ...}: {
   project = {
     name = "{{project.name}}";
     summary = "{{project.summary}}";
+
+    file.".dir-locals.el".source = lib.mkForce ../emacs/.dir-locals.el;
   };
 
   editorconfig.enable = true;
@@ -29,7 +31,7 @@
       builds.exclude = [
         # TODO: Remove once garnix-io/garnix#285 is fixed.
         "homeConfigurations.x86_64-darwin-${config.project.name}-example"
-      };
+      ];
     };
     github = {
       enable = true;
@@ -38,12 +40,17 @@
           homepage = "https://sellout.github.io/${config.project.name}";
           topics = ["dhall" "library"];
         };
-        branches.main.protection.required_status_checks.contexts =
-          lib.concatMap garnixChecks [
-            (sys: "homeConfig ${s}-${config.project.name}-example")
-            (sys: "package default [${s}]")
-            (sys: "package ${config.project.name} [${s}]")
-          ];
+        ## FIXME: Shouldn’t need `mkForce` here (or to duplicated the base
+        ##        contexts). Need to improve module merging.
+        branches.main.protection.required_status_checks.contexts = lib.mkForce
+          (lib.concatMap flaky.lib.garnixChecks [
+            (sys: "homeConfig ${sys}-${config.project.name}-example")
+            (sys: "package default [${sys}]")
+            (sys: "package ${config.project.name} [${sys}]")
+            ## FIXME: These are duplicated from the base config
+            (sys: "check formatter [${sys}]")
+            (sys: "devShell default [${sys}]")
+          ]);
         pages = {
           build_type = "workflow";
           source.branch = "main";

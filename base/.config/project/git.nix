@@ -1,22 +1,19 @@
 {
   programs.git = {
-    # automatically added to by
-    config = {
-      commit.template = {
-        contents = "";
-        path = ".config/git/template/commit.txt";
-      };
+    config.commit.template = {
+      contents = "";
+      path = ".config/git/template/commit.txt";
     };
-    hooks = {
-      # post-commit = {
-      #   auto-install = true;
-      #   content = "";
-      # };
-    };
+    hooks.pre-push.text = ''
+      #!/usr/bin/env bash
+
+      nix flake check
+    '';
     ignores = [
       # Nix build
       "/result"
       "/source"
     ];
+    installConfig = true;
   };
 }
