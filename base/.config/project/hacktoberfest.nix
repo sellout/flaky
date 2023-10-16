@@ -1,10 +1,12 @@
 ## Settings for participating in [Hacktoberfest](https://hacktoberfest.com/participation/#maintainers)
 ##
 ## TODO: Add similar settings for GitLab, if that’s possible.
-{
-  services.github.settings = {
-    repository.topics = ["hacktoberfest"];
-    labels = {
+{config, lib, ...}: {
+  services.github.settings.repository.topics =
+    lib.mkIf (! config.services.github.settings.repository.private)
+      ["hacktoberfest"];
+  services.github.settings.labels =
+    lib.mkIf (! config.services.github.settings.repository.private) {
       hacktoberfest = {
         color = "#000000"; # black
         description = "Issues you want contributors to help with.";
@@ -22,5 +24,4 @@
         description = "Unaccepted contributions that haven’t been closed for some reason.";
       };
     };
-  };
 }
