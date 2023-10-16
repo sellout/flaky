@@ -1,11 +1,13 @@
-Dhall
 direnv
+garnix
+[Nn]ix
+Pfeil
+ShellCheck
+Dhall
 EditorConfig
 editorconfig
 Eldev
 envrc
 fmt
-[Nn]ix
 Probot
-ShellCheck
 shfmt

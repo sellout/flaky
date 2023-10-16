@@ -18,15 +18,16 @@
   in
     {
       schemas = {
-        inherit (inputs.project-manager.schemas)
+        inherit
+          (inputs.project-manager.schemas)
           overlays
-          # lib
           homeConfigurations
           packages
           devShells
           projectConfigurations
           checks
-          formatter;
+          formatter
+          ;
       };
 
       overlays.default = final: prev: {};

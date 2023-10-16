@@ -19,14 +19,16 @@
   in
     {
       schemas = {
-        inherit (inputs.project-manager.schemas)
+        inherit
+          (inputs.project-manager.schemas)
           overlays
           homeConfigurations
           packages
           devShells
           projectConfigurations
           checks
-          formatter;
+          formatter
+          ;
       };
 
       overlays = {
@@ -76,11 +78,12 @@
         inherit (inputs) self;
       };
 
-      checks = inputs.self.projectConfigurations.${system}.checks
-               // {
-        elisp-doctor = inputs.flaky.lib.elisp.checks.doctor pkgs src;
-        elisp-lint = inputs.flaky.lib.elisp.checks.lint pkgs src (_: []);
-      };
+      checks =
+        inputs.self.projectConfigurations.${system}.checks
+        // {
+          elisp-doctor = inputs.flaky.lib.elisp.checks.doctor pkgs src;
+          elisp-lint = inputs.flaky.lib.elisp.checks.lint pkgs src (_: []);
+        };
 
       formatter = inputs.self.projectConfigurations.${system}.formatter;
     });

@@ -1,8 +1,8 @@
 ;;; {{project.name}}.el --- {{project.summary}}  -*- lexical-binding: t; -*-
 
 ;; Author: Greg Pfeil <greg@technomadic.org>
-;; Keywords:
-;; Package-Requires: ()
+;; Keywords: local
+;; Package-Requires: ((emacs "24.1"))
 ;; URL: https://github.com/{{project.repo}}
 ;; Version: 0.1.0
 
@@ -12,4 +12,5 @@
 
 ;;; Code:
 
+(provide '{{project.name}})
 ;;; {{project.name}}.el ends here

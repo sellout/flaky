@@ -18,15 +18,16 @@
   in
     {
       schemas = {
-        inherit (inputs.project-manager.schemas)
+        inherit
+          (inputs.project-manager.schemas)
           overlays
           homeConfigurations
-          # lib
           packages
           devShells
           projectConfigurations
           checks
-          formatter;
+          formatter
+          ;
       };
 
       overlays.default = final: prev: {};
@@ -73,25 +74,26 @@
         inherit (inputs) self;
       };
 
-      checks = inputs.self.projectConfigurations.${system}.checks
-               // {
-        ## TODO: This doesn’t quite work yet.
-        c-lint =
-          inputs.flaky.lib.checks.simple
-          pkgs
-          src
-          "clang-tidy"
-          [pkgs.llvmPackages_16.clang]
-          ''
-            ## TODO: Can we keep the compile-commands.json from the original
-            ##       build? E.g., send it to a separate output, which we depend
-            ##       on from this check. We also want it for clangd in the
-            ##       devShell.
-            make clean && bear -- make
-            find "$src" \( -name '*.c' -o -name '*.cpp' -o -name '*.h' \) \
-              -exec clang-tidy {} +
-          '';
-      };
+      checks =
+        inputs.self.projectConfigurations.${system}.checks
+        // {
+          ## TODO: This doesn’t quite work yet.
+          c-lint =
+            inputs.flaky.lib.checks.simple
+            pkgs
+            src
+            "clang-tidy"
+            [pkgs.llvmPackages_16.clang]
+            ''
+              ## TODO: Can we keep the compile-commands.json from the original
+              ##       build? E.g., send it to a separate output, which we
+              ##       depend on from this check. We also want it for clangd in
+              ##       the devShell.
+              make clean && bear -- make
+              find "$src" \( -name '*.c' -o -name '*.cpp' -o -name '*.h' \) \
+                -exec clang-tidy {} +
+            '';
+        };
 
       formatter = inputs.self.projectConfigurations.${system}.formatter;
     });

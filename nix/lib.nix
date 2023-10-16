@@ -23,10 +23,11 @@
       [
         pkgs.cacert
         pkgs.git
+        pkgs.moreutils
         pkgs.mustache-go
         pkgs.nix
-        pkgs.moreutils
         pkgs.project-manager
+        pkgs.rename
       ]
       ''
         mkdir -p "$out"
@@ -37,6 +38,8 @@
             --extra-experimental-features "flakes nix-command" \
             flake new "${name}-example" --template "${src}#${name}"
         cd "${name}-example"
+        find . -iname "*{{project.name}}*" -depth \
+          -execdir rename 's/{{project.name}}/template-example/g' {} +
         find . -type f -exec bash -c \
           'mustache "${src}/templates/example.yaml" "$0" | sponge "$0"' \
           {} \;

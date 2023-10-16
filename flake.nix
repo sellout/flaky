@@ -20,7 +20,6 @@
         inherit
           (inputs.project-manager.schemas)
           overlays
-          # lib
           templates
           projectModules
           projectConfigurations
@@ -260,11 +259,9 @@
             name = "${name}-template-validity";
             value = inputs.self.lib.checks.validate-template name pkgs src;
           })
-          ## TODO: These two templates require renaming files, so they don’t
-          ##       work with this check yet.
-          (pkgs.lib.remove "emacs-lisp"
-            (pkgs.lib.remove "haskell"
-              (builtins.attrNames inputs.self.templates))));
+          ## TODO: This template has some issues (IFD, etc.)
+          (pkgs.lib.remove "haskell"
+            (builtins.attrNames inputs.self.templates)));
 
       formatter = inputs.self.projectConfigurations.${system}.formatter;
     });

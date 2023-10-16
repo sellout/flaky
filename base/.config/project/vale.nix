@@ -1,14 +1,9 @@
 ## Editorial style – https://vale.sh/
-{bash-strict-mode, config, lib, pkgs, ...}: let
-  ## Stored in the cache because we entirely repopulate it via generation.
-  ##
-  stylesPath = ".cache/vale";
-in {
+{lib, ...}: {
   programs.vale = {
     coreSettings = {
       MinAlertLevel = "suggestion";
       Packages = "Microsoft";
-      StylesPath = stylesPath;
     };
     formatSettings = {
       "*" = {
@@ -32,8 +27,17 @@ in {
       "*/LICENSE"
       ## TODO: Have a general `ignores` list that we can process into
       ##       gitignores, `find -not` lists, etc.
-      "./.cache/*"
+      "*.nix"
       "*/flake.lock"
-      ];
+      "./.cache/*"
+      "./.vale.ini"
+    ];
+    vocab.base.accept = [
+      "direnv"
+      "garnix"
+      "[Nn]ix"
+      "Pfeil"
+      "ShellCheck"
+    ];
   };
 }

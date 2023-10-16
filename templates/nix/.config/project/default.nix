@@ -8,8 +8,10 @@
     commit-by-default = lib.mkForce false;
   };
 
-  editorconfig.enable = true;
+  ## dependency management
+  services.renovate.enable = true;
 
+  ## development
   programs = {
     direnv = {
       enable = true;
@@ -20,19 +22,34 @@
     # a file (worktree) or dir determines other things – like where hooks
     # are installed.
     git.enable = true;
-    treefmt.enable = true;
   };
 
-  services = {
-    flakehub.enable = true;
-    garnix = {
+  ## formatting
+  editorconfig.enable = true;
+  programs = {
+    treefmt.enable = true;
+    vale = {
       enable = true;
-      builds.exclude = [
-        # TODO: Remove once garnix-io/garnix#285 is fixed.
-        "homeConfigurations.x86_64-darwin-${config.project.name}-example"
+      coreSettings.Vocab = "base";
+      excludes = [
+        "./.github/workflows/flakehub-publish.yml"
+        "./.github/settings.yml"
       ];
     };
+  };
+
+  ## CI
+  services.garnix = {
+    enable = true;
+    builds.exclude = [
+      # TODO: Remove once garnix-io/garnix#285 is fixed.
+      "homeConfigurations.x86_64-darwin-${config.project.name}-example"
+    ];
+  };
+
+  ## publishing
+  services = {
+    flakehub.enable = true;
     github.enable = true;
-    renovate.enable = true;
   };
 }

@@ -61,7 +61,7 @@
           projectConfigurations
           checks
           formatter;
-      }
+      };
 
       # see these issues and discussions:
       # - NixOS/nixpkgs#16394

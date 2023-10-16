@@ -22,6 +22,7 @@
     ./git.nix
     ./mustache.nix
     ./shellcheck
+    ./treefmt.nix
     ./vale.nix
     ## services
     ./flakehub.nix

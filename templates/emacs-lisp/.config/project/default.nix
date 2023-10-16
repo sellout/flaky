@@ -4,8 +4,10 @@
     summary = "{{project.summary}}";
   };
 
-  editorconfig.enable = true;
+  ## dependency management
+  services.renovate.enable = true;
 
+  ## development
   programs = {
     direnv.enable = true;
     # This should default by whether there is a .git file/dir (and whether it’s
@@ -20,41 +22,56 @@
         "/.eldev"
       ];
     };
+  };
+
+  ## formatting
+  editorconfig.enable = true;
+  programs = {
     treefmt = {
       enable = true;
       ## In elisp repos, we prefer Org over Markdown, so we don’t need this
       ## formatter.
       programs.prettier.enable = lib.mkForce false;
     };
-  };
-
-  services = {
-    flakehub.enable = true;
-    garnix = {
+    vale = {
       enable = true;
-      builds.exclude = [
-        # TODO: Remove once garnix-io/garnix#285 is fixed.
-        "homeConfigurations.x86_64-darwin-${config.project.name}-example"
+      coreSettings.Vocab = "emacs-lisp";
+      excludes = [
+        "*.el"
+        "./.github/settings.yml"
+        "./.github/workflows/flakehub-publish.yml"
+        "./Eldev"
+      ];
+      vocab.emacs-lisp.accept = config.programs.vale.vocab.base.accept ++ [
+        "Eldev"
       ];
     };
-    github = {
-      enable = true;
-      settings = {
-        ## FIXME: Shouldn’t need `mkForce` here (or to duplicated the base
-        ##        contexts). Need to improve module merging.
-        branches.main.protection.required_status_checks.contexts =
-          lib.concatMap flaky.lib.garnixChecks [
-            (sys: "check elisp-doctor [${sys}]")
-            (sys: "check elisp-lint [${sys}]")
-            (sys: "homeConfig ${sys}-${config.project.name}-example")
-            (sys: "package default [${sys}]")
-            (sys: "package emacs-${config.project.name} [${sys}]")
-            ## FIXME: These are duplicated from the base config
-            (sys: "check formatter [${sys}]")
-            (sys: "devShell default [${sys}]")
-          ];
-      };
-    };
-    renovate.enable = true;
   };
+
+  ## CI
+  services.garnix = {
+    enable = true;
+    builds.exclude = [
+      # TODO: Remove once garnix-io/garnix#285 is fixed.
+      "homeConfigurations.x86_64-darwin-${config.project.name}-example"
+    ];
+  };
+  ## FIXME: Shouldn’t need `mkForce` here (or to duplicate the base contexts).
+  ##        Need to improve module merging.
+  services.github.settings.branches.main.protection.required_status_checks.contexts =
+    lib.mkForce
+      (lib.concatMap flaky.lib.garnixChecks [
+        (sys: "check elisp-doctor [${sys}]")
+        (sys: "check elisp-lint [${sys}]")
+        (sys: "homeConfig ${sys}-${config.project.name}-example")
+        (sys: "package default [${sys}]")
+        (sys: "package emacs-${config.project.name} [${sys}]")
+        ## FIXME: These are duplicated from the base config
+        (sys: "check formatter [${sys}]")
+        (sys: "devShell default [${sys}]")
+      ]);
+
+  ## publishing
+  services.flakehub.enable = true;
+  services.github.enable = true;
 }

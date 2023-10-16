@@ -24,14 +24,16 @@
   in
     {
       schemas = {
-        inherit (inputs.project-manager.schemas)
+        inherit
+          (inputs.project-manager.schemas)
           overlays
           homeConfigurations
           packages
           devShells
           projectConfigurations
           checks
-          formatter;
+          formatter
+          ;
       };
 
       overlays = {
@@ -71,13 +73,12 @@
       packages = {
         default = inputs.self.packages.${system}.${pname};
 
-        "${pname}" =
-          (pkgs.dhallPackages.buildDhallDirectoryPackage {
-            src = "${src}/dhall";
-            name = pname;
-            dependencies = [pkgs.dhallPackages.Prelude];
-            document = true;
-          });
+        "${pname}" = pkgs.dhallPackages.buildDhallDirectoryPackage {
+          src = "${src}/dhall";
+          name = pname;
+          dependencies = [pkgs.dhallPackages.Prelude];
+          document = true;
+        };
       };
 
       devShells.default =
