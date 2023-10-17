@@ -18,6 +18,7 @@
         "Microsoft.GeneralURL" = "NO"; # Not writing for a general audience.
         "Microsoft.Headings" = "NO"; # Headings aren’t necessarily sentences.
         "Microsoft.Quotes" = "NO"; # Punctuation inside quotes is an abomination.
+        "Microsoft.Ranges" = "NO"; # We use en dashes, not words.
         "Microsoft.Vocab" = "NO"; # Not consistent enough.
         "Microsoft.We" = "NO"; # I _like_ first-person plural.
       };
