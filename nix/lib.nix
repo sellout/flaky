@@ -91,7 +91,7 @@
   elisp = import ./lib/elisp.nix {inherit bash-strict-mode;};
 
   homeConfigurations.example = name: self: modules: system: {
-    name = "${name}-example [${system}]";
+    name = "${system}-${name}-example";
     value = home-manager.lib.homeManagerConfiguration {
       pkgs = import nixpkgs {
         inherit system;
