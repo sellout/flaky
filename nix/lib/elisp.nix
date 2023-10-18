@@ -74,6 +74,8 @@ in {
             echo "   \"${emacsPath pkgs.emacsPackages.package-lint}\""
             echo "   \"${emacsPath pkgs.emacsPackages.relint}\""
             echo "   \"${emacsPath pkgs.emacsPackages.xr}\"))"
+            ## FIXME: Emacs’ CheckDoc seems to ignore this in .dir-locals.el.
+            echo "(setq sentence-end-double-space nil)"
           } >> Eldev
         '';
 
