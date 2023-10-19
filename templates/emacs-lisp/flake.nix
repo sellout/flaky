@@ -48,11 +48,13 @@
             inputs.self
             [
               ({pkgs, ...}: {
-                home.packages = [
-                  (pkgs.emacsWithPackages (epkgs: [
-                    epkgs.${pname}
-                  ]))
-                ];
+                programs.emacs = {
+                  enable = true;
+                  extraConfig = ''
+                    (require '${pname})
+                  '';
+                  extraPackages = epkgs: [epkgs.${pname}];
+                };
               })
             ])
           inputs.flake-utils.lib.defaultSystems);
