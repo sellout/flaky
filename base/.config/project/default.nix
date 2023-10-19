@@ -34,4 +34,6 @@
     ## other
     ./hacktoberfest.nix
   ];
+
+  programs.project-manager.enable = true;
 }
