@@ -36,18 +36,20 @@ should allow you to replace `flaky#` with `<some-flake>#` in the examples below.
 
 ### templates
 
+This sets up a new project, with various services, etc. already configured.
+
 [manual](https://nixos.org/manual/nix/stable/command-ref/new-cli/nix3-flake-init.html)
 
 ```bash
 mkdir -p <project-path>
 cd <project-path>
 git init
-nix flake init flaky#<project-type>
-find . -type f -exec bash -c \
-  'mustache "${src}/templates/example.yaml" "$0" | sponge "$0"' \
-  {} \;
-nix --accept-flake-config fmt
-direnv allow # if you’re a direnv user
+mkdir .config
+curl https://raw.githubusercontent.com/sellout/flaky/main/templates/example.yaml \
+  >.config/mustache.yaml
+git add .config/mustache.yaml
+$EDITOR .config/mustache.yaml
+nix run flaky#sync-template
 ```
 
 These flakes support [direnv](https://direnv.net/) out of the box.
