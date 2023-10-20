@@ -8,7 +8,7 @@
 
 ## documentation
 
-API docs are on [GitHub Pages](https://sellout.github.io/{{project-name}}).
+API docs are on [GitHub Pages](https://sellout.github.io/{{project.name}}).
 
 ## development environment
 
