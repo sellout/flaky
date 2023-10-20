@@ -30,8 +30,6 @@
       excludes = [
         "./.config/emacs/.dir-locals.el"
         "./.github/settings.yml"
-        "./.github/workflows/flakehub-publish.yml"
-        "./.github/workflows/pages.yml"
       ];
     };
   };
@@ -60,6 +58,7 @@
 
   ## publishing
   imports = [./github-pages.nix];
+  programs.git.attributes = ["/dhall/** linguist-language=Dhall"];
   services.flakehub.enable = true;
   services.github.enable = true;
   services.github.settings.repository = {

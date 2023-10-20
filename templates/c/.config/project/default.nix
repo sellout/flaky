@@ -27,7 +27,6 @@
       excludes = [
         "*/Makefile.am"
         "./.github/settings.yml"
-        "./.github/workflows/flakehub-publish.yml"
         "./configure.ac"
       ];
       vocab.c.accept = config.programs.vale.vocab.base.accept ++ [

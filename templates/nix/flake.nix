@@ -19,7 +19,7 @@
     {
       schemas = {
         inherit
-          (inputs.project-manager.schemas)
+          (inputs.flaky.schemas)
           overlays
           homeConfigurations
           packages
@@ -86,20 +86,10 @@
         bash-strict-mode.follows = "bash-strict-mode";
         flake-utils.follows = "flake-utils";
         nixpkgs.follows = "nixpkgs";
-        project-manager.follows = "project-manager";
       };
       url = "github:sellout/flaky";
     };
 
     nixpkgs.url = "github:NixOS/nixpkgs/release-23.05";
-
-    project-manager = {
-      inputs = {
-        bash-strict-mode.follows = "bash-strict-mode";
-        flaky.follows = "flaky";
-        nixpkgs.follows = "nixpkgs";
-      };
-      url = "github:sellout/project-manager";
-    };
   };
 }

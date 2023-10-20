@@ -31,6 +31,7 @@
       "*.nix"
       "*/flake.lock"
       "./.cache/*"
+      "./.github/workflows/*.yml"
       "./.vale.ini"
     ];
     vocab.base.accept = [

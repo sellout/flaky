@@ -7,7 +7,9 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "project-manager": "project-manager",
+        "project-manager": [
+          "project-manager"
+        ],
         "shellcheck-nix-attributes": "shellcheck-nix-attributes"
       },
       "locked": {
@@ -25,22 +27,6 @@
       }
     },
     "flake-schemas": {
-      "locked": {
-        "lastModified": 1693615451,
-        "narHash": "sha256-rrZipq8J+g+LFWMC0+M0R8+NnZoDdrLHDahcvxh8mgA=",
-        "owner": "DeterminateSystems",
-        "repo": "flake-schemas",
-        "rev": "cfd7826aabef39c337eb79053d0253f446c1c817",
-        "type": "github"
-      },
-      "original": {
-        "owner": "DeterminateSystems",
-        "ref": "support-nixos-modules",
-        "repo": "flake-schemas",
-        "type": "github"
-      }
-    },
-    "flake-schemas_2": {
       "locked": {
         "lastModified": 1693615451,
         "narHash": "sha256-rrZipq8J+g+LFWMC0+M0R8+NnZoDdrLHDahcvxh8mgA=",
@@ -115,11 +101,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1697734951,
-        "narHash": "sha256-LLRWbosbP8X/m65aZXUcb2gPjaxPNK89u7Ax3MJMyic=",
+        "lastModified": 1697828342,
+        "narHash": "sha256-DSaN5aa+Kyo84GoQL1dIg0H9AMLl8yU4q+uN2AjEi4s=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "f4cf0233c58eeb549531a1d096711909f3b0a546",
+        "rev": "96f7c64907ccdb53e36b3c02b5165dfd491ec0db",
         "type": "github"
       },
       "original": {
@@ -152,50 +138,20 @@
         ],
         "flake-schemas": "flake-schemas",
         "flake-utils": [
-          "bash-strict-mode",
-          "flake-utils"
-        ],
-        "nixpkgs": [
-          "bash-strict-mode",
-          "nixpkgs"
-        ],
-        "treefmt-nix": "treefmt-nix"
-      },
-      "locked": {
-        "lastModified": 1697074341,
-        "narHash": "sha256-LAYp2Tk9+DI/XaZ+2yvjXgfNFeoPwsolykqTyy3aokc=",
-        "owner": "sellout",
-        "repo": "project-manager",
-        "rev": "7968f7fae539579adde361882946fc0ed64d60e4",
-        "type": "github"
-      },
-      "original": {
-        "owner": "sellout",
-        "repo": "project-manager",
-        "type": "github"
-      }
-    },
-    "project-manager_2": {
-      "inputs": {
-        "bash-strict-mode": [
-          "bash-strict-mode"
-        ],
-        "flake-schemas": "flake-schemas_2",
-        "flake-utils": [
           "flake-utils"
         ],
         "nixpkgs": [
           "nixpkgs"
         ],
         "nixpkgs-unstable": "nixpkgs-unstable",
-        "treefmt-nix": "treefmt-nix_2"
+        "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1697734889,
-        "narHash": "sha256-BIvoZZFb31BsvOwpkjszfam+Gnu+1kJCjbkuVG9PY04=",
+        "lastModified": 1697773416,
+        "narHash": "sha256-uiRS7byPw0PSRno+Kzvsfvggx8pVCvQtMcocRDTS6ZU=",
         "owner": "sellout",
         "repo": "project-manager",
-        "rev": "f70376bf13a99eefcebace89ab0ea8509873e0f2",
+        "rev": "36d951c1524bc629efa191cfe2e574b92d527843",
         "type": "github"
       },
       "original": {
@@ -210,7 +166,7 @@
         "flake-utils": "flake-utils_2",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
-        "project-manager": "project-manager_2"
+        "project-manager": "project-manager"
       }
     },
     "shellcheck-nix-attributes": {
@@ -260,28 +216,6 @@
       }
     },
     "treefmt-nix": {
-      "inputs": {
-        "nixpkgs": [
-          "bash-strict-mode",
-          "project-manager",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1695822946,
-        "narHash": "sha256-IQU3fYo0H+oGlqX5YrgZU3VRhbt2Oqe6KmslQKUO4II=",
-        "owner": "numtide",
-        "repo": "treefmt-nix",
-        "rev": "720bd006d855b08e60664e4683ccddb7a9ff614a",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "treefmt-nix",
-        "type": "github"
-      }
-    },
-    "treefmt-nix_2": {
       "inputs": {
         "nixpkgs": [
           "project-manager",

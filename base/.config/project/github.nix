@@ -76,5 +76,35 @@
         };
       };
     };
+
+    workflow."update-nix-lockfile.yml".text = lib.generators.toYAML {} {
+      name = "Create PR to update Nix flake inputs";
+      on = {
+        workflow_dispatch = null;
+        schedule = [{cron = "0 0 * * 0";}]; # runs weekly on Sunday at 00:00Z
+      };
+      jobs.lockfile = {
+        runs-on = "ubuntu-latest";
+        steps = [
+          {
+            name = "Checkout repository";
+            uses = "actions/checkout@v3";
+          }
+          {
+            name = "Install Nix";
+            uses = "DeterminateSystems/nix-installer-action@main";
+          }
+          {
+            name = "Update flake.lock";
+            uses = "DeterminateSystems/update-flake-lock@main";
+            "with" = {
+              pr-title = "Update flake.lock";
+              # Labels to be set on the PR
+              pr-labels = lib.concatLines ["dependencies" "automated"];
+            };
+          }
+        ];
+      };
+    };
   };
 }
