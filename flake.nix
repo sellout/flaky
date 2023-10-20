@@ -41,7 +41,14 @@
           how to complete the setup of this project.
         '';
       in {
-        default = inputs.self.templates.nix;
+        default = {
+          inherit welcomeText;
+          description = ''
+            A basic language-agnostic project template (other templates are
+            derived from this one).
+          '';
+          path = ./templates/default;
+        };
         bash = {
           inherit welcomeText;
           description = "Bash project template";
@@ -70,7 +77,8 @@
         nix = {
           inherit welcomeText;
           description = ''
-            Nix project template (other templates are derived from this one)
+            Nix project template (specifically for projects that do not offer a
+            non-Nix build option).
           '';
           path = ./templates/nix;
         };
