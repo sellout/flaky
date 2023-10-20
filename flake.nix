@@ -16,20 +16,9 @@
 
   outputs = inputs:
     {
-      schemas = {
-        inherit
-          (inputs.project-manager.schemas)
-          overlays
-          templates
-          projectModules
-          projectConfigurations
-          devShells
-          apps
-          packages
-          checks
-          formatter
-          ;
-      };
+      ## These are also consumed by downstream projects, so it may include more
+      ## than is referenced in this flake.
+      schemas = inputs.project-manager.schemas;
 
       overlays = {
         elisp-dependencies = import ./nix/elisp-dependencies.nix;
@@ -271,6 +260,7 @@
       inputs = {
         flaky.follows = "";
         nixpkgs.follows = "nixpkgs";
+        project-manager.follows = "project-manager";
       };
       url = "github:sellout/bash-strict-mode";
     };
@@ -288,6 +278,7 @@
       inputs = {
         bash-strict-mode.follows = "bash-strict-mode";
         flake-utils.follows = "flake-utils";
+        flaky.follows = "";
         nixpkgs.follows = "nixpkgs";
       };
       url = "github:sellout/project-manager";
