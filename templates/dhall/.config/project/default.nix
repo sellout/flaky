@@ -30,8 +30,6 @@
       excludes = [
         "./.config/emacs/.dir-locals.el"
         "./.github/settings.yml"
-        "./.github/workflows/flakehub-publish.yml"
-        "./.github/workflows/pages.yml"
       ];
     };
   };

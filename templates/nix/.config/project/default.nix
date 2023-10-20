@@ -32,7 +32,6 @@
       enable = true;
       coreSettings.Vocab = "base";
       excludes = [
-        "./.github/workflows/flakehub-publish.yml"
         "./.github/settings.yml"
       ];
     };

@@ -2,6 +2,7 @@
   project = {
     name = "flaky";
     summary = "Templates for dev environments";
+
     ## This defaults to `true`, because I want most projects to be
     ## contributable-to by non-Nix users. However, Nix-specific projects can
     ## lean into Project Manager and avoid committing extra files.
@@ -80,7 +81,6 @@
         ## TODO: Have a general `ignores` list that we can process into
         ##       gitignores, `find -not` lists, etc.
         "./.github/settings.yml"
-        "./.github/workflows/flakehub-publish.yml"
         "./garnix.yaml"
         "./renovate.json"
       ];

@@ -39,7 +39,6 @@
       excludes = [
         "*.el"
         "./.github/settings.yml"
-        "./.github/workflows/flakehub-publish.yml"
         "./Eldev"
       ];
       vocab.emacs-lisp.accept = config.programs.vale.vocab.base.accept ++ [

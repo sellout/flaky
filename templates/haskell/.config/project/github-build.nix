@@ -1,5 +1,5 @@
 {lib, ...}: {
-  project.file.".github/workflows/build.yml".text = lib.generators.toYAML {} {
+  services.github.workflow."build.yml".text = lib.generators.toYAML {} {
     name = "build";
     on = {
       push.branches = ["main"];
