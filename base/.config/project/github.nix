@@ -80,8 +80,13 @@
     workflow."update-nix-lockfile.yml".text = lib.generators.toYAML {} {
       name = "Create PR to update Nix flake inputs";
       on = {
+        push = null;
         workflow_dispatch = null;
         schedule = [{cron = "0 0 * * 0";}]; # runs weekly on Sunday at 00:00Z
+      };
+      permissions = {
+        contents = "write"; # to make a new branch for the PR
+        # pull-requests = "write"; # to open the PR meh
       };
       jobs.lockfile = {
         runs-on = "ubuntu-latest";
