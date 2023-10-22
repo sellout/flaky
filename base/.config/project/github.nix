@@ -75,13 +75,19 @@
           };
         };
       };
+
+      actions.permissions.workflow.can_approve_pull_request_reviews = true;
     };
 
     workflow."update-nix-lockfile.yml".text = lib.generators.toYAML {} {
       name = "Create PR to update Nix flake inputs";
       on = {
-        workflow_dispatch = null;
         schedule = [{cron = "0 0 * * 0";}]; # runs weekly on Sunday at 00:00Z
+        workflow_dispatch = null;
+      };
+      permissions = {
+        contents = "write"; # to make a new branch for the PR
+        pull-requests = "write"; # to open the PR
       };
       jobs.lockfile = {
         runs-on = "ubuntu-latest";
