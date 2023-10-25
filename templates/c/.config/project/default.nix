@@ -23,13 +23,12 @@
     treefmt.enable = true;
     vale = {
       enable = true;
-      coreSettings.Vocab = "c";
       excludes = [
         "*/Makefile.am"
         "./.github/settings.yml"
         "./configure.ac"
       ];
-      vocab.c.accept = config.programs.vale.vocab.base.accept ++ [
+      vocab.${config.project.name}.accept = [
         "Autotools"
         "GNU"
       ];

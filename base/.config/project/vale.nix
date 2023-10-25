@@ -1,9 +1,10 @@
 ## Editorial style – https://vale.sh/
-{lib, ...}: {
+{config, lib, ...}: {
   programs.vale = {
     coreSettings = {
       MinAlertLevel = "suggestion";
       Packages = "Microsoft";
+      Vocab = config.project.name;
     };
     formatSettings = {
       "*" = {
@@ -31,10 +32,12 @@
       "*.nix"
       "*/flake.lock"
       "./.cache/*"
+      "./.config/mustache.yaml"
       "./.github/workflows/*.yml"
+      "./.gitignore"
       "./.vale.ini"
     ];
-    vocab.base.accept = [
+    vocab.${config.project.name}.accept = [
       "direnv"
       "garnix"
       "[Nn]ix"
