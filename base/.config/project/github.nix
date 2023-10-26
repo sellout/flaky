@@ -76,6 +76,9 @@
         };
       };
 
+      ## TODO: This doesn’t seem to actually set the
+      ##       Settings→Actions→General→“Allow GitHub Actions to create and
+      ##       approve pull requests” checkbox, so figure out what’s wrong.
       actions.permissions.workflow.can_approve_pull_request_reviews = true;
     };
 

@@ -59,10 +59,9 @@
     };
     vale = {
       enable = true;
-      coreSettings.Vocab = "flaky";
       ## This is a personal repository.
       formatSettings."*"."Microsoft.FirstPerson" = "NO";
-      vocab.flaky.accept = config.programs.vale.vocab.base.accept ++ [
+      vocab.${config.project.name}.accept = [
         "Dhall"
         "EditorConfig"
         ## Separated because “Editorconfig” and “editorConfig” aren’t valid.

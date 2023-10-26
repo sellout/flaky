@@ -35,13 +35,12 @@
     };
     vale = {
       enable = true;
-      coreSettings.Vocab = "emacs-lisp";
       excludes = [
         "*.el"
         "./.github/settings.yml"
         "./Eldev"
       ];
-      vocab.emacs-lisp.accept = config.programs.vale.vocab.base.accept ++ [
+      vocab.${config.project.name}.accept = [
         "Eldev"
       ];
     };
