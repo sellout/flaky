@@ -26,10 +26,15 @@
     };
     vale = {
       enable = true;
-      coreSettings.Vocab = "base";
       excludes = [
         "./.config/emacs/.dir-locals.el"
+        "./.dir-locals.el"
+        "./.gitattributes"
         "./.github/settings.yml"
+        "./dhall/*"
+      ];
+      vocab.${config.project.name}.accept = [
+        "Dhall"
       ];
     };
   };

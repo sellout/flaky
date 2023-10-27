@@ -75,14 +75,22 @@
           };
         };
       };
+
+      ## TODO: This doesn’t seem to actually set the
+      ##       Settings→Actions→General→“Allow GitHub Actions to create and
+      ##       approve pull requests” checkbox, so figure out what’s wrong.
+      actions.permissions.workflow.can_approve_pull_request_reviews = true;
     };
 
     workflow."update-nix-lockfile.yml".text = lib.generators.toYAML {} {
       name = "Create PR to update Nix flake inputs";
       on = {
-        push = null;
-        workflow_dispatch = null;
         schedule = [{cron = "0 0 * * 0";}]; # runs weekly on Sunday at 00:00Z
+        workflow_dispatch = null;
+      };
+      permissions = {
+        contents = "write"; # to make a new branch for the PR
+        pull-requests = "write"; # to open the PR
       };
       permissions = {
         contents = "write"; # to make a new branch for the PR

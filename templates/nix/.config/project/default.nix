@@ -30,11 +30,10 @@
     treefmt.enable = true;
     vale = {
       enable = true;
-      coreSettings.Vocab = "nix";
       excludes = [
         "./.github/settings.yml"
       ];
-      vocab.nix.accept = config.programs.vale.vocab.base.accept ++ [
+      vocab.${config.project.name}.accept = [
         "formatter"
       ];
     };

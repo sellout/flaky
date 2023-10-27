@@ -22,11 +22,10 @@
     treefmt.enable = true;
     vale = {
       enable = true;
-      coreSettings.Vocab = "default";
       excludes = [
         "./.github/settings.yml"
       ];
-      vocab.default.accept = config.programs.vale.vocab.base.accept ++ [
+      vocab.${config.project.name}.accept = [
         "formatter"
       ];
     };

@@ -28,7 +28,6 @@
     };
     vale = {
       enable = true;
-      coreSettings.Vocab = "base";
       excludes = [
         "./.github/settings.yml"
       ];

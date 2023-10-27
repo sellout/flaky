@@ -8,12 +8,16 @@
   project = {
     authors = [lib.maintainers.sellout];
     license = "AGPL-3.0-or-later";
+
     ## Packages to install in the devShells that reference projectConfiguration.
     packages = [
       ## language servers
       pkgs.nil # Nix
       pkgs.nodePackages.bash-language-server
     ];
+
+    ## NB: This allows non-Nix users to contribute to the project.
+    commit-by-default = true;
   };
 
   imports = [
