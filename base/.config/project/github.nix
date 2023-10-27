@@ -92,10 +92,6 @@
         contents = "write"; # to make a new branch for the PR
         pull-requests = "write"; # to open the PR
       };
-      permissions = {
-        contents = "write"; # to make a new branch for the PR
-        # pull-requests = "write"; # to open the PR meh
-      };
       jobs.lockfile = {
         runs-on = "ubuntu-latest";
         steps = [
