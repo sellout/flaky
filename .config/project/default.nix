@@ -1,4 +1,4 @@
-{config, lib, pkgs, ...}: {
+{config, flaky, lib, pkgs, ...}: {
   project = {
     name = "flaky";
     summary = "Templates for dev environments";
@@ -100,13 +100,29 @@
       "checks.*.nix-template-validity"
     ];
   };
+  services.github.settings.branches.main.protection.required_status_checks.contexts =
+    lib.mkForce (lib.concatMap flaky.lib.garnixChecks [
+      (sys: "devShell bash [${sys}]")
+      (sys: "devShell c [${sys}]")
+      (sys: "devShell dhall [${sys}]")
+      (sys: "devShell emacs-lisp [${sys}]")
+      (sys: "devShell haskell [${sys}]")
+      (sys: "devShell lax-checks [${sys}]")
+      (sys: "devShell nix [${sys}]")
+      (sys: "devShell rust [${sys}]")
+      (sys: "devShell scala [${sys}]")
+      (sys: "package management-scripts [${sys}]")
+      ## FIXME: These are duplicated from the base config
+      (sys: "check formatter [${sys}]")
+      (sys: "devShell default [${sys}]")
+    ]);
 
   ## publishing
-  services = {
-    flakehub.enable = true;
-    github = {
-      enable = true;
-      settings.repository.topics = ["development" "nix-flakes" "nix-templates"];
-    };
-  };
+  services.flakehub.enable = true;
+  services.github.enable = true;
+  services.github.settings.repository.topics = [
+    "development"
+    "nix-flakes"
+    "nix-templates"
+  ];
 }

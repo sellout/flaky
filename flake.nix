@@ -268,7 +268,6 @@
       inputs = {
         flaky.follows = "";
         nixpkgs.follows = "nixpkgs";
-        project-manager.follows = "project-manager";
       };
       url = "github:sellout/bash-strict-mode";
     };
