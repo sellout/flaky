@@ -1,6 +1,6 @@
 # {{project.name}}
 
-[![built with garnix](https://img.shields.io/endpoint?url=https%3A%2F%2Fgarnix.io%2Fapi%2Fbadges%2Fsellout%2F{{project.name}}%3Fbranch%3Dmain)](https://garnix.io)
+[![built with garnix](https://img.shields.io/endpoint?url=https%3A%2F%2Fgarnix.io%2Fapi%2Fbadges%2Fsellout%2F{{project.name}})](https://garnix.io)
 [![Packaging status](https://repology.org/badge/tiny-repos/haskell:{{project.name}}.svg)](https://repology.org/project/haskell:{{project.name}}/versions)
 [![latest packaged version(s)](https://repology.org/badge/latest-versions/haskell:{{project.name}}.svg)](https://repology.org/project/haskell:{{project.name}}/versions)
 
