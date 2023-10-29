@@ -1,7 +1,13 @@
-{config, flaky, lib, ...}: {
+{config, flaky, lib, pkgs, ...}: {
   project = {
     name = "{{project.name}}";
     summary = "{{project.summary}}";
+
+    packages = [
+      pkgs.dhall
+      pkgs.dhall-docs
+      pkgs.dhall-lsp-server
+    ];
   };
 
   ## dependency managerment
