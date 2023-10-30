@@ -30,9 +30,17 @@
       };
 
       labels = {
+        automated = {
+          color = "";
+          description = "Created automatically by some service or process";
+        };
         bug = {
           color = "#d73a4a";
           description = "Something isn’t working";
+        };
+        dependencies = {
+          color = "#333333";
+          description = "Updates or other changes to dependencies";
         };
         documentation = {
           color = "#0075ca";
@@ -53,6 +61,10 @@
         question = {
           color = "#d876e3";
           description = "Further information is requested";
+        };
+        sponsored = {
+          color = "#d4af37"; # gold
+          description = "Work prioritized by a sponsor";
         };
       };
 
@@ -78,7 +90,7 @@
 
       ## TODO: This doesn’t seem to actually set the
       ##       Settings→Actions→General→“Allow GitHub Actions to create and
-      ##       approve pull requests” checkbox, so figure out what’s wrong.
+      ##       approve pull requests” checkbox, see repository-settings/app#318.
       actions.permissions.workflow.can_approve_pull_request_reviews = true;
     };
 

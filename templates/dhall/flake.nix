@@ -81,43 +81,21 @@
         };
       };
 
-      devShells.default =
-        inputs.flaky.lib.devShells.default
-        pkgs
-        inputs.self
-        [
-          pkgs.dhall
-          pkgs.dhall-docs
-          pkgs.dhall-lsp-server
-        ]
-        "";
-
       projectConfigurations = inputs.flaky.lib.projectConfigurations.default {
         inherit pkgs;
         inherit (inputs) self;
       };
 
+      devShells = inputs.self.projectConfigurations.${system}.devShells;
       checks = inputs.self.projectConfigurations.${system}.checks;
-
       formatter = inputs.self.projectConfigurations.${system}.formatter;
     });
 
   inputs = {
-    bash-strict-mode = {
-      inputs = {
-        flaky.follows = "flaky";
-        nixpkgs.follows = "nixpkgs";
-      };
-      url = "github:sellout/bash-strict-mode";
-    };
-
     flake-utils.url = "github:numtide/flake-utils";
 
     flaky = {
-      inputs = {
-        bash-strict-mode.follows = "bash-strict-mode";
-        nixpkgs.follows = "nixpkgs";
-      };
+      inputs.nixpkgs.follows = "nixpkgs";
       url = "github:sellout/flaky";
     };
 
