@@ -24,7 +24,7 @@
       steps = [
         {uses = "actions/checkout@v2";}
         {
-          uses = "haskell/actions/setup@v1";
+          uses = "haskell-actions/setup@v1";
           id = "setup-haskell-cabal";
           "with" = {
             ghc-version = "${{ matrix.ghc }}";
