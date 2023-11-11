@@ -24,7 +24,6 @@
     ## tooling
     ./direnv.nix
     ./git.nix
-    ./mustache.nix
     ./shellcheck
     ./treefmt.nix
     ./vale.nix

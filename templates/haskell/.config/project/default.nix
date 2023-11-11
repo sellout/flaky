@@ -4,6 +4,11 @@
     summary = "{{project.summary}}";
   };
 
+  imports = [
+    ./github-build.nix
+    ./hlint.nix
+  ];
+
   ## dependency management
   services.renovate.enable = true;
 
@@ -35,7 +40,6 @@
   };
 
   ## CI
-  imports = [./github-build.nix];
   services.garnix = {
     enable = true;
     builds.exclude = [

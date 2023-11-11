@@ -25,8 +25,8 @@
       package = {
         name = "traversable";
         modules = [
-          "import Data.Foldable";
-          "import Data.Traversable";
+          "import Data.Foldable"
+          "import Data.Traversable"
         ];
       };
     }
