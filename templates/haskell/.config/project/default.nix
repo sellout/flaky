@@ -36,7 +36,22 @@
       ## Haskell formatter
       programs.ormolu.enable = true;
     };
-    vale.enable = true;
+    vale = {
+      enable = true;
+      excludes = [
+        "*.cabal"
+        "*.hs"
+        "*.lhs"
+        "./cabal.project"
+      ];
+      vocab.${config.project.name}.accept = [
+        "comonad"
+        "functor"
+        "GADT"
+        "Kleisli"
+        "Kmett"
+      ];
+    };
   };
 
   ## CI

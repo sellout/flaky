@@ -10,7 +10,8 @@
     ];
     ## Isolate the build.
     registries = false;
-    sandbox = true;
+    ## TODO: Some checks currently don't work when sandboxed.
+    sandbox = false;
   };
 
   ### This is a complicated flake. Here’s the rundown:
@@ -41,6 +42,8 @@
       "ghc961"
       # "ghcHEAD" # doctest doesn’t work on current HEAD
     ];
+
+    supportedSystems = inputs.flake-utils.lib.defaultSystems;
 
     cabalPackages = pkgs: hpkgs:
       inputs.concat.lib.cabalProject2nix
@@ -92,12 +95,12 @@
                 ];
               })
             ])
-          inputs.flake-utils.lib.defaultSystems);
+          supportedSystems);
     }
     ## NB: This uses `eachSystem defaultSystems` instead of `eachDefaultSystem`
     ##     because users often have to locally replace `defaultSystems` with
     ##     their specific system to avoid issues with IFD.
-    // inputs.flake-utils.lib.eachSystem inputs.flake-utils.lib.defaultSystems
+    // inputs.flake-utils.lib.eachSystem supportedSystems
     (system: let
       pkgs = import inputs.nixpkgs {
         inherit system;

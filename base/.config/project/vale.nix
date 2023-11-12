@@ -30,6 +30,8 @@
       ## TODO: Have a general `ignores` list that we can process into
       ##       gitignores, `find -not` lists, etc.
       "*.nix"
+      "*.yaml"
+      "*.yml"
       "*/flake.lock"
       "./.cache/*"
       "./.config/mustache.yaml"
