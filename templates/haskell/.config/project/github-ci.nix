@@ -1,6 +1,6 @@
 {lib, ...}: {
   services.github.workflow."build.yml".text = lib.generators.toYAML {} {
-    name = "build";
+    name = "CI";
     on = {
       push.branches = ["main"];
       pull_request.types = [
