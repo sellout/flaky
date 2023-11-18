@@ -79,9 +79,9 @@
         "./scripts/*"
         ## TODO: Have a general `ignores` list that we can process into
         ##       gitignores, `find -not` lists, etc.
+        "./.github/renovate.json"
         "./.github/settings.yml"
         "./garnix.yaml"
-        "./renovate.json"
       ];
     };
   };
