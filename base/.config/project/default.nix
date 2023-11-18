@@ -24,7 +24,7 @@
     ## tooling
     ./direnv.nix
     ./git.nix
-    ./shellcheck
+    ./shellcheck.nix
     ./treefmt.nix
     ./vale.nix
     ## services
