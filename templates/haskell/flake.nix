@@ -34,7 +34,7 @@
     pname = "{{project.name}}";
 
     supportedGhcVersions = [
-      # "ghc884" # dependency compiler-rt-libc is broken in nixpkgs 23.05
+      # "ghc884" # dependency compiler-rt-libc is broken in nixpkgs 23.05 & 23.11
       "ghc8107"
       "ghc902"
       "ghc928"
@@ -164,6 +164,6 @@
       url = "github:sellout/flaky";
     };
 
-    nixpkgs.url = "github:NixOS/nixpkgs/release-23.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/release-23.11";
   };
 }

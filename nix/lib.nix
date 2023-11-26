@@ -104,7 +104,7 @@
             # These attributes are simply required by home-manager.
             home = {
               homeDirectory = /tmp/${name}-example;
-              stateVersion = "23.05";
+              stateVersion = "23.11";
               username = "${name}-example-user";
             };
           }
