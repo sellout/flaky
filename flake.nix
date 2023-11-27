@@ -286,7 +286,6 @@
         bash-strict-mode.follows = "bash-strict-mode";
         flake-utils.follows = "flake-utils";
         flaky.follows = "";
-        nixpkgs.follows = "nixpkgs";
       };
       url = "github:sellout/project-manager";
     };

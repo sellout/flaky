@@ -18,6 +18,8 @@
 
     ## NB: This allows non-Nix users to contribute to the project.
     commit-by-default = true;
+
+    stateVersion = 0;
   };
 
   imports = [

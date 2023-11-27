@@ -97,6 +97,54 @@
     },
     "nixpkgs": {
       "locked": {
+        "lastModified": 1701051175,
+        "narHash": "sha256-n0PwVN8M6sW38nQyLYTPjIpV6H0pqvZLc1He4AtZNb4=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "8bb8ec3bc165439595fa7bac396a2d3ee76fd5fd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "release-23.11",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-22_11": {
+      "locked": {
+        "lastModified": 1688392541,
+        "narHash": "sha256-lHrKvEkCPTUO+7tPfjIcb7Trk6k31rz18vkyqmkeJfY=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "ea4c80b39be4c09702b0cb3b42eab59e2ba4f24b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "release-22.11",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-23_05": {
+      "locked": {
+        "lastModified": 1701027176,
+        "narHash": "sha256-tNYEc6QClrExMdArIL9krYSPo/34U43DHwuBbgwfcoA=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "835eab9a7bcaf4365fc96f5d1a756784aea0f5d1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "release-23.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-23_11": {
+      "locked": {
         "lastModified": 1701034356,
         "narHash": "sha256-XuuC3BGQzUszyFQHQwSOgIJu0bmGFdPBFHsdvM0sn50=",
         "owner": "NixOS",
@@ -137,18 +185,18 @@
           "flake-utils"
         ],
         "flaky": [],
-        "nixpkgs": [
-          "nixpkgs"
-        ],
+        "nixpkgs-22_11": "nixpkgs-22_11",
+        "nixpkgs-23_05": "nixpkgs-23_05",
+        "nixpkgs-23_11": "nixpkgs-23_11",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1701026415,
-        "narHash": "sha256-sWjII3+TkD6BBl52nxRecmKZ4KbsDxvaCZWCHvJTVMU=",
+        "lastModified": 1701049499,
+        "narHash": "sha256-SlGIIlTG5Ax18q3QlAuFkJPXyPEXW6TMbMb1xd4GneU=",
         "owner": "sellout",
         "repo": "project-manager",
-        "rev": "14100d917a88c450787255e6dc9933d0ebc81b3e",
+        "rev": "c7d159788baa8542536b0374fea58dd0001758fe",
         "type": "github"
       },
       "original": {
@@ -216,7 +264,7 @@
       "inputs": {
         "nixpkgs": [
           "project-manager",
-          "nixpkgs"
+          "nixpkgs-23_11"
         ]
       },
       "locked": {
