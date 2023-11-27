@@ -94,6 +94,8 @@
       actions.permissions.workflow.can_approve_pull_request_reviews = true;
     };
 
+    ## TODO: Have this run `project-manager switch` before opening the PR – see
+    ##       DeterminateSystems/update-flake-lock#91
     workflow."update-nix-lockfile.yml".text = lib.generators.toYAML {} {
       name = "Create PR to update Nix flake inputs";
       on = {
@@ -120,8 +122,8 @@
             uses = "DeterminateSystems/update-flake-lock@main";
             "with" = {
               pr-title = "Update flake.lock";
-              # Labels to be set on the PR
               pr-labels = lib.concatLines ["dependencies" "automated"];
+              pr-reviewers = lib.concatLines ["sellout"];
             };
           }
         ];
