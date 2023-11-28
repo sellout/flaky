@@ -10,7 +10,7 @@
     license = "AGPL-3.0-or-later";
 
     ## Packages to install in the devShells that reference projectConfiguration.
-    packages = [
+    devPackages = [
       ## language servers
       pkgs.nil # Nix
       pkgs.nodePackages.bash-language-server
