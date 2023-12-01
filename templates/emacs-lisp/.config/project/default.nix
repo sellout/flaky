@@ -26,6 +26,8 @@
 
   ## formatting
   editorconfig.enable = true;
+  ## See the file for why this needs to force a different version.
+  project.file.".dir-locals.el".source = lib.mkForce ../emacs/.dir-locals.el;
   programs = {
     treefmt = {
       enable = true;
