@@ -3,7 +3,7 @@
     name = "{{project.name}}";
     summary = "{{project.summary}}";
 
-    packages = [
+    devPackages = [
       pkgs.dhall
       pkgs.dhall-docs
       pkgs.dhall-lsp-server

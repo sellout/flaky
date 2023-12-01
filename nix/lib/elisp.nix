@@ -48,10 +48,7 @@ in {
       });
 
     lint = pkgs: src: epkgs:
-    ## TODO: Can’t currently use `bash-strict-mode.lib.checkedDrv`
-    ##       because the `emacs` wrapper script checks for existence of a
-    ##       variable with `-n` intead of `-v`.
-      bash-strict-mode.lib.shellchecked pkgs
+      bash-strict-mode.lib.checkedDrv pkgs
       (pkgs.stdenv.mkDerivation {
         inherit src;
 
@@ -75,8 +72,6 @@ in {
             echo "   \"${emacsPath pkgs.emacsPackages.package-lint}\""
             echo "   \"${emacsPath pkgs.emacsPackages.relint}\""
             echo "   \"${emacsPath pkgs.emacsPackages.xr}\"))"
-            ## FIXME: Emacs’ CheckDoc seems to ignore this in .dir-locals.el.
-            echo "(setq sentence-end-double-space nil)"
           } >> Eldev
         '';
 
@@ -86,9 +81,12 @@ in {
           ##      `eldev--create-internal-pseudoarchive-descriptor`.
           export HOME="$PWD/fake-home"
           mkdir -p "$HOME"
+
           ## Need `--external` here so that we don’t try to download any
           ## package archives (which would break the sandbox).
-          eldev --external lint
+          ## TODO: I'm not sure why this needs `EMACSNATIVELOADPATH`, but it
+          ##       does.
+          EMACSNATIVELOADPATH= eldev --external lint --required
           runHook postBuild
         '';
 
