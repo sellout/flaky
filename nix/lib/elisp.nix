@@ -69,7 +69,8 @@ in {
             echo
             echo "(mapcar"
             echo " 'eldev-use-local-dependency"
-            echo " '(\"${emacsPath pkgs.emacsPackages.dash}\""
+            echo " '(\"${emacsPath pkgs.emacsPackages.compat}\""
+            echo "   \"${emacsPath pkgs.emacsPackages.dash}\""
             echo "   \"${emacsPath pkgs.emacsPackages.elisp-lint}\""
             echo "   \"${emacsPath pkgs.emacsPackages.package-lint}\""
             echo "   \"${emacsPath pkgs.emacsPackages.relint}\""
