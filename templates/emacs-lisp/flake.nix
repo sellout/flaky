@@ -44,7 +44,7 @@
         builtins.listToAttrs
         (builtins.map
           (inputs.flaky.lib.homeConfigurations.example
-            ename
+            pname
             inputs.self
             [
               ({pkgs, ...}: {
