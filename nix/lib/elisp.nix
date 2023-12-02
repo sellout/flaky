@@ -11,6 +11,21 @@
       ".*(;; Version: ([[:digit:]]+\.[[:digit:]]+(\.[[:digit:]]+)?)).*"
       (builtins.readFile fp))
     1;
+
+  ## Ideally this could just
+  ##     (setq eldev-external-package-dir "${deps}/share/emacs/site-lisp/elpa")
+  ## but Eldev wants to write to that directory, even if there's nothing to
+  ## download.
+  setUpLocalDependencies = deps: ''
+    {
+      echo
+      echo "(mapcar 'eldev-use-local-dependency"
+      echo "        (directory-files"
+      echo "         \"${deps}/share/emacs/site-lisp/elpa\""
+      echo "         t"
+      echo "         directory-files-no-dot-files-regexp))"
+    } >> Eldev
+  '';
 in {
   inherit ELDEV_LOCAL emacsPath readVersion;
 
@@ -47,7 +62,15 @@ in {
         '';
       });
 
-    lint = pkgs: src: epkgs:
+    lint = pkgs: src: epkgs: let
+      emacsWithPackages = pkgs.emacsWithPackages (e:
+        [
+          e.elisp-lint
+          e.package-lint
+          e.relint
+        ]
+        ++ epkgs e);
+    in
       bash-strict-mode.lib.checkedDrv pkgs
       (pkgs.stdenv.mkDerivation {
         inherit src;
@@ -57,23 +80,11 @@ in {
         name = "eldev lint";
 
         nativeBuildInputs = [
-          (pkgs.emacsWithPackages epkgs)
+          emacsWithPackages
           pkgs.emacsPackages.eldev
         ];
 
-        postPatch = ''
-          {
-            echo
-            echo "(mapcar"
-            echo " 'eldev-use-local-dependency"
-            echo " '(\"${emacsPath pkgs.emacsPackages.compat}\""
-            echo "   \"${emacsPath pkgs.emacsPackages.dash}\""
-            echo "   \"${emacsPath pkgs.emacsPackages.elisp-lint}\""
-            echo "   \"${emacsPath pkgs.emacsPackages.package-lint}\""
-            echo "   \"${emacsPath pkgs.emacsPackages.relint}\""
-            echo "   \"${emacsPath pkgs.emacsPackages.xr}\"))"
-          } >> Eldev
-        '';
+        postPatch = setUpLocalDependencies emacsWithPackages.deps;
 
         buildPhase = ''
           runHook preBuild
@@ -82,11 +93,9 @@ in {
           export HOME="$PWD/fake-home"
           mkdir -p "$HOME"
 
-          ## Need `--external` here so that we don’t try to download any
-          ## package archives (which would break the sandbox).
           ## TODO: I'm not sure why this needs `EMACSNATIVELOADPATH`, but it
           ##       does.
-          EMACSNATIVELOADPATH= eldev --external lint --required
+          EMACSNATIVELOADPATH= eldev lint --required
           runHook postBuild
         '';
 
@@ -104,7 +113,9 @@ in {
       (emacsOverlay final prev);
   };
 
-  package = pkgs: src: pname: epkgs:
+  package = pkgs: src: pname: epkgs: let
+    emacsWithPackages = pkgs.emacsWithPackages epkgs;
+  in
     bash-strict-mode.lib.checkedDrv pkgs
     (pkgs.emacsPackages.trivialBuild {
       inherit pname src;
@@ -114,19 +125,12 @@ in {
       version = readVersion "${src}/${pname}.el";
 
       nativeBuildInputs = [
-        (pkgs.emacsWithPackages (e: [e.buttercup] ++ epkgs e))
+        emacsWithPackages
         # Emacs-lisp build tool, https://doublep.github.io/eldev/
         pkgs.emacsPackages.eldev
       ];
 
-      postPatch = ''
-        {
-          echo
-          echo "(mapcar"
-          echo " 'eldev-use-local-dependency"
-          echo " '(\"${emacsPath pkgs.emacsPackages.buttercup}\"))"
-        } >> Eldev
-      '';
+      postPatch = setUpLocalDependencies emacsWithPackages.deps;
 
       doCheck = true;
 
@@ -136,7 +140,7 @@ in {
         ##      `eldev--create-internal-pseudoarchive-descriptor`.
         export HOME="$PWD/fake-home"
         mkdir -p "$HOME"
-        eldev --external test
+        eldev test
         runHook postCheck
       '';
 
@@ -144,7 +148,7 @@ in {
 
       installCheckPhase = ''
         runHook preInstallCheck
-        eldev --external --packaged test
+        eldev --packaged test
         runHook postInstallCheck
       '';
     });
