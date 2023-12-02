@@ -93,9 +93,11 @@ in {
           export HOME="$PWD/fake-home"
           mkdir -p "$HOME"
 
+          ## Need `--external` here so that we don’t try to download any
+          ## package archives (which would break the sandbox).
           ## TODO: I'm not sure why this needs `EMACSNATIVELOADPATH`, but it
           ##       does.
-          EMACSNATIVELOADPATH= eldev lint --required
+          EMACSNATIVELOADPATH= eldev --external lint --required
           runHook postBuild
         '';
 
@@ -140,7 +142,9 @@ in {
         ##      `eldev--create-internal-pseudoarchive-descriptor`.
         export HOME="$PWD/fake-home"
         mkdir -p "$HOME"
-        eldev test
+        ## Need `--external` here so that we don’t try to download any
+        ## package archives (which would break the sandbox).
+        eldev --external test
         runHook postCheck
       '';
 
@@ -148,7 +152,9 @@ in {
 
       installCheckPhase = ''
         runHook preInstallCheck
-        eldev --packaged test
+        ## Need `--external` here so that we don’t try to download any
+        ## package archives (which would break the sandbox).
+        eldev --external --packaged test
         runHook postInstallCheck
       '';
     });
