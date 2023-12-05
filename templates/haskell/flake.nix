@@ -29,7 +29,14 @@
   ###                  packages in cabal.project compiled for one GHC version
   ### };
   ### checks.format = verify that code matches Ormolu expectations
-  outputs = inputs: let
+  outputs = {
+    bash-strict-mode,
+    concat,
+    flake-utils,
+    flaky,
+    nixpkgs,
+    self,
+  }: let
     pname = "{{project.name}}";
 
     supportedGhcVersions = [
@@ -42,10 +49,10 @@
       # "ghcHEAD" # doctest doesn’t work on current HEAD
     ];
 
-    supportedSystems = inputs.flake-utils.lib.defaultSystems;
+    supportedSystems = flake-utils.lib.defaultSystems;
 
     cabalPackages = pkgs: hpkgs:
-      inputs.concat.lib.cabalProject2nix
+      concat.lib.cabalProject2nix
       ./cabal.project
       pkgs
       hpkgs
@@ -55,14 +62,16 @@
   in
     {
       schemas = {
-        inherit (inputs.flaky.schemas)
+        inherit
+          (flaky.schemas)
           overlays
           homeConfigurations
           packages
           devShells
           projectConfigurations
           checks
-          formatter;
+          formatter
+          ;
       };
 
       # see these issues and discussions:
@@ -72,19 +81,19 @@
       # - https://discourse.nixos.org/t/nix-haskell-development-2020/6170
       overlays = {
         default =
-          inputs.concat.lib.overlayHaskellPackages
+          concat.lib.overlayHaskellPackages
           supportedGhcVersions
-          inputs.self.overlays.haskell;
+          self.overlays.haskell;
 
-        haskell = inputs.concat.lib.haskellOverlay cabalPackages;
+        haskell = concat.lib.haskellOverlay cabalPackages;
       };
 
       homeConfigurations =
         builtins.listToAttrs
         (builtins.map
-          (inputs.flaky.lib.homeConfigurations.example
+          (flaky.lib.homeConfigurations.example
             pname
-            inputs.self
+            self
             [
               ({pkgs, ...}: {
                 home.packages = [
@@ -99,25 +108,25 @@
     ## NB: This uses `eachSystem defaultSystems` instead of `eachDefaultSystem`
     ##     because users often have to locally replace `defaultSystems` with
     ##     their specific system to avoid issues with IFD.
-    // inputs.flake-utils.lib.eachSystem supportedSystems
+    // flake-utils.lib.eachSystem supportedSystems
     (system: let
-      pkgs = import inputs.nixpkgs {
+      pkgs = import nixpkgs {
         inherit system;
-        ## NB: This uses `inputs.self.overlays.default` because packages need to
+        ## NB: This uses `self.overlays.default` because packages need to
         ##     be able to find other packages in this flake as dependencies.
-        overlays = [inputs.self.overlays.default];
+        overlays = [self.overlays.default];
       };
 
       ## TODO: Extract this automatically from `pkgs.haskellPackages`.
       defaultCompiler = "ghc928";
     in {
       packages =
-        {default = inputs.self.packages.${system}."${defaultCompiler}_all";}
-        // inputs.concat.lib.mkPackages pkgs supportedGhcVersions cabalPackages;
+        {default = self.packages.${system}."${defaultCompiler}_all";}
+        // concat.lib.mkPackages pkgs supportedGhcVersions cabalPackages;
 
       devShells =
-        {default = inputs.self.devShells.${system}.${defaultCompiler};}
-        // inputs.concat.lib.mkDevShells
+        {default = self.devShells.${system}.${defaultCompiler};}
+        // concat.lib.mkDevShells
         pkgs
         supportedGhcVersions
         cabalPackages
@@ -127,14 +136,11 @@
           pkgs.graphviz
         ]);
 
-      projectConfigurations = inputs.flaky.lib.projectConfigurations.default {
-        inherit pkgs;
-        inherit (inputs) self;
-      };
+      projectConfigurations =
+        flaky.lib.projectConfigurations.default {inherit pkgs self;};
 
-      checks = inputs.self.projectConfigurations.${system}.checks;
-
-      formatter = inputs.self.projectConfigurations.${system}.formatter;
+      checks = self.projectConfigurations.${system}.checks;
+      formatter = self.projectConfigurations.${system}.formatter;
     });
 
   inputs = {

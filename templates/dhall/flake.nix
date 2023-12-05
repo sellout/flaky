@@ -19,13 +19,19 @@
     sandbox = "relaxed";
   };
 
-  outputs = inputs: let
+  outputs = {
+    bash-strict-mode,
+    flake-utils,
+    flaky,
+    nixpkgs,
+    self,
+  }: let
     pname = "{{project.name}}";
   in
     {
       schemas = {
         inherit
-          (inputs.flaky.schemas)
+          (flaky.schemas)
           overlays
           homeConfigurations
           packages
@@ -42,60 +48,74 @@
             overrides =
               final.lib.composeExtensions
               (old.overrides or (_: _: {}))
-              (inputs.self.overlays.dhall final prev);
+              (self.overlays.dhall final prev);
           });
         };
 
         dhall = final: prev: dfinal: dprev: {
-          ${pname} = inputs.self.packages.${final.system}.${pname};
+          ${pname} = self.packages.${final.system}.${pname};
         };
       };
 
       homeConfigurations =
         builtins.listToAttrs
         (builtins.map
-          (inputs.flaky.lib.homeConfigurations.example
+          (flaky.lib.homeConfigurations.example
             pname
-            inputs.self
+            self
             [
               ({pkgs, ...}: {
                 ## TODO: Is there something more like `dhallWithPackages`?
                 home.packages = [pkgs.dhallPackages.${pname}];
               })
             ])
-          inputs.flake-utils.lib.defaultSystems);
+          flake-utils.lib.defaultSystems);
     }
-    // inputs.flake-utils.lib.eachDefaultSystem (system: let
-      pkgs = import inputs.nixpkgs {inherit system;};
+    // flake-utils.lib.eachDefaultSystem (system: let
+      pkgs = import nixpkgs {inherit system;};
 
       src = pkgs.lib.cleanSource ./.;
     in {
       packages = {
-        default = inputs.self.packages.${system}.${pname};
+        default = self.packages.${system}.${pname};
 
-        "${pname}" = pkgs.dhallPackages.buildDhallDirectoryPackage {
-          src = "${src}/dhall";
-          name = pname;
-          dependencies = [pkgs.dhallPackages.Prelude];
-          document = true;
-        };
+        "${pname}" =
+          bash-strict-mode.lib.checkedDrv
+          pkgs
+          (pkgs.dhallPackages.buildDhallDirectoryPackage {
+            src = "${src}/dhall";
+            name = pname;
+            dependencies = [pkgs.dhallPackages.Prelude];
+            document = true;
+          });
       };
 
-      projectConfigurations = inputs.flaky.lib.projectConfigurations.default {
-        inherit pkgs;
-        inherit (inputs) self;
-      };
+      projectConfigurations =
+        flaky.lib.projectConfigurations.default {inherit pkgs self;};
 
-      devShells = inputs.self.projectConfigurations.${system}.devShells;
-      checks = inputs.self.projectConfigurations.${system}.checks;
-      formatter = inputs.self.projectConfigurations.${system}.formatter;
+      devShells = self.projectConfigurations.${system}.devShells;
+      checks = self.projectConfigurations.${system}.checks;
+      formatter = self.projectConfigurations.${system}.formatter;
     });
 
   inputs = {
+    bash-strict-mode = {
+      inputs = {
+        flake-utils.follows = "flake-utils";
+        flaky.follows = "flaky";
+        nixpkgs.follows = "nixpkgs";
+      };
+      url = "github:sellout/bash-strict-mode";
+    };
+
     flake-utils.url = "github:numtide/flake-utils";
 
     flaky = {
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        bash-strict-mode.follows = "bash-strict-mode";
+        flake-utils.follows = "flake-utils";
+        nixpkgs.follows = "nixpkgs";
+      };
       url = "github:sellout/flaky";
     };
 
