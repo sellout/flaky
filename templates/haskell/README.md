@@ -12,15 +12,15 @@
 
 ## development environment
 
-We recommend the following steps to make working in this repo as easy as possible.
+We recommend the following steps to make working in this repository as easy as possible.
 
 ### `direnv allow`
 
-This command ensures that any work you do within this repo is done within a consistent reproducible environment. That environment provides various debugging tools, etc. When you leave this directory, you will leave that environment behind, so it doesn’t impact anything else on your system.
+This command ensures that any work you do within this repository is done within a consistent reproducible environment. That environment provides various debugging tools, etc. When you leave this directory, you will leave that environment behind, so it doesn’t impact anything else on your system.
 
 ### `git config --local include.path ../.config/git/config`
 
-This will apply our repo-specific Git configuration to `git` commands run against this repo. It is very lightweight (you should definitely look at it before applying this command) – it does things like telling `git blame` to ignore formatting-only commits.
+This will apply our repository-specific Git configuration to `git` commands run against this repository. It’s lightweight (you should definitely look at it before applying this command) – it does things like telling `git blame` to ignore formatting-only commits.
 
 ## building & development
 
@@ -40,7 +40,7 @@ This project is built with [Cabal](https://cabal.readthedocs.io/en/stable/index.
 
 In the absolute, almost every change is a breaking change. This section describes how we mitigate that to provide minor updates and revisions.
 
-Here are some of the common changes that can have unintended effects:
+Here are some common changes that can have unintended effects:
 
 - adding instances can conflict with downstream orphans,
 - adding a module can conflict with a module from another package,
@@ -51,7 +51,7 @@ To mitigate some of those issues for versioning, we assume the following usage:
 
 - modules should be imported using `PackageImports`, so that adding modules is a _minor_ change;
 - modules should be imported qualified, so that adding definitions is a _minor_ change;
-- adding instances can't be mitigated in the same way, and it's not uncommon for downstream libraries to add orphans instances when they're omitted from upstream libraries. However, since these conflicts can only happen via direct dependencies, and represent an explicit downstream workaround, it is reasonable to expect a quick downstream update to remove or conditionalize the workaround. So, this is considered a _minor major_ change;
+- adding instances can't be mitigated in the same way, and it's not uncommon for downstream libraries to add orphans instances when they're omitted from upstream libraries. However, since these conflicts can only happen via direct dependencies, and represent an explicit downstream workaround, it’s reasonable to expect a quick downstream update to remove or conditionalize the workaround. So, this is considered a _minor major_ change;
 - deprecation is considered a _revision_ change, however it will often be paired with _minor_ changes. `-Werror` can cause this to fail, but published libraries shouldn't be compiled with `-Werror`.
 
 ## comparisons

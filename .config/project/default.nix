@@ -13,7 +13,7 @@
             value = flaky.lib.checks.validate-template name pkgs ../..;
           })
           ## TODO: This template has some issues (IFD, etc.)
-          (lib.remove "haskell" (builtins.attrNames flaky.templates)));
+          (builtins.attrNames flaky.templates));
   };
 
   ## dependency management

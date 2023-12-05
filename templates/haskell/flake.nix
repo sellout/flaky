@@ -39,16 +39,6 @@
   }: let
     pname = "{{project.name}}";
 
-    supportedGhcVersions = [
-      # "ghc884" # dependency compiler-rt-libc is broken in nixpkgs 23.05 & 23.11
-      "ghc8107"
-      "ghc902"
-      "ghc928"
-      "ghc945"
-      "ghc961"
-      # "ghcHEAD" # doctest doesn’t work on current HEAD
-    ];
-
     supportedSystems = flake-utils.lib.defaultSystems;
 
     cabalPackages = pkgs: hpkgs:
@@ -82,7 +72,7 @@
       overlays = {
         default =
           concat.lib.overlayHaskellPackages
-          supportedGhcVersions
+          self.lib.supportedGhcVersions
           self.overlays.haskell;
 
         haskell = concat.lib.haskellOverlay cabalPackages;
@@ -104,6 +94,58 @@
               })
             ])
           supportedSystems);
+
+      lib = {
+        ## TODO: Extract this automatically from `pkgs.haskellPackages`.
+        defaultCompiler = "ghc948";
+
+        ## Test the oldest revision possible for each minor release. If it’s not
+        ## available in nixpkgs, test the oldest available, then try an older
+        ## one via GitHub workflow. Additionally, check any revisions that have
+        ## explicit conditionalization. And check whatever version `pkgs.ghc`
+        ## maps to in the nixpkgs we depend on.
+        testedGhcVersions = [
+          self.lib.defaultCompiler
+          # "ghc884" # dependency compiler-rt-libc is broken in nixpkgs 23.05 & 23.11
+          "ghc8107"
+          "ghc902"
+          "ghc924"
+          "ghc942"
+          "ghc962"
+          "ghc981"
+          # "ghcHEAD" # doctest doesn’t work on current HEAD
+        ];
+
+        ## The versions that are older than those supported by Nix that we
+        ## prefer to test against.
+        nonNixTestedGhcVersions = [
+          "8.6.1"
+          "8.8.1"
+          "8.10.1"
+          "9.0.1"
+          "9.2.1"
+          "9.4.1"
+          "9.6.1"
+        ];
+
+        ## However, provide packages in the default overlay for _every_
+        ## supported version.
+        supportedGhcVersions =
+          self.lib.testedGhcVersions
+          ++ [
+            "ghc925"
+            "ghc926"
+            "ghc927"
+            "ghc928"
+            "ghc943"
+            "ghc944"
+            "ghc945"
+            "ghc946"
+            "ghc947"
+            "ghc948"
+            "ghc963"
+          ];
+      };
     }
     ## NB: This uses `eachSystem defaultSystems` instead of `eachDefaultSystem`
     ##     because users often have to locally replace `defaultSystems` with
@@ -116,25 +158,28 @@
         ##     be able to find other packages in this flake as dependencies.
         overlays = [self.overlays.default];
       };
-
-      ## TODO: Extract this automatically from `pkgs.haskellPackages`.
-      defaultCompiler = "ghc928";
     in {
       packages =
-        {default = self.packages.${system}."${defaultCompiler}_all";}
-        // concat.lib.mkPackages pkgs supportedGhcVersions cabalPackages;
+        {default = self.packages.${system}."${self.lib.defaultCompiler}_all";}
+        // concat.lib.mkPackages pkgs self.lib.supportedGhcVersions cabalPackages;
 
       devShells =
-        {default = self.devShells.${system}.${defaultCompiler};}
+        {default = self.devShells.${system}.${self.lib.defaultCompiler};}
         // concat.lib.mkDevShells
         pkgs
-        supportedGhcVersions
+        self.lib.testedGhcVersions
         cabalPackages
-        (hpkgs: [
-          hpkgs.haskell-language-server
-          pkgs.cabal-install
-          pkgs.graphviz
-        ]);
+        (hpkgs:
+          [
+            pkgs.cabal-install
+            pkgs.graphviz
+          ]
+          ## NB: Haskell Language Server no longer supports GHC <9.
+          ## TODO: HLS also apparently broken on 9.8.1
+          ++ nixpkgs.lib.optional
+          (nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9"
+            && builtins.compareVersions hpkgs.ghc.version "9.8.1" != 0)
+          hpkgs.haskell-language-server);
 
       projectConfigurations =
         flaky.lib.projectConfigurations.default {inherit pkgs self;};
@@ -146,6 +191,7 @@
   inputs = {
     bash-strict-mode = {
       inputs = {
+        flake-utils.follows = "flake-utils";
         flaky.follows = "flaky";
         nixpkgs.follows = "nixpkgs";
       };
@@ -164,6 +210,7 @@
     flaky = {
       inputs = {
         bash-strict-mode.follows = "bash-strict-mode";
+        flake-utils.follows = "flake-utils";
         nixpkgs.follows = "nixpkgs";
       };
       url = "github:sellout/flaky";
