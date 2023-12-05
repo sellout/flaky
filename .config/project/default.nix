@@ -7,6 +7,13 @@
     ## contributable-to by non-Nix users. However, Nix-specific projects can
     ## lean into Project Manager and avoid committing extra files.
     commit-by-default = lib.mkForce false;
+
+    checks = builtins.listToAttrs (map (name: {
+            name = "${name}-template-validity";
+            value = flaky.lib.checks.validate-template name pkgs ../..;
+          })
+          ## TODO: This template has some issues (IFD, etc.)
+          (lib.remove "haskell" (builtins.attrNames flaky.templates)));
   };
 
   ## dependency management
@@ -87,19 +94,7 @@
   };
 
   ## CI
-  services.garnix = {
-    enable = true;
-    builds.exclude = [
-      ## TODO: These currently fail because they need Internet access.
-      "checks.*.bash-template-validity"
-      "checks.*.c-template-validity"
-      "checks.*.default-template-validity"
-      "checks.*.dhall-template-validity"
-      "checks.*.emacs-lisp-template-validity"
-      "checks.*.haskell-template-validity"
-      "checks.*.nix-template-validity"
-    ];
-  };
+  services.garnix.enable = true;
   services.github.settings.branches.main.protection.required_status_checks.contexts =
     lib.mkForce (lib.concatMap flaky.lib.garnixChecks [
       (sys: "devShell bash [${sys}]")

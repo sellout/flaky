@@ -10,8 +10,7 @@
     ];
     ## Isolate the build.
     registries = false;
-    ## Disabled so that checks that require Internet access can run.
-    sandbox = false;
+    sandbox = "relaxed";
   };
 
   outputs = inputs:
@@ -251,14 +250,7 @@
       checks = let
         src = pkgs.lib.cleanSource ./.;
       in
-        inputs.self.projectConfigurations.${system}.checks
-        // builtins.listToAttrs (map (name: {
-            name = "${name}-template-validity";
-            value = inputs.self.lib.checks.validate-template name pkgs src;
-          })
-          ## TODO: This template has some issues (IFD, etc.)
-          (pkgs.lib.remove "haskell"
-            (builtins.attrNames inputs.self.templates)));
+        inputs.self.projectConfigurations.${system}.checks;
 
       formatter = inputs.self.projectConfigurations.${system}.formatter;
     });

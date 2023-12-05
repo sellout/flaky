@@ -10,8 +10,7 @@
     ];
     ## Isolate the build.
     registries = false;
-    ## TODO: Some checks currently don't work when sandboxed.
-    sandbox = false;
+    sandbox = "relaxed";
   };
 
   ### This is a complicated flake. Here’s the rundown:

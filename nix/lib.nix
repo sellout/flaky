@@ -16,51 +16,54 @@
     inherit simple;
 
     validate-template = name: pkgs: src:
-      simple
-      pkgs
-      src
-      "validate ${name}"
-      [
-        pkgs.cacert
-        pkgs.git
-        pkgs.moreutils
-        pkgs.mustache-go
-        pkgs.nix
-        pkgs.project-manager
-        pkgs.rename
-      ]
-      ''
-        mkdir -p "$out"
-        HOME="$PWD/fake-home"
-        mkdir -p "$HOME/.local/state/nix/profiles"
+      (simple
+        pkgs
+        src
+        "validate ${name}"
+        [
+          pkgs.cacert
+          pkgs.git
+          pkgs.moreutils
+          pkgs.mustache-go
+          pkgs.nix
+          pkgs.project-manager
+          pkgs.rename
+        ]
+        ''
+          mkdir -p "$out"
+          HOME="$PWD/fake-home"
+          mkdir -p "$HOME/.local/state/nix/profiles"
 
-        nix --accept-flake-config \
-            --extra-experimental-features "flakes nix-command" \
-            flake new "${name}-example" --template "${src}#${name}"
-        cd "${name}-example"
-        find . -iname "*{{project.name}}*" -depth \
-          -execdir rename 's/{{project.name}}/template-example/g' {} +
-        find . -type f -exec bash -c \
-          'mustache "${src}/templates/example.yaml" "$0" | sponge "$0"' \
-          {} \;
-        ## Reference _this_ version of flaky, rather than a published one.
-        sed -i -e 's#github:sellout/flaky#${self}#g' ./flake.nix
-        ## Speed up the check by priming the lockfile.
-        cp "$src/flake.lock" ./
-        chmod +w ./flake.lock
-        git init
-        git add --all
-        project-manager switch
-        ## Format the README before checking, because templating may affect
-        ## formatting.
-        nix --accept-flake-config \
-            --extra-experimental-features "flakes nix-command" \
-            fmt README.md
-        nix --accept-flake-config \
-            --extra-experimental-features "flakes nix-command" \
-            --print-build-logs \
-            flake check
-      '';
+          nix --accept-flake-config \
+              --extra-experimental-features "flakes nix-command" \
+              flake new "${name}-example" --template "${src}#${name}"
+          cd "${name}-example"
+          find . -iname "*{{project.name}}*" -depth \
+            -execdir rename 's/{{project.name}}/template-example/g' {} +
+          find . -type f -exec bash -c \
+            'mustache "${src}/templates/example.yaml" "$0" | sponge "$0"' \
+            {} \;
+          ## Reference _this_ version of flaky, rather than a published one.
+          sed -i -e 's#github:sellout/flaky#${self}#g' ./flake.nix
+          ## Speed up the check by priming the lockfile.
+          cp "$src/flake.lock" ./
+          chmod +w ./flake.lock
+          git init
+          git add --all
+          project-manager switch
+          ## Format the README before checking, because templating may affect
+          ## formatting.
+          nix --accept-flake-config \
+              --extra-experimental-features "flakes nix-command" \
+              fmt README.md
+          nix --accept-flake-config \
+              --extra-experimental-features "flakes nix-command" \
+              --print-build-logs \
+              flake check
+        '')
+      .overrideAttrs (old: {
+        __noChroot = true;
+      });
   };
 
   devShells.default = pkgs: self: nativeBuildInputs: shellHook:

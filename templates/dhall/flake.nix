@@ -16,7 +16,7 @@
     ];
     ## Isolate the build.
     registries = false;
-    sandbox = true;
+    sandbox = "relaxed";
   };
 
   outputs = inputs: let
