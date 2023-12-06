@@ -10,29 +10,28 @@
     ];
     ## Isolate the build.
     registries = false;
-    ## Disabled so that checks that require Internet access can run.
-    sandbox = false;
+    sandbox = "relaxed";
   };
 
-  outputs = inputs:
+  outputs = {
+    bash-strict-mode,
+    flake-utils,
+    home-manager,
+    nixpkgs,
+    project-manager,
+    self,
+  }:
     {
       ## These are also consumed by downstream projects, so it may include more
       ## than is referenced in this flake.
-      schemas = inputs.project-manager.schemas;
+      schemas = project-manager.schemas;
 
       overlays = {
         elisp-dependencies = import ./nix/elisp-dependencies.nix;
       };
 
       lib = import ./nix/lib.nix {
-        inherit
-          (inputs)
-          bash-strict-mode
-          home-manager
-          nixpkgs
-          project-manager
-          self
-          ;
+        inherit bash-strict-mode home-manager nixpkgs project-manager self;
       };
 
       templates = let
@@ -90,21 +89,16 @@
         hacktoberfest = ./base/.config/project/hacktoberfest.nix;
       };
     }
-    // inputs.flake-utils.lib.eachSystem inputs.flake-utils.lib.defaultSystems
+    // flake-utils.lib.eachSystem flake-utils.lib.defaultSystems
     (system: let
-      pkgs = import inputs.nixpkgs {
+      pkgs = import nixpkgs {
         inherit system;
         overlays = [
-          inputs.bash-strict-mode.overlays.default
-          inputs.project-manager.overlays.default
+          bash-strict-mode.overlays.default
+          project-manager.overlays.default
         ];
       };
     in {
-      projectConfigurations = inputs.self.lib.projectConfigurations.default {
-        inherit pkgs;
-        inherit (inputs) self;
-      };
-
       ## These shells are quick-and-dirty development environments for various
       ## programming languages. They’re meant to be used in projects that don’t
       ## have any Nix support provided. There should be a
@@ -125,16 +119,16 @@
       ##       the project.
       devShells = let
         extendDevShell = shell: nativeBuildInputs:
-          inputs.self.devShells.${system}.${shell}.overrideAttrs (old: {
+          self.devShells.${system}.${shell}.overrideAttrs (old: {
             nativeBuildInputs = old.nativeBuildInputs ++ nativeBuildInputs;
           });
       in
-        inputs.self.projectConfigurations.${system}.devShells
+        self.projectConfigurations.${system}.devShells
         // {
-          # inputs.self.lib.devShells.default pkgs inputs.self [] "";
+          # self.lib.devShells.default pkgs self [] "";
           ## This provides tooling that could be useful in _any_ Nix project, if
           ## there’s not a specific one.
-          nix = inputs.bash-strict-mode.lib.checkedDrv pkgs (pkgs.mkShell {
+          nix = bash-strict-mode.lib.checkedDrv pkgs (pkgs.mkShell {
             nativeBuildInputs = [
               pkgs.bash-strict-mode
               pkgs.nil
@@ -178,8 +172,8 @@
           ];
           rust =
             extendDevShell "nix"
-            (inputs.nixpkgs.lib.optional
-              (system == inputs.flake-utils.lib.system.aarch64-darwin)
+            (nixpkgs.lib.optional
+              (system == flake-utils.lib.system.aarch64-darwin)
               pkgs.libiconv
               ++ [
                 pkgs.cargo
@@ -190,11 +184,11 @@
 
       apps.sync-template = {
         type = "app";
-        program = "${inputs.self.packages.${system}.management-scripts}/bin/sync-template";
+        program = "${self.packages.${system}.management-scripts}/bin/sync-template";
       };
 
       packages.management-scripts =
-        inputs.bash-strict-mode.lib.checkedDrv pkgs
+        bash-strict-mode.lib.checkedDrv pkgs
         (pkgs.stdenv.mkDerivation {
           pname = "flaky-management-scripts";
           version = "0.1.0";
@@ -248,19 +242,11 @@
           # doInstallCheck = true;
         });
 
-      checks = let
-        src = pkgs.lib.cleanSource ./.;
-      in
-        inputs.self.projectConfigurations.${system}.checks
-        // builtins.listToAttrs (map (name: {
-            name = "${name}-template-validity";
-            value = inputs.self.lib.checks.validate-template name pkgs src;
-          })
-          ## TODO: This template has some issues (IFD, etc.)
-          (pkgs.lib.remove "haskell"
-            (builtins.attrNames inputs.self.templates)));
+      projectConfigurations =
+        self.lib.projectConfigurations.default {inherit pkgs self;};
 
-      formatter = inputs.self.projectConfigurations.${system}.formatter;
+      checks = self.projectConfigurations.${system}.checks;
+      formatter = self.projectConfigurations.${system}.formatter;
     });
 
   inputs = {

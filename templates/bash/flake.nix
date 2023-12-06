@@ -10,16 +10,22 @@
     ];
     ## Isolate the build.
     registries = false;
-    sandbox = true;
+    sandbox = "relaxed";
   };
 
-  outputs = inputs: let
+  outputs = {
+    bash-strict-mode,
+    flake-utils,
+    flaky,
+    nixpkgs,
+    self,
+  }: let
     pname = "{{project.name}}";
   in
     {
       schemas = {
         inherit
-          (inputs.flaky.schemas)
+          (flaky.schemas)
           overlays
           homeConfigurations
           apps
@@ -38,21 +44,21 @@
       homeConfigurations =
         builtins.listToAttrs
         (builtins.map
-          (inputs.flaky.lib.homeConfigurations.example pname inputs.self [])
-          inputs.flake-utils.lib.defaultSystems);
+          (flaky.lib.homeConfigurations.example pname self [])
+          flake-utils.lib.defaultSystems);
     }
-    // inputs.flake-utils.lib.eachDefaultSystem (system: let
-      pkgs = import inputs.nixpkgs {inherit system;};
+    // flake-utils.lib.eachDefaultSystem (system: let
+      pkgs = import nixpkgs {inherit system;};
 
       src = pkgs.lib.cleanSource ./.;
     in {
       apps = {};
 
       packages = {
-        default = inputs.self.packages.${system}.${pname};
+        default = self.packages.${system}.${pname};
 
         "${pname}" =
-          inputs.bash-strict-mode.lib.checkedDrv pkgs
+          bash-strict-mode.lib.checkedDrv pkgs
           (pkgs.stdenv.mkDerivation {
             inherit pname src;
 
@@ -83,16 +89,12 @@
           });
       };
 
-      devShells = inputs.self.projectConfigurations.${system}.devShells;
+      projectConfigurations =
+        flaky.lib.projectConfigurations.default {inherit pkgs self;};
 
-      projectConfigurations = inputs.flaky.lib.projectConfigurations.default {
-        inherit pkgs;
-        inherit (inputs) self;
-      };
-
-      checks = inputs.self.projectConfigurations.${system}.checks;
-
-      formatter = inputs.self.projectConfigurations.${system}.formatter;
+      devShells = self.projectConfigurations.${system}.devShells;
+      checks = self.projectConfigurations.${system}.checks;
+      formatter = self.projectConfigurations.${system}.formatter;
     });
 
   inputs = {

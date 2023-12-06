@@ -10,16 +10,22 @@
     ];
     ## Isolate the build.
     registries = false;
-    sandbox = true;
+    sandbox = "relaxed";
   };
 
-  outputs = inputs: let
+  outputs = {
+    bash-strict-mode,
+    flake-utils,
+    flaky,
+    nixpkgs,
+    self,
+  }: let
     pname = "{{project.name}}";
   in
     {
       schemas = {
         inherit
-          (inputs.flaky.schemas)
+          (flaky.schemas)
           overlays
           homeConfigurations
           packages
@@ -35,13 +41,13 @@
       homeConfigurations =
         builtins.listToAttrs
         (builtins.map
-          (inputs.flaky.lib.homeConfigurations.example pname inputs.self [])
-          inputs.flake-utils.lib.defaultSystems);
+          (flaky.lib.homeConfigurations.example pname self [])
+          flake-utils.lib.defaultSystems);
 
       lib = {};
     }
-    // inputs.flake-utils.lib.eachDefaultSystem (system: let
-      pkgs = import inputs.nixpkgs {inherit system;};
+    // flake-utils.lib.eachDefaultSystem (system: let
+      pkgs = import nixpkgs {inherit system;};
 
       src = pkgs.lib.cleanSource ./.;
 
@@ -50,12 +56,10 @@
       stdenv = pkgs.llvmPackages_16.stdenv;
     in {
       packages = {
-        default = inputs.self.packages.${system}.${pname};
+        default = self.packages.${system}.${pname};
 
         "${pname}" =
-          ## TODO: Doesn’t use `strict-bash` because `libtoolize` has some bad
-          ##       behavior.
-          inputs.bash-strict-mode.lib.shellchecked pkgs
+          bash-strict-mode.lib.checkedDrv pkgs
           (stdenv.mkDerivation {
             inherit pname src;
 
@@ -67,19 +71,17 @@
           });
       };
 
-      devShells = inputs.self.projectConfigurations.${system}.devShells;
+      projectConfigurations =
+        flaky.lib.projectConfigurations.default {inherit pkgs self;};
 
-      projectConfigurations = inputs.flaky.lib.projectConfigurations.default {
-        inherit pkgs;
-        inherit (inputs) self;
-      };
+      devShells = self.projectConfigurations.${system}.devShells;
 
       checks =
-        inputs.self.projectConfigurations.${system}.checks
+        self.projectConfigurations.${system}.checks
         // {
           ## TODO: This doesn’t quite work yet.
           c-lint =
-            inputs.flaky.lib.checks.simple
+            flaky.lib.checks.simple
             pkgs
             src
             "clang-tidy"
@@ -95,7 +97,7 @@
             '';
         };
 
-      formatter = inputs.self.projectConfigurations.${system}.formatter;
+      formatter = self.projectConfigurations.${system}.formatter;
     });
 
   inputs = {

@@ -10,17 +10,22 @@
     ];
     ## Isolate the build.
     registries = false;
-    sandbox = true;
+    sandbox = "relaxed";
   };
 
-  outputs = inputs: let
+  outputs = {
+    flake-utils,
+    flaky,
+    nixpkgs,
+    self,
+  }: let
     pname = "{{project.name}}";
     ename = "emacs-${pname}";
   in
     {
       schemas = {
         inherit
-          (inputs.flaky.schemas)
+          (flaky.schemas)
           overlays
           homeConfigurations
           packages
@@ -32,20 +37,19 @@
       };
 
       overlays = {
-        default =
-          inputs.flaky.lib.elisp.overlays.default inputs.self.overlays.emacs;
+        default = flaky.lib.elisp.overlays.default self.overlays.emacs;
 
         emacs = final: prev: efinal: eprev: {
-          "${pname}" = inputs.self.packages.${final.system}.${ename};
+          "${pname}" = self.packages.${final.system}.${ename};
         };
       };
 
       homeConfigurations =
         builtins.listToAttrs
         (builtins.map
-          (inputs.flaky.lib.homeConfigurations.example
+          (flaky.lib.homeConfigurations.example
             pname
-            inputs.self
+            self
             [
               ({pkgs, ...}: {
                 programs.emacs = {
@@ -57,37 +61,35 @@
                 };
               })
             ])
-          inputs.flake-utils.lib.defaultSystems);
+          flake-utils.lib.defaultSystems);
     }
-    // inputs.flake-utils.lib.eachDefaultSystem (system: let
-      pkgs = import inputs.nixpkgs {
+    // flake-utils.lib.eachDefaultSystem (system: let
+      pkgs = import nixpkgs {
         inherit system;
-        overlays = [inputs.flaky.overlays.elisp-dependencies];
+        overlays = [flaky.overlays.elisp-dependencies];
       };
 
       src = pkgs.lib.cleanSource ./.;
     in {
       packages = {
-        default = inputs.self.packages.${system}.${ename};
-        "${ename}" = inputs.flaky.lib.elisp.package pkgs src pname (_: []);
+        default = self.packages.${system}.${ename};
+        "${ename}" = flaky.lib.elisp.package pkgs src pname (_: []);
       };
 
       devShells.default =
-        inputs.flaky.lib.devShells.default pkgs inputs.self [] "";
+        flaky.lib.devShells.default pkgs self [] "";
 
-      projectConfigurations = inputs.flaky.lib.projectConfigurations.default {
-        inherit pkgs;
-        inherit (inputs) self;
-      };
+      projectConfigurations =
+        flaky.lib.projectConfigurations.default {inherit pkgs self;};
 
       checks =
-        inputs.self.projectConfigurations.${system}.checks
+        self.projectConfigurations.${system}.checks
         // {
-          elisp-doctor = inputs.flaky.lib.elisp.checks.doctor pkgs src;
-          elisp-lint = inputs.flaky.lib.elisp.checks.lint pkgs src (_: []);
+          elisp-doctor = flaky.lib.elisp.checks.doctor pkgs src;
+          elisp-lint = flaky.lib.elisp.checks.lint pkgs src (_: []);
         };
 
-      formatter = inputs.self.projectConfigurations.${system}.formatter;
+      formatter = self.projectConfigurations.${system}.formatter;
     });
 
   inputs = {
