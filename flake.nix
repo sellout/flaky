@@ -125,6 +125,14 @@
       in
         self.projectConfigurations.${system}.devShells
         // {
+          default = self.devShells.${system}.project-manager.overrideAttrs (old: {
+            inputsFrom =
+              old.inputsFrom
+              or []
+              ++ builtins.attrValues
+              self.projectConfigurations.${system}.sandboxedChecks
+              ++ builtins.attrValues self.packages.${system};
+          });
           # self.lib.devShells.default pkgs self [] "";
           ## This provides tooling that could be useful in _any_ Nix project, if
           ## there’s not a specific one.
