@@ -21,6 +21,8 @@
   }: let
     pname = "{{project.name}}";
     ename = "emacs-${pname}";
+
+    supportedSystems = flaky.lib.defaultSystems;
   in
     {
       schemas = {
@@ -61,9 +63,9 @@
                 };
               })
             ])
-          flake-utils.lib.defaultSystems);
+          supportedSystems);
     }
-    // flake-utils.lib.eachDefaultSystem (system: let
+    // flake-utils.lib.eachSystem supportedSystems (system: let
       pkgs = import nixpkgs {
         inherit system;
         overlays = [flaky.overlays.elisp-dependencies];
@@ -76,11 +78,12 @@
         "${ename}" = flaky.lib.elisp.package pkgs src pname (_: []);
       };
 
-      devShells.default =
-        flaky.lib.devShells.default pkgs self [] "";
-
       projectConfigurations =
         flaky.lib.projectConfigurations.default {inherit pkgs self;};
+
+      devShells =
+        self.projectConfigurations.${system}.devShells
+        // {default = flaky.lib.devShells.default system self [] "";};
 
       checks =
         self.projectConfigurations.${system}.checks

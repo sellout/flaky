@@ -30,7 +30,6 @@
   ### };
   ### checks.format = verify that code matches Ormolu expectations
   outputs = {
-    bash-strict-mode,
     concat,
     flake-utils,
     flaky,
@@ -39,7 +38,7 @@
   }: let
     pname = "{{project.name}}";
 
-    supportedSystems = flake-utils.lib.defaultSystems;
+    supportedSystems = flaky.lib.defaultSystems;
 
     cabalPackages = pkgs: hpkgs:
       concat.lib.cabalProject2nix
@@ -170,10 +169,7 @@
         self.lib.testedGhcVersions
         cabalPackages
         (hpkgs:
-          [
-            pkgs.cabal-install
-            pkgs.graphviz
-          ]
+          [self.projectConfigurations.${system}.packages.path]
           ## NB: Haskell Language Server no longer supports GHC <9.
           ## TODO: HLS also apparently broken on 9.8.1
           ++ nixpkgs.lib.optional
@@ -189,15 +185,6 @@
     });
 
   inputs = {
-    bash-strict-mode = {
-      inputs = {
-        flake-utils.follows = "flake-utils";
-        flaky.follows = "flaky";
-        nixpkgs.follows = "nixpkgs";
-      };
-      url = "github:sellout/bash-strict-mode";
-    };
-
     # Currently contains our Haskell/Nix lib that should be extracted into its
     # own flake.
     concat = {
@@ -209,7 +196,6 @@
 
     flaky = {
       inputs = {
-        bash-strict-mode.follows = "bash-strict-mode";
         flake-utils.follows = "flake-utils";
         nixpkgs.follows = "nixpkgs";
       };
