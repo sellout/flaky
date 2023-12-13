@@ -45,6 +45,26 @@
 
       overlays = {
         elisp-dependencies = import ./nix/elisp-dependencies.nix;
+
+        dependencies = final: prev: {
+          haskellPackages =
+            prev.haskellPackages.extend (self.overlays.haskell-dependencies final prev);
+        };
+
+        ## TODO: Various packages fail their tests on i686-linux. Should
+        ##       probably fix them at some point.
+        haskell-dependencies = final: prev: hfinal: hprev:
+          if final.system == sys.i686-linux
+          then {
+            hackage-security = hprev.hackage-security.overrideAttrs (old: {
+              doCheck = false;
+            });
+            persistent = hprev.persistent.overrideAttrs (old: {
+              doCheck = false;
+            });
+            validity = hprev.validity.overrideAttrs (old: {doCheck = false;});
+          }
+          else {};
       };
 
       lib = import ./nix/lib.nix {
@@ -121,6 +141,7 @@
         overlays = [
           bash-strict-mode.overlays.default
           project-manager.overlays.default
+          self.overlays.dependencies
         ];
       };
     in {
@@ -176,26 +197,25 @@
             pkgs.gcc
             pkgs.gnumake
           ];
-          dhall = extendDevShell "nix" [
-            pkgs.dhall
-            pkgs.dhall-docs
-          ];
           emacs-lisp = extendDevShell "nix" [
             pkgs.cask
             pkgs.emacs
             pkgs.emacsPackages.eldev
           ];
-          haskell = extendDevShell "nix" [
-            pkgs.cabal-install
-            # We don’t need `ghcWithPackages` here because the build tool should
-            # handle the dependencies. Stack bundles GHC, but Cabal needs a
-            # version installed.
-            pkgs.ghc
-            pkgs.haskell-language-server
-            pkgs.hpack
-            pkgs.ormolu
-            pkgs.stack
-          ];
+          haskell = extendDevShell "nix" ([
+              pkgs.cabal-install
+              # We don’t need `ghcWithPackages` here because the build tool should
+              # handle the dependencies. Stack bundles GHC, but Cabal needs a
+              # version installed.
+              pkgs.ghc
+              pkgs.hpack
+              pkgs.ormolu
+              pkgs.stack
+            ]
+            ++ nixpkgs.lib.optionals (system != sys.i686-linux) [
+              ## TODO: `enummapset-0.7.1.0` fails to build on i686-linux.
+              pkgs.haskell-language-server
+            ]);
           rust =
             extendDevShell "nix"
             (nixpkgs.lib.optional
@@ -205,8 +225,20 @@
                 pkgs.cargo
                 pkgs.rustc
               ]);
-          scala = extendDevShell "nix" [pkgs.sbt];
-        };
+        }
+        // (
+          if system != sys.i686-linux
+          then {
+            ## `cborg-0.2.9.0` fails to build on i686-linux
+            dhall = extendDevShell "nix" [
+              pkgs.dhall
+              pkgs.dhall-docs
+            ];
+            ## `openjdk-19.0.2+7` isn’t supported on i686-linux
+            scala = extendDevShell "nix" [pkgs.sbt];
+          }
+          else {}
+        );
 
       apps.sync-template = {
         type = "app";
