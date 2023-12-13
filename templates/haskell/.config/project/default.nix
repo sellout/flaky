@@ -1,7 +1,12 @@
-{config, flaky, lib, self, ...}: {
+{config, flaky, lib, pkgs, self, ...}: {
   project = {
     name = "{{project.name}}";
     summary = "{{project.summary}}";
+
+    devPackages = [
+      pkgs.cabal-install
+      pkgs.graphviz
+    ];
   };
 
   imports = [

@@ -1,10 +1,14 @@
 {
   bash-strict-mode,
+  defaultSystems,
+  flake-utils,
   home-manager,
   nixpkgs,
   project-manager,
   self,
 }: {
+  inherit defaultSystems;
+
   checks = let
     simple = pkgs: src: name: nativeBuildInputs: cmd:
       bash-strict-mode.lib.checkedDrv pkgs
@@ -66,29 +70,22 @@
       });
   };
 
-  devShells.default = pkgs: self: nativeBuildInputs: shellHook:
-    bash-strict-mode.lib.checkedDrv pkgs
-    (pkgs.mkShell {
-      inherit shellHook;
-
+  devShells.default = system: self: nativeBuildInputs: shellHook:
+    self.projectConfigurations.${system}.devShells.project-manager.overrideAttrs
+    (old: {
       inputsFrom =
-        builtins.attrValues self.checks.${pkgs.system}
-        ++ builtins.attrValues (
-          if self ? packages
-          then self.packages.${pkgs.system}
-          else {}
-        );
+        old.inputsFrom
+        or []
+        ++ builtins.attrValues
+        ## FIXME: See sellout/project-manager#61
+        (removeAttrs
+          self.projectConfigurations.${system}.sandboxedChecks or {}
+          ["formatter"])
+        ++ builtins.attrValues self.packages.${system} or {};
 
-      nativeBuildInputs =
-        [
-          # Nix language server,
-          # https://github.com/oxalica/nil#readme
-          pkgs.nil
-          # Bash language server,
-          # https://github.com/bash-lsp/bash-language-server#readme
-          pkgs.nodePackages.bash-language-server
-        ]
-        ++ nativeBuildInputs;
+      nativeBuildInputs = old.nativeBuildInputs ++ nativeBuildInputs;
+
+      shellHook = old.shellHook + shellHook;
     });
 
   elisp = import ./lib/elisp.nix {inherit bash-strict-mode;};
@@ -128,12 +125,24 @@
           ];
       });
 
+  ## Converts a list of values parameterized by  a system (generally flake
+  ## attributes like `sys: "packages.${sys}.foo"`) and replicates each of them
+  ## for each of the systems supported by garnix.
+  ##
+  ## Type: [string -> a] -> [a]
   garnixChecks = let
+    sys = flake-utils.lib.system;
+
     ## The systems supported by garnix.
     ##
     ## TODO: Ideally we would intersect this with the set of systems used in the
     ##       flake.
-    garnixSystems = ["aarch64-darwin" "aarch64-linux" "x86_64-linux"];
+    garnixSystems = [
+      sys.aarch64-darwin
+      sys.aarch64-linux
+      sys.i686-linux
+      sys.x86_64-linux
+    ];
   in
-    jobNameFn: map jobNameFn garnixSystems;
+    nixpkgs.lib.flip map garnixSystems;
 }

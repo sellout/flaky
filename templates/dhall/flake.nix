@@ -27,6 +27,8 @@
     self,
   }: let
     pname = "{{project.name}}";
+
+    supportedSystems = flaky.lib.defaultSystems;
   in
     {
       schemas = {
@@ -69,9 +71,9 @@
                 home.packages = [pkgs.dhallPackages.${pname}];
               })
             ])
-          flake-utils.lib.defaultSystems);
+          supportedSystems);
     }
-    // flake-utils.lib.eachDefaultSystem (system: let
+    // flake-utils.lib.eachSystem supportedSystems (system: let
       pkgs = import nixpkgs {inherit system;};
 
       src = pkgs.lib.cleanSource ./.;
@@ -93,7 +95,9 @@
       projectConfigurations =
         flaky.lib.projectConfigurations.default {inherit pkgs self;};
 
-      devShells = self.projectConfigurations.${system}.devShells;
+      devShells =
+        self.projectConfigurations.${system}.devShells
+        // {default = flaky.lib.devShells.default system self [] "";};
       checks = self.projectConfigurations.${system}.checks;
       formatter = self.projectConfigurations.${system}.formatter;
     });

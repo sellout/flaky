@@ -20,7 +20,24 @@
     nixpkgs,
     project-manager,
     self,
-  }:
+  }: let
+    sys = flake-utils.lib.system;
+
+    defaultSystems =
+      ## This ensures that we explicitly list all the platforms we support while
+      ## protecting against changes in `defaultSystems` (removing a system from
+      ## `defaultSystems` shouldn’t remove it from here, but one being added
+      ## should alert us to any failures.
+      nixpkgs.lib.unique
+      (flake-utils.lib.defaultSystems
+        ++ [
+          sys.aarch64-darwin
+          sys.aarch64-linux
+          sys.i686-linux
+          sys.x86_64-darwin
+          sys.x86_64-linux
+        ]);
+  in
     {
       ## These are also consumed by downstream projects, so it may include more
       ## than is referenced in this flake.
@@ -31,7 +48,15 @@
       };
 
       lib = import ./nix/lib.nix {
-        inherit bash-strict-mode home-manager nixpkgs project-manager self;
+        inherit
+          bash-strict-mode
+          defaultSystems
+          flake-utils
+          home-manager
+          nixpkgs
+          project-manager
+          self
+          ;
       };
 
       templates = let
@@ -89,7 +114,7 @@
         hacktoberfest = ./base/.config/project/hacktoberfest.nix;
       };
     }
-    // flake-utils.lib.eachSystem flake-utils.lib.defaultSystems
+    // flake-utils.lib.eachSystem defaultSystems
     (system: let
       pkgs = import nixpkgs {
         inherit system;
@@ -125,15 +150,8 @@
       in
         self.projectConfigurations.${system}.devShells
         // {
-          default = self.devShells.${system}.project-manager.overrideAttrs (old: {
-            inputsFrom =
-              old.inputsFrom
-              or []
-              ++ builtins.attrValues
-              self.projectConfigurations.${system}.sandboxedChecks
-              ++ builtins.attrValues self.packages.${system};
-          });
-          # self.lib.devShells.default pkgs self [] "";
+          default = self.lib.devShells.default system self [] "";
+
           ## This provides tooling that could be useful in _any_ Nix project, if
           ## there’s not a specific one.
           nix = bash-strict-mode.lib.checkedDrv pkgs (pkgs.mkShell {
