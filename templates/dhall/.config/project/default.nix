@@ -74,6 +74,6 @@
   services.github.enable = true;
   services.github.settings.repository = {
     homepage = "https://sellout.github.io/${config.project.name}";
-    topics = ["dhall" "library"];
+    topics = ["library"];
   };
 }
