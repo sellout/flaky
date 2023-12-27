@@ -33,6 +33,7 @@
     ./flakehub.nix
     ./garnix.nix
     ./github.nix
+    ./renovate.nix
     ## editors
     ./editorconfig.nix
     ./emacs
