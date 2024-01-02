@@ -10,9 +10,12 @@
     };
     jobs.build = {
       runs-on = "ubuntu-latest";
-      ## TODO: Populate this as the difference between supported versions and
-      ##       available nix package sets.
-      strategy.matrix.ghc = self.lib.nonNixTestedGhcVersions;
+      strategy = {
+        fail-fast = false;
+        ## TODO: Populate this as the difference between supported versions and
+        ##       available nix package sets.
+        matrix.ghc = self.lib.nonNixTestedGhcVersions;
+      };
       env.CONFIG = "--enable-tests --enable-benchmarks";
       steps = [
         {uses = "actions/checkout@v2";}
