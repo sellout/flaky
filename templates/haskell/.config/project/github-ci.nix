@@ -20,7 +20,7 @@
           uses = "haskell-actions/setup@v2";
           id = "setup-haskell-cabal";
           "with" = {
-            ghc-version = "${{ matrix.ghc }}";
+            ghc-version = "\${{ matrix.ghc }}";
             cabal-version = "3.10";
           };
         }
@@ -30,10 +30,10 @@
           uses = "actions/cache@v2";
           "with" = {
             path = ''
-              ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
+              ''${{ steps.setup-haskell-cabal.outputs.cabal-store }}
               dist-newstyle
             '';
-            key = "${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}";
+            key = "\${{ runner.os }}-\${{ matrix.ghc }}-\${{ hashFiles('cabal.project.freeze') }}";
           };
         }
         {run = "cabal v2-test all $CONFIG";}
