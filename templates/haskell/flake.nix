@@ -188,7 +188,12 @@
     # Currently contains our Haskell/Nix lib that should be extracted into its
     # own flake.
     concat = {
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        ## TODO: The version currently used by concat doesn’t support i686-linux.
+        bash-strict-mode.follows = "flaky/bash-strict-mode";
+        flake-utils.follows = "flake-utils";
+        nixpkgs.follows = "nixpkgs";
+      };
       url = "github:compiling-to-categories/concat";
     };
 
