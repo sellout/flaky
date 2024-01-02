@@ -79,7 +79,7 @@
           (sys: "devShell ghc${ghc} [${sys}]")
           (sys: "package ghc${sys}_all [${sys}]")
         ])
-        self.lib.testedGhcVersions
+        (self.lib.testedGhcVersions pkgs.system)
         ++ [
           (sys: "homeConfig ${sys}-${config.project.name}-example")
           (sys: "package default [${sys}]")

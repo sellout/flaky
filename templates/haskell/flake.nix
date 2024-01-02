@@ -71,8 +71,15 @@
       overlays = {
         default =
           concat.lib.overlayHaskellPackages
-          self.lib.supportedGhcVersions
-          self.overlays.haskell;
+          (self.lib.supportedGhcVersions "")
+          (final: prev:
+            nixpkgs.lib.composeManyExtensions [
+              ## TODO: I think this overlay is only needed by formatters,
+              ##       devShells, etc., so it shouldn’t be included in the
+              ##       standard overlay.
+              (flaky.overlays.haskell-dependencies final prev)
+              (self.overlays.haskell final prev)
+            ]);
 
         haskell = concat.lib.haskellOverlay cabalPackages;
       };
@@ -103,21 +110,27 @@
         ## one via GitHub workflow. Additionally, check any revisions that have
         ## explicit conditionalization. And check whatever version `pkgs.ghc`
         ## maps to in the nixpkgs we depend on.
-        testedGhcVersions = [
-          self.lib.defaultCompiler
-          # "ghc884" # dependency compiler-rt-libc is broken in nixpkgs 23.05 & 23.11
-          "ghc8107"
-          "ghc902"
-          "ghc924"
-          "ghc942"
-          "ghc962"
-          "ghc981"
-          # "ghcHEAD" # doctest doesn’t work on current HEAD
-        ];
+        testedGhcVersions = system:
+          [
+            self.lib.defaultCompiler
+            "ghc8107"
+            "ghc902"
+            "ghc924"
+            "ghc942"
+            "ghc962"
+            "ghc981"
+            # "ghcHEAD" # doctest doesn’t work on current HEAD
+          ]
+          ## dependency compiler-rt-libc-7.1.0 is broken in on aarch64-darwin.
+          ++ nixpkgs.lib.optional (system != "aarch64-darwin") "ghc884";
 
         ## The versions that are older than those supported by Nix that we
         ## prefer to test against.
         nonNixTestedGhcVersions = [
+          "7.10.3"
+          "8.0.2"
+          "8.2.2"
+          "8.4.1"
           "8.6.1"
           "8.8.1"
           "8.10.1"
@@ -129,8 +142,8 @@
 
         ## However, provide packages in the default overlay for _every_
         ## supported version.
-        supportedGhcVersions =
-          self.lib.testedGhcVersions
+        supportedGhcVersions = system:
+          self.lib.testedGhcVersions system
           ++ [
             "ghc925"
             "ghc926"
@@ -160,13 +173,16 @@
     in {
       packages =
         {default = self.packages.${system}."${self.lib.defaultCompiler}_all";}
-        // concat.lib.mkPackages pkgs self.lib.supportedGhcVersions cabalPackages;
+        // concat.lib.mkPackages
+        pkgs
+        (self.lib.supportedGhcVersions system)
+        cabalPackages;
 
       devShells =
         {default = self.devShells.${system}.${self.lib.defaultCompiler};}
         // concat.lib.mkDevShells
         pkgs
-        self.lib.testedGhcVersions
+        (self.lib.testedGhcVersions system)
         cabalPackages
         (hpkgs:
           [self.projectConfigurations.${system}.packages.path]
