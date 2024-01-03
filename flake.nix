@@ -56,13 +56,10 @@
         haskell-dependencies = final: prev: hfinal: hprev:
           if final.system == sys.i686-linux
           then {
-            hackage-security = hprev.hackage-security.overrideAttrs (old: {
-              doCheck = false;
-            });
-            persistent = hprev.persistent.overrideAttrs (old: {
-              doCheck = false;
-            });
-            validity = hprev.validity.overrideAttrs (old: {doCheck = false;});
+            hackage-security =
+              final.haskell.lib.dontCheck hprev.hackage-security;
+            persistent = final.haskell.lib.dontCheck hprev.persistent;
+            validity = final.haskell.lib.dontCheck hprev.validity;
           }
           else {};
       };

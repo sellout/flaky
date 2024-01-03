@@ -10,9 +10,12 @@
     };
     jobs.build = {
       runs-on = "ubuntu-latest";
-      ## TODO: Populate this as the difference between supported versions and
-      ##       available nix package sets.
-      strategy.matrix.ghc = self.lib.nonNixTestedGhcVersions;
+      strategy = {
+        fail-fast = false;
+        ## TODO: Populate this as the difference between supported versions and
+        ##       available nix package sets.
+        matrix.ghc = self.lib.nonNixTestedGhcVersions;
+      };
       env.CONFIG = "--enable-tests --enable-benchmarks";
       steps = [
         {uses = "actions/checkout@v2";}
@@ -20,7 +23,7 @@
           uses = "haskell-actions/setup@v2";
           id = "setup-haskell-cabal";
           "with" = {
-            ghc-version = "${{ matrix.ghc }}";
+            ghc-version = "\${{ matrix.ghc }}";
             cabal-version = "3.10";
           };
         }
@@ -30,10 +33,10 @@
           uses = "actions/cache@v2";
           "with" = {
             path = ''
-              ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
+              ''${{ steps.setup-haskell-cabal.outputs.cabal-store }}
               dist-newstyle
             '';
-            key = "${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}";
+            key = "\${{ runner.os }}-\${{ matrix.ghc }}-\${{ hashFiles('cabal.project.freeze') }}";
           };
         }
         {run = "cabal v2-test all $CONFIG";}
