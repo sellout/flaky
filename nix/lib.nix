@@ -49,10 +49,10 @@ in {
   in {
     inherit simple;
 
-    validate-template = name: pkgs: src:
+    validate-template = name: pkgs:
       (simple
         pkgs
-        src
+        self
         "validate ${name}"
         [
           pkgs.cacert
@@ -67,14 +67,18 @@ in {
           export HOME="$(mktemp --directory --tmpdir fake-home.XXXXXX)"
           mkdir -p "$HOME/.local/state/nix/profiles"
 
-          nix --accept-flake-config \
-              --extra-experimental-features "flakes nix-command" \
-              flake new "${name}-example" --template "${src}#${name}"
+          export NIX_CONFIG=$(cat <<'CONFIG'
+          accept-flake-config = true
+          extra-experimental-features = flakes nix-command
+          CONFIG
+          )
+
+          nix flake new "${name}-example" --template "$src#${name}"
           cd "${name}-example"
           find . -iname "*{{project.name}}*" -depth \
             -execdir rename 's/{{project.name}}/template-example/g' {} +
           find . -type f -exec bash -c \
-            'mustache "${src}/templates/example.yaml" "$0" | sponge "$0"' \
+            'mustache "${self}/templates/example.yaml" "$0" | sponge "$0"' \
             {} \;
           ## Reference _this_ version of flaky, rather than a published one.
           sed -i -e 's#github:sellout/flaky#${self}#g' ./flake.nix
@@ -86,17 +90,10 @@ in {
           project-manager switch
           ## Format the README before checking, because templating may affect
           ## formatting.
-          nix --accept-flake-config \
-              --extra-experimental-features "flakes nix-command" \
-              fmt README.md
-          nix --accept-flake-config \
-              --extra-experimental-features "flakes nix-command" \
-              --print-build-logs \
-              flake check
+          nix fmt README.md
+          nix --print-build-logs flake check
         '')
-      .overrideAttrs (old: {
-        __noChroot = true;
-      });
+      .overrideAttrs (old: {__noChroot = true;});
   };
 
   devShells.default = system: self: nativeBuildInputs: shellHook:
