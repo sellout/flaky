@@ -6,16 +6,46 @@
   nixpkgs,
   project-manager,
   self,
-}: {
-  inherit defaultSystems;
+}: let
+  ## A wrapper around `pkgs.runCommand` that uses `bash-strict-mode`.
+  runCommand = pkgs: name: attrs: cmd:
+    bash-strict-mode.lib.checkedDrv pkgs (pkgs.runCommand name attrs cmd);
+
+  ## A command where we don’t preserve any output can be more lax than most
+  ## derivations. By turning it into a fixed-output derivation based on the
+  ## command, we can weaken some of the sandbox constraints.
+  runEmptyCommand = pkgs: name: attrs: command: let
+    outputHashAlgo = "sha256";
+    ## Runs a command and returns its output as a string.
+    exec = nativeBuildInputs: cmd:
+      builtins.readFile
+      (builtins.toString (runCommand pkgs "exe" {inherit nativeBuildInputs;} "{ ${cmd} } > $out"));
+    hashInput = str:
+      runCommand pkgs "emptyCommand-hash-input" {} ''
+        ## Base64-encode the command to avoid having any path references in the
+        ## output.
+        echo ${pkgs.lib.escapeShellArg str} | base64 > $out
+      '';
+    getHash = str:
+      nixpkgs.lib.removeSuffix "\n" (exec [pkgs.nix] ''
+        nix-hash --type ${outputHashAlgo} --base64 ${hashInput str}
+      '');
+  in
+    runCommand pkgs name (attrs
+      // {
+        inherit outputHashAlgo;
+        outputHash = getHash command;
+        outputHashMode = "recursive";
+      }) ''
+      ${command}
+      cp ${hashInput command} "$out"
+    '';
+in {
+  inherit defaultSystems runCommand runEmptyCommand;
 
   checks = let
-    simple = pkgs: src: name: nativeBuildInputs: cmd:
-      bash-strict-mode.lib.checkedDrv pkgs
-      (pkgs.runCommand name {inherit nativeBuildInputs src;} ''
-        ${cmd}
-        mkdir -p "$out"
-      '');
+    simple = pkgs: src: name: nativeBuildInputs:
+      runEmptyCommand pkgs name {inherit nativeBuildInputs src;};
   in {
     inherit simple;
 
@@ -34,7 +64,6 @@
           pkgs.rename
         ]
         ''
-          mkdir -p "$out"
           HOME="$PWD/fake-home"
           mkdir -p "$HOME/.local/state/nix/profiles"
 
