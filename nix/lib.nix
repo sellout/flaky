@@ -64,7 +64,7 @@ in {
           pkgs.rename
         ]
         ''
-          HOME="$PWD/fake-home"
+          export HOME="$(mktemp --directory --tmpdir fake-home.XXXXXX)"
           mkdir -p "$HOME/.local/state/nix/profiles"
 
           nix --accept-flake-config \
