@@ -49,7 +49,7 @@ in {
           runHook preBuild
           ## TODO: Currently needed to make a temp file in
           ##      `eldev--create-internal-pseudoarchive-descriptor`.
-          export HOME="$PWD/fake-home"
+          export HOME="$(mktemp --directory --tmpdir fake-home.XXXXXX)"
           mkdir -p "$HOME/.cache/eldev"
           eldev doctor
           runHook postBuild
@@ -90,8 +90,7 @@ in {
           runHook preBuild
           ## TODO: Currently needed to make a temp file in
           ##      `eldev--create-internal-pseudoarchive-descriptor`.
-          export HOME="$PWD/fake-home"
-          mkdir -p "$HOME"
+          export HOME="$(mktemp --directory --tmpdir fake-home.XXXXXX)"
 
           ## Need `--external` here so that we don’t try to download any
           ## package archives (which would break the sandbox).
@@ -140,8 +139,7 @@ in {
         runHook preCheck
         ## TODO: Currently needed to make a temp file in
         ##      `eldev--create-internal-pseudoarchive-descriptor`.
-        export HOME="$PWD/fake-home"
-        mkdir -p "$HOME"
+        export HOME="$(mktemp --directory --tmpdir fake-home.XXXXXX)"
         ## Need `--external` here so that we don’t try to download any
         ## package archives (which would break the sandbox).
         eldev --external test

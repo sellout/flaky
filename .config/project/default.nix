@@ -10,9 +10,8 @@
 
     checks = builtins.listToAttrs (map (name: {
             name = "${name}-template-validity";
-            value = flaky.lib.checks.validate-template name pkgs ../..;
+            value = flaky.lib.checks.validate-template name pkgs;
           })
-          ## TODO: This template has some issues (IFD, etc.)
           (builtins.attrNames flaky.templates));
   };
 
