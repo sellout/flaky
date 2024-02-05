@@ -64,6 +64,8 @@
         (sys: "package ${config.project.name} [${sys}]")
         ## FIXME: These are duplicated from the base config
         (sys: "check formatter [${sys}]")
+        (sys: "check project-manager-files [${sys}]")
+        (sys: "check vale [${sys}]")
         (sys: "devShell default [${sys}]")
       ]);
 

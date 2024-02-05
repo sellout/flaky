@@ -77,6 +77,8 @@
               strict = false;
               contexts = lib.concatMap flaky.lib.garnixChecks [
                 (sys: "check formatter [${sys}]")
+                (sys: "check project-manager-files [${sys}]")
+                (sys: "check vale [${sys}]")
                 (sys: "devShell default [${sys}]")
               ];
             };
