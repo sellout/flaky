@@ -10,11 +10,11 @@
         "shellcheck-nix-attributes": "shellcheck-nix-attributes"
       },
       "locked": {
-        "lastModified": 1707162735,
-        "narHash": "sha256-A9XxpG2hijc1Lvvymu04uVRqS3KjdJVbHzxgi74mV2A=",
+        "lastModified": 1707855029,
+        "narHash": "sha256-PJq0+k1IWEMfnk5l/XifW3Am+STonUn0dxWn+kLb5WQ=",
         "owner": "sellout",
         "repo": "bash-strict-mode",
-        "rev": "b1835455f1c51f050081762c41c5563f21f0ffb9",
+        "rev": "c1f54c6291a3f7602c3201da15137db9636ea227",
         "type": "github"
       },
       "original": {
@@ -159,11 +159,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1707690512,
-        "narHash": "sha256-Urce4M770l9bHy2BioFTWCNQrsqeVe6UqzJoaxKg68A=",
+        "lastModified": 1708294118,
+        "narHash": "sha256-evZzmLW7qoHXf76VCepvun1esZDxHfVRFUJtumD7L2M=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "7612e0f257237b4d6d29037e4b4ca318e154beec",
+        "rev": "e0da498ad77ac8909a980f07eff060862417ccf7",
         "type": "github"
       },
       "original": {
