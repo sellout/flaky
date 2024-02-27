@@ -1,43 +1,129 @@
-cabal-version:  2.4
+cabal-version:  3.0
 
-name:           {{project.name}}
-version:        {{project.version}}
-synopsis:       {{project.summary}}
-description:    {{project.description}}
-homepage:       https://github.com/{{project.repo}}#readme
-bug-reports:    https://github.com/{{project.repo}}/issues
-build-type:     Custom
-license:        AGPL-3.0-or-later
-license-file:   LICENSE
-tested-with:    GHC==8.6.1,
-                GHC==8.8.1,
-                GHC==8.10.1, GHC==8.10.7,
-                GHC==9.0.1, GHC==9.0.2,
-                GHC==9.2.1, GHC==9.2.8,
-                GHC==9.4.1, GHC==9.4.5,
-                GHC==9.6.1
+name:        {{project.name}}
+version:     {{project.version}}
+synopsis:    {{project.summary}}
+description: {{project.description}}
+author:      Greg Pfeil <greg@technomadic.org>
+maintainer:  Greg Pfeil <greg@technomadic.org>
+copyright:   2024 Greg Pfeil
+homepage:    https://github.com/{{project.repo}}#readme
+bug-reports: https://github.com/{{project.repo}}/issues
+category:
+build-type:  Custom
+license:     AGPL-3.0-or-later
+license-files:
+  LICENSE
+tested-with:
+  GHC == {
+--  GHCup   Nixpkgs
+    7.10.3,
+    8.0.1,
+    8.2.1,
+    8.4.1,
+    8.6.1,
+    8.8.1,  8.8.4,
+    8.10.1, 8.10.7,
+    9.0.1,  9.0.2,
+    9.2.1,  9.2.8,
+    9.4.1,  9.4.8,
+    9.6.1,  9.6.2,
+            9.8.1
+  }
 
 source-repository head
   type: git
   location: https://github.com/{{project.repo}}
 
+-- This mimics the GHC2021 extension
+-- (https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/control.html?highlight=doandifthenelse#extension-GHC2021),
+-- but supporting compilers back to GHC 7.10. If the oldest supported compiler
+-- is GHC 9.2, then this stanza can be removed and `import: GHC2021` can be
+-- replaced by `default-language: GHC2021`.
+common GHC2021
+  default-language: Haskell2010
+  default-extensions:
+    BangPatterns
+    BinaryLiterals
+    ConstraintKinds
+    DeriveDataTypeable
+    DeriveGeneric
+    -- DeriveLift -- uncomment if the oldest supported version is GHC 8.10.1+
+    DeriveTraversable
+    DerivingStrategies
+    DoAndIfThenElse
+    EmptyCase
+    ExistentialQuantification
+    FlexibleContexts
+    FlexibleInstances
+    GADTSyntax
+    GeneralizedNewtypeDeriving
+    -- HexFloatLiterals -- uncomment if the oldest supported version is GHC 8.4.1+
+    -- ImportQualifiedPost -- uncomment if the oldest supported version is GHC 8.10.1+
+    InstanceSigs
+    LambdaCase
+    MagicHash
+    MonadComprehensions
+    MonomorphismRestriction
+    MultiParamTypeClasses
+    NamedFieldPuns
+    NamedWildCards
+    -- NumericUnderscores -- uncomment if the oldest supported version is GHC 8.6.1+
+    PolyKinds
+    PostfixOperators
+    RankNTypes
+    ScopedTypeVariables
+    StandaloneDeriving
+    -- StandaloneKindSignatures -- uncomment if the oldest supported version is GHC 8.10.1+
+    TupleSections
+    -- TypeApplications -- uncomment if the oldest supported version is GHC 8.0.1+
+    TypeOperators
+    UnicodeSyntax
+    NoExplicitNamespaces
+
+common defaults
+  import: GHC2021
+  build-depends:
+    base ^>= {4.8.2, 4.9.0, 4.10.0, 4.11.0, 4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0},
+  ghc-options:
+    -Wall
+  default-extensions:
+    DefaultSignatures
+    ExplicitNamespaces
+    FunctionalDependencies
+    LiberalTypeSynonyms
+    -- replace with `LexicalNegation` if the oldest supported version is GHC 9.0.1+
+    NegativeLiterals
+    PackageImports
+    ParallelListComp
+    -- QualifiedDo - uncomment if the oldest supported version is GHC 9.0.1+
+    RecursiveDo
+    -- RequiredTypeArguments - uncomment if the oldest supported version is GHC 9.10.1+
+    Safe
+    -- StrictData - uncomment if the oldest supported version is GHC 8.0.1+
+    -- TemplateHaskellQuotes - uncomment if the oldest supported version is GHC 8.0.1+
+    TransformListComp
+    NoGeneralizedNewtypeDeriving
+    NoImplicitPrelude
+    NoMonomorphismRestriction
+    NoPatternGuards
+    -- NoTypeApplications - uncomment if the oldest supported version is GHC 8.0.1+
+
 custom-setup
   setup-depends:
-    base          >= 4.14.3 && < 4.19,
-    cabal-doctest >= 1.0.0  && < 1.1
+    base ^>= {4.8.2, 4.9.0, 4.10.0, 4.11.0, 4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0},
+    cabal-doctest ^>= 1.0.0,
 
 library
+  import: defaults
   build-depends:
-    base >= 4.14.3 && < 4.19
-  default-language: Haskell2010
   exposed-modules:
-  ghc-options: -Wall
 
-test-suite {{project.name}}-doctests
+test-suite doctests
+  import: defaults
   type: exitcode-stdio-1.0
   hs-source-dirs: tests
   main-is: doctests.hs
   build-depends:
-    base    >= 4.14.3 && < 4.19,
-    doctest >= 0.15.0 && < 0.22,
-    {{project.name}}
+    doctest ^>= {0.15.0, 0.16.0, 0.17.0, 0.18.0, 0.19.0, 0.20.0, 0.21.0},
+    {{project.name}},
