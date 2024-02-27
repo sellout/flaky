@@ -283,15 +283,14 @@
           '';
 
           postFixup = ''
-            ( # Remove +u (and subshell) once NixOS/nixpkgs#247410 is fixed
-              set +u
-              wrapProgram $out/bin/sync-template \
-                --prefix PATH : ${pkgs.lib.makeBinPath [
+            substituteInPlace $out/bin/sync-template \
+              --replace "github:sellout/flaky" "${self}"
+            wrapProgram $out/bin/sync-template \
+              --prefix PATH : ${pkgs.lib.makeBinPath [
               pkgs.moreutils
               pkgs.mustache-go
               pkgs.yq
             ]}
-            )
           '';
 
           # doInstallCheck = true;
