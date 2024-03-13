@@ -1,4 +1,4 @@
-{config, flaky, lib, pkgs, ...}: {
+{config, flaky, lib, pkgs, supportedSystems, ...}: {
   project = {
     name = "{{project.name}}";
     summary = "{{project.summary}}";
@@ -58,16 +58,16 @@
   ##        Need to improve module merging.
   services.github.settings.branches.main.protection.required_status_checks.contexts =
     lib.mkForce
-      (lib.concatMap flaky.lib.garnixChecks [
-        (sys: "homeConfig ${sys}-${config.project.name}-example")
-        (sys: "package default [${sys}]")
-        (sys: "package ${config.project.name} [${sys}]")
+      (flaky.lib.forGarnixSystems supportedSystems (sys: [
+        "homeConfig ${sys}-${config.project.name}-example"
+        "package default [${sys}]"
+        "package ${config.project.name} [${sys}]"
         ## FIXME: These are duplicated from the base config
-        (sys: "check formatter [${sys}]")
-        (sys: "check project-manager-files [${sys}]")
-        (sys: "check vale [${sys}]")
-        (sys: "devShell default [${sys}]")
-      ]);
+        "check formatter [${sys}]"
+        "check project-manager-files [${sys}]"
+        "check vale [${sys}]"
+        "devShell default [${sys}]"
+      ]));
 
   ## publishing
   imports = [./github-pages.nix];

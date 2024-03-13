@@ -2,6 +2,7 @@
   config,
   flaky,
   lib,
+  supportedSystems,
   ...
 }: {
   services.github = {
@@ -75,12 +76,12 @@
             required_pull_request_reviews = null;
             required_status_checks = {
               strict = false;
-              contexts = lib.concatMap flaky.lib.garnixChecks [
-                (sys: "check formatter [${sys}]")
-                (sys: "check project-manager-files [${sys}]")
-                (sys: "check vale [${sys}]")
-                (sys: "devShell default [${sys}]")
-              ];
+              contexts = flaky.lib.forGarnixSystems supportedSystems (sys: [
+                "check formatter [${sys}]"
+                "check project-manager-files [${sys}]"
+                "check vale [${sys}]"
+                "devShell default [${sys}]"
+              ]);
             };
             enforce_admins = true;
             required_linear_history = false;
