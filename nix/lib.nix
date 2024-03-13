@@ -155,7 +155,8 @@ in {
     supportedSystems ? self.lib.defaultSystems,
     ...
   } @ args:
-    project-manager.lib.defaultConfiguration (args
+    project-manager.lib.defaultConfiguration (
+      removeAttrs args ["supportedSystems"]
       // {
         modules =
           modules
@@ -168,7 +169,8 @@ in {
             }
             self.projectModules.default
           ];
-      });
+      }
+    );
 
   ## Converts a list of values parameterized by  a system (generally flake
   ## attributes like `sys: "packages.${sys}.foo"`) and replicates each of them
