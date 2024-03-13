@@ -1,4 +1,14 @@
-{config, flaky, lib, pkgs, self, supportedSystems, ...}: {
+{
+  config,
+  flaky,
+  lib,
+  pkgs,
+  self,
+  supportedSystems,
+  ...
+}: let
+  githubSystems = ["macos-13" "ubuntu-22.04" "windows-2022"];
+in {
   project = {
     name = "{{project.name}}";
     summary = "{{project.summary}}";
@@ -10,7 +20,8 @@
   };
 
   imports = [
-    ./github-ci.nix
+    (import ./github-ci.nix githubSystems)
+    ./hackage-publish.nix
     ./hlint.nix
   ];
 
@@ -64,22 +75,49 @@
   ## CI
   services.garnix = {
     enable = true;
-    builds.exclude = [
-      # TODO: Remove once garnix-io/garnix#285 is fixed.
-      "homeConfigurations.x86_64-darwin-${config.project.name}-example"
-    ];
+    builds = {
+      exclude = [
+        # TODO: Remove once garnix-io/garnix#285 is fixed.
+        "homeConfigurations.x86_64-darwin-${config.project.name}-example"
+      ];
+      include = lib.mkForce (
+        [
+          "homeConfigurations.*"
+          "nixosConfigurations.*"
+        ]
+        ++ lib.concatLists (
+          flaky.lib.garnixChecks
+          (
+            sys:
+              [
+                "checks.${sys}.*"
+                "devShells.${sys}.*"
+                "packages.${sys}.default"
+              ]
+              ++ map (ghc: "packages.${sys}.${ghc}_all")
+              (self.lib.testedGhcVersions sys)
+          )
+        )
+      );
+    };
   };
   ## FIXME: Shouldn’t need `mkForce` here (or to duplicate the base contexts).
   ##        Need to improve module merging.
   services.github.settings.branches.main.protection.required_status_checks.contexts =
     lib.mkForce
-      (map (ghc: "CI / build (${ghc}) (pull_request)") self.lib.nonNixTestedGhcVersions
+    (lib.concatMap (sys:
+        lib.concatMap (ghc: [
+          "build (${ghc}, ${sys})"
+          "build (--prefer-oldest, ${ghc}, ${sys})"
+        ])
+        self.lib.nonNixTestedGhcVersions)
+      githubSystems
       ++ flaky.lib.forGarnixSystems supportedSystems (sys:
         lib.concatMap (ghc: [
           "devShell ghc${ghc} [${sys}]"
           "package ghc${sys}_all [${sys}]"
         ])
-        (self.lib.testedGhcVersions pkgs.system)
+        (self.lib.testedGhcVersions sys)
         ++ [
           "homeConfig ${sys}-${config.project.name}-example"
           "package default [${sys}]"
@@ -91,6 +129,8 @@
         ]));
 
   ## publishing
-  services.flakehub.enable = true;
+  # NB: Can’t use IFD on FlakeHub (see DeterminateSystems/flakehub-push#69), so
+  #     this is disabled until we have a way to build Haskell without IFD.
+  services.flakehub.enable = false;
   services.github.enable = true;
 }

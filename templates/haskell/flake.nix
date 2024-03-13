@@ -138,6 +138,7 @@
           "9.2.1"
           "9.4.1"
           "9.6.1"
+          "9.8.1" # since `cabal-plan-bounds` doesn’t work under Nix
         ];
 
         ## However, provide packages in the default overlay for _every_
@@ -154,7 +155,6 @@
             "ghc945"
             "ghc946"
             "ghc947"
-            "ghc948"
             "ghc963"
           ];
       };
@@ -182,7 +182,7 @@
         {default = self.devShells.${system}.${self.lib.defaultCompiler};}
         // concat.lib.mkDevShells
         pkgs
-        (self.lib.testedGhcVersions system)
+        (self.lib.supportedGhcVersions system)
         cabalPackages
         (hpkgs:
           [self.projectConfigurations.${system}.packages.path]
