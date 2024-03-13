@@ -7,6 +7,16 @@
   project-manager,
   self,
 }: let
+  ## The systems supported by garnix.
+  garnixSystems = let
+    sys = flake-utils.lib.system;
+  in [
+    sys.aarch64-darwin
+    sys.aarch64-linux
+    sys.i686-linux
+    sys.x86_64-linux
+  ];
+
   ## A wrapper around `pkgs.runCommand` that uses `bash-strict-mode`.
   runCommand = pkgs: name: attrs: cmd:
     bash-strict-mode.lib.checkedDrv pkgs (pkgs.runCommand name attrs cmd);
@@ -41,7 +51,7 @@
       cp ${hashInput command} "$out"
     '';
 in {
-  inherit defaultSystems runCommand runEmptyCommand;
+  inherit defaultSystems garnixSystems runCommand runEmptyCommand;
 
   checks = let
     simple = pkgs: src: name: nativeBuildInputs:
@@ -140,13 +150,22 @@ in {
   };
 
   ## Adds `flaky` as an additional module argument.
-  projectConfigurations.default = {modules ? [], ...} @ args:
+  projectConfigurations.default = {
+    modules ? [],
+    supportedSystems ? self.lib.defaultSystems,
+    ...
+  } @ args:
     project-manager.lib.defaultConfiguration (args
       // {
         modules =
           modules
           ++ [
-            {_module.args.flaky = self;}
+            {
+              _module.args = {
+                inherit supportedSystems;
+                flaky = self;
+              };
+            }
             self.projectModules.default
           ];
       });
@@ -156,19 +175,17 @@ in {
   ## for each of the systems supported by garnix.
   ##
   ## Type: [string -> a] -> [a]
-  garnixChecks = let
-    sys = flake-utils.lib.system;
+  ##
+  ## DEPRECATED: Use `forGarnixSystems`.
+  garnixChecks = nixpkgs.lib.flip map garnixSystems;
 
-    ## The systems supported by garnix.
-    ##
-    ## TODO: Ideally we would intersect this with the set of systems used in the
-    ##       flake.
-    garnixSystems = [
-      sys.aarch64-darwin
-      sys.aarch64-linux
-      sys.i686-linux
-      sys.x86_64-linux
-    ];
-  in
-    nixpkgs.lib.flip map garnixSystems;
+  ## Converts a list of values parameterized by  a system (generally flake
+  ## attributes like `sys: "packages.${sys}.foo"`) and replicates each of them
+  ## for each of the systems supported by both garnix and `supportedSystems`.
+  ##
+  ## Type: [string] -> (string -> [a]) -> [a]
+  forGarnixSystems = supportedSystems:
+    nixpkgs.lib.flip
+    nixpkgs.lib.concatMap
+    (nixpkgs.lib.intersectLists garnixSystems supportedSystems);
 }
