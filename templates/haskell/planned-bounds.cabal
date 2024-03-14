@@ -1,0 +1,18 @@
+cabal-version: 3.4
+
+name: planned-bounds
+version: 0.1.0.0
+synopsis: Dependency bounds as determined by `cabal-plan-bounds`.
+description: This is a non-built package intended to catch changes in our
+             dependency bounds. The actual packages use slightly different
+             bounds in some cases (always accompanied by a comment), and a
+             clearer syntax (see cabal-plan-bounds#18). This allows us to still
+             have a check that fails and forces us to review changes without
+             having to match `cabal-plan-bounds`’ results exactly.
+
+library
+  build-depends:
+    Cabal ^>=3.0.0 || ^>=3.2.0 || ^>=3.4.0 || ^>=3.6.0 || ^>=3.8.0 || ^>=3.10.0,
+    base ^>=4.8.2 || ^>=4.9.0 || ^>=4.10.0 || ^>=4.11.0 || ^>=4.12.0 || ^>=4.13.0 || ^>=4.14.0 || ^>=4.15.0 || ^>=4.16.0 || ^>=4.17.0 || ^>=4.18.0 || ^>=4.19.0,
+    cabal-doctest ^>=1.0.0,
+    doctest ^>=0.16.0 || ^>=0.17.0 || ^>=0.18.0 || ^>=0.19.0 || ^>=0.20.0 || ^>=0.21.0 || ^>=0.22.0,
