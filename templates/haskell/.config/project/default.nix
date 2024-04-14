@@ -91,10 +91,13 @@ in {
             sys:
               [
                 "checks.${sys}.*"
-                "devShells.${sys}.*"
+                "devShells.${sys}.default"
                 "packages.${sys}.default"
               ]
-              ++ map (ghc: "packages.${sys}.${ghc}_all")
+              ++ lib.concatMap (ghc: [
+                "devShells.${sys}.${ghc}"
+                "packages.${sys}.${ghc}_all"
+              ])
               (self.lib.testedGhcVersions sys)
           )
         )
@@ -105,7 +108,8 @@ in {
   ##        Need to improve module merging.
   services.github.settings.branches.main.protection.required_status_checks.contexts =
     lib.mkForce
-    (lib.concatMap (sys:
+    (["check-bounds"]
+      ++ lib.concatMap (sys:
         lib.concatMap (ghc: [
           "build (${ghc}, ${sys})"
           "build (--prefer-oldest, ${ghc}, ${sys})"
@@ -114,8 +118,8 @@ in {
       githubSystems
       ++ flaky.lib.forGarnixSystems supportedSystems (sys:
         lib.concatMap (ghc: [
-          "devShell ghc${ghc} [${sys}]"
-          "package ghc${sys}_all [${sys}]"
+          "devShell ${ghc} [${sys}]"
+          "package ${ghc}_all [${sys}]"
         ])
         (self.lib.testedGhcVersions sys)
         ++ [
@@ -133,4 +137,5 @@ in {
   #     this is disabled until we have a way to build Haskell without IFD.
   services.flakehub.enable = false;
   services.github.enable = true;
+  services.github.settings.repository.topics = [];
 }
