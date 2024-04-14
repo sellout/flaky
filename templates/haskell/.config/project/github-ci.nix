@@ -5,7 +5,6 @@ githubSystems: {
   ...
 }: let
   planName = "plan-\${{ runner.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
-  cabalFilePattern = "planned-bounds.cabal";
 in {
   services.github.workflow."build.yml".text = lib.generators.toYAML {} {
     name = "CI";
@@ -95,12 +94,18 @@ in {
             run = "find plans/";
           }
           {
-            name = "update generated bounds";
-            run = "find . -name '${cabalFilePattern}' -exec cabal-plan-bounds plans/*.json --cabal {} \\;";
-          }
-          {
             name = "check if bounds have changed";
-            run = "git diff --exit-code ${cabalFilePattern}";
+            ## TODO: Simplify this once cabal-plan-bounds supports a `--check`
+            ##       option.
+            run = ''
+              diffs="$(find . \
+                -name '*.cabal' \
+                -exec cabal-plan-bounds --dry-run plans/*.json --cabal {} \;)"
+              if [[ -n "$diffs" ]]; then
+                echo "$diffs"
+                exit 1
+              fi
+            '';
           }
         ];
       };
