@@ -1,25 +1,25 @@
-cabal-version:  3.0
+cabal-version: 3.0
 
-name:        {{project.name}}
-version:     0.1.0.0
-synopsis:    {{project.summary}}
+name: {{project.name}}
+version: 0.1.0.0
+synopsis: {{project.summary}}
 description: {{project.description}}
-author:      Greg Pfeil <greg@technomadic.org>
-maintainer:  Greg Pfeil <greg@technomadic.org>
-copyright:   2024 Greg Pfeil
-homepage:    https://github.com/{{project.repo}}#readme
+author: Greg Pfeil <greg@technomadic.org>
+maintainer: Greg Pfeil <greg@technomadic.org>
+copyright: 2024 Greg Pfeil
+homepage: https://github.com/{{project.repo}}#readme
 bug-reports: https://github.com/{{project.repo}}/issues
 category:
-build-type:  Custom
-license:     AGPL-3.0-or-later
+build-type: Custom
+license: AGPL-3.0-or-later
 license-files:
   LICENSE
 tested-with:
   GHC == {
 --  GHCup   Nixpkgs
     7.10.3,
-    8.0.1,
-    8.2.1,
+    8.0.2,
+    8.2.2,
     8.4.1,
     8.6.1,
     8.8.1,  8.8.4,
@@ -50,7 +50,7 @@ common GHC2021
     DeriveGeneric
     -- DeriveLift -- uncomment if the oldest supported version is GHC 8.10.1+
     DeriveTraversable
-    DerivingStrategies
+    -- DerivingStrategies -- uncomment if the oldest supported version is GHC 8.2.1+
     DoAndIfThenElse
     EmptyCase
     ExistentialQuantification
@@ -93,22 +93,24 @@ flag noisy-deprecations
 common defaults
   import: GHC2021
   build-depends:
-    base ^>= {4.8.2, 4.9.0, 4.10.0, 4.11.0, 4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0},
+    base ^>= {4.8.2, 4.9.1, 4.10.1, 4.11.0, 4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0},
   ghc-options:
     -Weverything
-    -- This one just reports unfixable things, AFAICT.
-    -Wno-all-missed-specialisations
-    -- Type inference good.
-    -Wno-missing-local-signatures
-    -- Warns even when `Unsafe` is explicit, not inferred. See
-    -- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
-    -Wno-unsafe
     -fpackage-trust
     -trust base
-  if impl(ghc < 8.8.1)
+  if impl(ghc >= 8.0.1)
     ghc-options:
-      -- This used to warn even when `Safe` was explicit.
-      -Wno-safe
+      -- This one just reports unfixable things, AFAICT.
+      -Wno-all-missed-specialisations
+      -- Type inference good.
+      -Wno-missing-local-signatures
+      -- Warns even when `Unsafe` is explicit, not inferred. See
+      -- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
+      -Wno-unsafe
+    if impl(ghc < 8.8.1)
+      ghc-options:
+        -- This used to warn even when `Safe` was explicit.
+        -Wno-safe
   if impl(ghc >= 8.10.1)
     ghc-options:
       -- If we didn’t allow inferred-safe imports, nothing would be `Safe`.
@@ -139,7 +141,6 @@ common defaults
     -- QualifiedDo - uncomment if the oldest supported version is GHC 9.0.1+
     RecursiveDo
     -- RequiredTypeArguments - uncomment if the oldest supported version is GHC 9.10.1+
-    -- StrictData - uncomment if the oldest supported version is GHC 8.0.1+
     -- TemplateHaskellQuotes - uncomment if the oldest supported version is GHC 8.0.1+
     TransformListComp
     NoGeneralizedNewtypeDeriving
@@ -148,6 +149,9 @@ common defaults
     NoPatternGuards
     -- NoStarIsType - uncomment if the oldest supported version is GHC 8.6.1+
     -- NoTypeApplications - uncomment if the oldest supported version is GHC 8.0.1+
+  if impl(ghc >= 8.0.1)
+    default-extensions:
+      StrictData
   if flag(noisy-deprecations)
     cpp-options: -DSELLOUT_NOISY_DEPRECATIONS
 
@@ -160,6 +164,7 @@ custom-setup
 
 library
   import: defaults
+  hs-source-dirs: src
   build-depends:
   exposed-modules:
 
@@ -175,9 +180,11 @@ test-suite doctests
   --       over the generated `Build_doctests.hs` file. So we have to silence
   --       all of its warnings one way or another.
   ghc-options:
-    -Wno-missing-export-lists
     -Wno-missing-import-lists
     -Wno-safe
+  if impl(ghc >= 8.4.1)
+    ghc-options:
+      -Wno-missing-export-lists
   if impl(ghc >= 8.8.1)
     ghc-options:
       -- This used to warn even when `Safe` was explicit.

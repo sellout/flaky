@@ -137,4 +137,5 @@ in {
   #     this is disabled until we have a way to build Haskell without IFD.
   services.flakehub.enable = false;
   services.github.enable = true;
+  services.github.settings.repository.topics = [];
 }
