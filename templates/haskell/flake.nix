@@ -263,7 +263,7 @@
         flaky.follows = "flaky";
         nixpkgs.follows = "nixpkgs";
       };
-      url = "github:compiling-to-categories/concat";
+      url = "github:sellout/flaky-haskell";
     };
 
     nixpkgs.url = "github:NixOS/nixpkgs/release-23.11";
