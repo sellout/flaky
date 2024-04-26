@@ -30,9 +30,9 @@
   ### };
   ### checks.format = verify that code matches Ormolu expectations
   outputs = {
-    concat,
     flake-utils,
     flaky,
+    flaky-haskell,
     nixpkgs,
     self,
   }: let
@@ -41,7 +41,7 @@
     supportedSystems = flaky.lib.defaultSystems;
 
     cabalPackages = pkgs: hpkgs:
-      concat.lib.cabalProject2nix
+      flaky-haskell.lib.cabalProject2nix
       ./cabal.project
       pkgs
       hpkgs
@@ -70,7 +70,7 @@
       # - https://discourse.nixos.org/t/nix-haskell-development-2020/6170
       overlays = {
         default =
-          concat.lib.overlayHaskellPackages
+          flaky-haskell.lib.overlayHaskellPackages
           (self.lib.supportedGhcVersions "")
           (final: prev:
             nixpkgs.lib.composeManyExtensions [
@@ -82,7 +82,7 @@
               (self.overlays.haskellDependencies final prev)
             ]);
 
-        haskell = concat.lib.haskellOverlay cabalPackages;
+        haskell = flaky-haskell.lib.haskellOverlay cabalPackages;
 
         haskellDependencies = final: prev: hfinal: hprev:
           (
@@ -217,14 +217,14 @@
     in {
       packages =
         {default = self.packages.${system}."${self.lib.defaultCompiler}_all";}
-        // concat.lib.mkPackages
+        // flaky-haskell.lib.mkPackages
         pkgs
         (self.lib.supportedGhcVersions system)
         cabalPackages;
 
       devShells =
         {default = self.devShells.${system}.${self.lib.defaultCompiler};}
-        // concat.lib.mkDevShells
+        // flaky-haskell.lib.mkDevShells
         pkgs
         (self.lib.supportedGhcVersions system)
         cabalPackages
@@ -247,18 +247,6 @@
     });
 
   inputs = {
-    # Currently contains our Haskell/Nix lib that should be extracted into its
-    # own flake.
-    concat = {
-      inputs = {
-        ## TODO: The version currently used by concat doesn’t support i686-linux.
-        bash-strict-mode.follows = "flaky/bash-strict-mode";
-        flake-utils.follows = "flake-utils";
-        nixpkgs.follows = "nixpkgs";
-      };
-      url = "github:compiling-to-categories/concat";
-    };
-
     flake-utils.url = "github:numtide/flake-utils";
 
     flaky = {
@@ -267,6 +255,15 @@
         nixpkgs.follows = "nixpkgs";
       };
       url = "github:sellout/flaky";
+    };
+
+    flaky-haskell = {
+      inputs = {
+        flake-utils.follows = "flake-utils";
+        flaky.follows = "flaky";
+        nixpkgs.follows = "nixpkgs";
+      };
+      url = "github:compiling-to-categories/concat";
     };
 
     nixpkgs.url = "github:NixOS/nixpkgs/release-23.11";
