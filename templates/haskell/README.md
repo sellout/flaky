@@ -10,6 +10,8 @@
 
 ## usage
 
+See [the package README](./{{project.name}}/README.md) for usage information.
+
 ## development environment
 
 We recommend the following steps to make working in this repository as easy as possible.
