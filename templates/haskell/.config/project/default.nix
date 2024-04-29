@@ -16,11 +16,14 @@ in {
     devPackages = [
       pkgs.cabal-install
       pkgs.graphviz
+      ## So cabal-plan(-bounds) can be built in a devShell, since it doesn’t
+      ## work in Nix proper.
+      pkgs.zlib
     ];
   };
 
   imports = [
-    (import ./github-ci.nix githubSystems)
+    (import ./github-ci.nix githubSystems [self.project.name])
     ./hackage-publish.nix
     ./hlint.nix
   ];
@@ -51,6 +54,7 @@ in {
       enable = true;
       ## Haskell formatter
       programs.ormolu.enable = true;
+      settings.formatter.prettier.excludes = ["*/docs/license-report.md"];
     };
     vale = {
       enable = true;
