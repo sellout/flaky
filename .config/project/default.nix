@@ -1,4 +1,11 @@
-{config, flaky, lib, pkgs, supportedSystems, ...}: {
+{
+  config,
+  flaky,
+  lib,
+  pkgs,
+  supportedSystems,
+  ...
+}: {
   project = {
     name = "flaky";
     summary = "Templates for dev environments";
@@ -95,24 +102,23 @@
 
   ## CI
   services.garnix.enable = true;
-  services.github.settings.branches.main.protection.required_status_checks.contexts =
-    lib.mkForce (flaky.lib.forGarnixSystems supportedSystems (sys: [
-      "devShell bash [${sys}]"
-      "devShell c [${sys}]"
-      "devShell dhall [${sys}]"
-      "devShell emacs-lisp [${sys}]"
-      "devShell haskell [${sys}]"
-      "devShell lax-checks [${sys}]"
-      "devShell nix [${sys}]"
-      "devShell rust [${sys}]"
-      "devShell scala [${sys}]"
-      "package management-scripts [${sys}]"
-      ## FIXME: These are duplicated from the base config
-      "check formatter [${sys}]"
-      "check project-manager-files [${sys}]"
-      "check vale [${sys}]"
-      "devShell default [${sys}]"
-    ]));
+  services.github.settings.branches.main.protection.required_status_checks.contexts = lib.mkForce (flaky.lib.forGarnixSystems supportedSystems (sys: [
+    "devShell bash [${sys}]"
+    "devShell c [${sys}]"
+    "devShell dhall [${sys}]"
+    "devShell emacs-lisp [${sys}]"
+    "devShell haskell [${sys}]"
+    "devShell lax-checks [${sys}]"
+    "devShell nix [${sys}]"
+    "devShell rust [${sys}]"
+    "devShell scala [${sys}]"
+    "package management-scripts [${sys}]"
+    ## FIXME: These are duplicated from the base config
+    "check formatter [${sys}]"
+    "check project-manager-files [${sys}]"
+    "check vale [${sys}]"
+    "devShell default [${sys}]"
+  ]));
 
   ## publishing
   services.flakehub.enable = true;
