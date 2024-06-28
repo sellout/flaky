@@ -44,6 +44,11 @@
       schemas = project-manager.schemas;
 
       overlays = {
+        default = final: prev: {
+          flaky-management-scripts =
+            self.packages.${final.system}.management-scripts;
+        };
+
         elisp-dependencies = import ./nix/elisp-dependencies.nix;
 
         dependencies = final: prev: {
@@ -130,6 +135,15 @@
         default = ./base/.config/project;
         hacktoberfest = ./base/.config/project/hacktoberfest.nix;
       };
+
+      homeConfigurations =
+        builtins.listToAttrs
+        (builtins.map
+          (self.lib.homeConfigurations.example
+            "flaky"
+            self
+            [({pkgs, ...}: {home.packages = [pkgs.flaky-management-scripts];})])
+          defaultSystems);
     }
     // flake-utils.lib.eachSystem defaultSystems
     (system: let
