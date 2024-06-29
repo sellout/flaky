@@ -85,21 +85,18 @@ in {
           "homeConfigurations.*"
           "nixosConfigurations.*"
         ]
-        ++ lib.concatLists (
-          flaky.lib.garnixChecks
-          (
-            sys:
-              [
-                "checks.${sys}.*"
-                "devShells.${sys}.default"
-                "packages.${sys}.default"
-              ]
-              ++ lib.concatMap (ghc: [
-                "devShells.${sys}.${ghc}"
-                "packages.${sys}.${ghc}_all"
-              ])
-              (self.lib.testedGhcVersions sys)
-          )
+        ++ flaky.lib.forGarnixSystems supportedSystems (
+          sys:
+            [
+              "checks.${sys}.*"
+              "devShells.${sys}.default"
+              "packages.${sys}.default"
+            ]
+            ++ lib.concatMap (ghc: [
+              "devShells.${sys}.${ghc}"
+              "packages.${sys}.${ghc}_all"
+            ])
+            (self.lib.testedGhcVersions sys)
         )
       );
     };

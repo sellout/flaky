@@ -156,30 +156,16 @@ in {
     ...
   } @ args:
     project-manager.lib.defaultConfiguration (
-      removeAttrs args ["supportedSystems"]
+      args
       // {
         modules =
           modules
           ++ [
-            {
-              _module.args = {
-                inherit supportedSystems;
-                flaky = self;
-              };
-            }
+            {_module.args.flaky = self;}
             self.projectModules.default
           ];
       }
     );
-
-  ## Converts a list of values parameterized by  a system (generally flake
-  ## attributes like `sys: "packages.${sys}.foo"`) and replicates each of them
-  ## for each of the systems supported by garnix.
-  ##
-  ## Type: [string -> a] -> [a]
-  ##
-  ## DEPRECATED: Use `forGarnixSystems`.
-  garnixChecks = nixpkgs.lib.flip map garnixSystems;
 
   ## Converts a list of values parameterized by  a system (generally flake
   ## attributes like `sys: "packages.${sys}.foo"`) and replicates each of them
