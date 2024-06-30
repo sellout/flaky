@@ -139,9 +139,7 @@
       homeConfigurations =
         builtins.listToAttrs
         (builtins.map
-          (self.lib.homeConfigurations.example
-            "flaky"
-            self
+          (self.lib.homeConfigurations.example self
             [({pkgs, ...}: {home.packages = [pkgs.flaky-management-scripts];})])
           defaultSystems);
     }

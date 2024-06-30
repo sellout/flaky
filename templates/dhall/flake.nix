@@ -62,15 +62,9 @@
       homeConfigurations =
         builtins.listToAttrs
         (builtins.map
-          (flaky.lib.homeConfigurations.example
-            pname
-            self
-            [
-              ({pkgs, ...}: {
-                ## TODO: Is there something more like `dhallWithPackages`?
-                home.packages = [pkgs.dhallPackages.${pname}];
-              })
-            ])
+          (flaky.lib.homeConfigurations.example self
+            ## TODO: Is there something more like `dhallWithPackages`?
+            [({pkgs, ...}: {home.packages = [pkgs.dhallPackages.${pname}];})])
           supportedSystems);
     }
     // flake-utils.lib.eachSystem supportedSystems (system: let

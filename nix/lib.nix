@@ -126,8 +126,8 @@ in {
 
   elisp = import ./lib/elisp.nix {inherit bash-strict-mode;};
 
-  homeConfigurations.example = name: self: modules: system: {
-    name = "${system}-${name}-example";
+  homeConfigurations.example = self: modules: system: {
+    name = "${system}-example";
     value = home-manager.lib.homeManagerConfiguration {
       pkgs = import nixpkgs {
         inherit system;
@@ -139,9 +139,9 @@ in {
           {
             # These attributes are simply required by home-manager.
             home = {
-              homeDirectory = /tmp/${name}-example;
+              homeDirectory = /tmp/example;
               stateVersion = "23.11";
-              username = "${name}-example-user";
+              username = "example-user";
             };
           }
         ]
