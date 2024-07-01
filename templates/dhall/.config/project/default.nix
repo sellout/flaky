@@ -49,10 +49,8 @@
   ## CI
   services.garnix = {
     enable = true;
-    builds.exclude = [
-      # TODO: Remove once garnix-io/garnix#285 is fixed.
-      "homeConfigurations.x86_64-darwin-${config.project.name}-example"
-    ];
+    ## TODO: Remove once garnix-io/garnix#285 is fixed.
+    builds.exclude = ["homeConfigurations.x86_64-darwin-example"];
   };
   ## FIXME: Shouldn’t need `mkForce` here (or to duplicate the base contexts).
   ##        Need to improve module merging.

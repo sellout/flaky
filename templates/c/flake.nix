@@ -43,7 +43,8 @@
       homeConfigurations =
         builtins.listToAttrs
         (builtins.map
-          (flaky.lib.homeConfigurations.example pname self [])
+          (flaky.lib.homeConfigurations.example self
+            [({pkgs, ...}: {home.packages = [pkgs.${pname}];})])
           supportedSystems);
 
       lib = {};

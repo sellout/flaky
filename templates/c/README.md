@@ -35,6 +35,7 @@ Especially if you are unfamiliar with the {{type.name}} ecosystem, there is a Ni
 ### traditional build
 
 You can build this project with GNU Autotools
+
 ```bash
 autoreconf
 ./configure

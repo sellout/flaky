@@ -76,30 +76,25 @@ in {
   services.garnix = {
     enable = true;
     builds = {
-      exclude = [
-        # TODO: Remove once garnix-io/garnix#285 is fixed.
-        "homeConfigurations.x86_64-darwin-${config.project.name}-example"
-      ];
+      ## TODO: Remove once garnix-io/garnix#285 is fixed.
+      exclude = ["homeConfigurations.x86_64-darwin-example"];
       include = lib.mkForce (
         [
           "homeConfigurations.*"
           "nixosConfigurations.*"
         ]
-        ++ lib.concatLists (
-          flaky.lib.garnixChecks
-          (
-            sys:
-              [
-                "checks.${sys}.*"
-                "devShells.${sys}.default"
-                "packages.${sys}.default"
-              ]
-              ++ lib.concatMap (ghc: [
-                "devShells.${sys}.${ghc}"
-                "packages.${sys}.${ghc}_all"
-              ])
-              (self.lib.testedGhcVersions sys)
-          )
+        ++ flaky.lib.forGarnixSystems supportedSystems (
+          sys:
+            [
+              "checks.${sys}.*"
+              "devShells.${sys}.default"
+              "packages.${sys}.default"
+            ]
+            ++ lib.concatMap (ghc: [
+              "devShells.${sys}.${ghc}"
+              "packages.${sys}.${ghc}_all"
+            ])
+            (self.lib.testedGhcVersions sys)
         )
       );
     };

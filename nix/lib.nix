@@ -126,8 +126,8 @@ in {
 
   elisp = import ./lib/elisp.nix {inherit bash-strict-mode;};
 
-  homeConfigurations.example = name: self: modules: system: {
-    name = "${system}-${name}-example";
+  homeConfigurations.example = self: modules: system: {
+    name = "${system}-example";
     value = home-manager.lib.homeManagerConfiguration {
       pkgs = import nixpkgs {
         inherit system;
@@ -139,9 +139,9 @@ in {
           {
             # These attributes are simply required by home-manager.
             home = {
-              homeDirectory = /tmp/${name}-example;
+              homeDirectory = /tmp/example;
               stateVersion = "23.11";
-              username = "${name}-example-user";
+              username = "example-user";
             };
           }
         ]
@@ -156,30 +156,16 @@ in {
     ...
   } @ args:
     project-manager.lib.defaultConfiguration (
-      removeAttrs args ["supportedSystems"]
+      args
       // {
         modules =
           modules
           ++ [
-            {
-              _module.args = {
-                inherit supportedSystems;
-                flaky = self;
-              };
-            }
+            {_module.args.flaky = self;}
             self.projectModules.default
           ];
       }
     );
-
-  ## Converts a list of values parameterized by  a system (generally flake
-  ## attributes like `sys: "packages.${sys}.foo"`) and replicates each of them
-  ## for each of the systems supported by garnix.
-  ##
-  ## Type: [string -> a] -> [a]
-  ##
-  ## DEPRECATED: Use `forGarnixSystems`.
-  garnixChecks = nixpkgs.lib.flip map garnixSystems;
 
   ## Converts a list of values parameterized by  a system (generally flake
   ## attributes like `sys: "packages.${sys}.foo"`) and replicates each of them

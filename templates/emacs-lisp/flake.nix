@@ -49,20 +49,15 @@
       homeConfigurations =
         builtins.listToAttrs
         (builtins.map
-          (flaky.lib.homeConfigurations.example
-            pname
-            self
-            [
-              ({pkgs, ...}: {
-                programs.emacs = {
-                  enable = true;
-                  extraConfig = ''
-                    (require '${pname})
-                  '';
-                  extraPackages = epkgs: [epkgs.${pname}];
-                };
-              })
-            ])
+          (flaky.lib.homeConfigurations.example self [
+            ({pkgs, ...}: {
+              programs.emacs = {
+                enable = true;
+                extraConfig = "(require '${pname})";
+                extraPackages = epkgs: [epkgs.${pname}];
+              };
+            })
+          ])
           supportedSystems);
     }
     // flake-utils.lib.eachSystem supportedSystems (system: let

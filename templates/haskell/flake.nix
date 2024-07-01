@@ -131,18 +131,13 @@
       homeConfigurations =
         builtins.listToAttrs
         (builtins.map
-          (flaky.lib.homeConfigurations.example
-            pname
-            self
-            [
-              ({pkgs, ...}: {
-                home.packages = [
-                  (pkgs.haskellPackages.ghcWithPackages (hpkgs: [
-                    hpkgs.${pname}
-                  ]))
-                ];
-              })
-            ])
+          (flaky.lib.homeConfigurations.example self [
+            ({pkgs, ...}: {
+              home.packages = [
+                (pkgs.haskellPackages.ghcWithPackages (hpkgs: [hpkgs.${pname}]))
+              ];
+            })
+          ])
           supportedSystems);
 
       lib = {
