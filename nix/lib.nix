@@ -176,4 +176,26 @@ in {
     nixpkgs.lib.flip
     nixpkgs.lib.concatMap
     (nixpkgs.lib.intersectLists garnixSystems supportedSystems);
+
+  ## Accepts separate configurations for nix-darwin, Home Manager, NixOS, and
+  ## Project Manager, returning the correct one for whichever configuration is
+  ## being built (guessing based on the attributes defined by `options`).
+  ##
+  ## This is useful for writing modules that work across multiple types of
+  ## configuration.
+  multiConfig = options: {
+    darwinConfig ? {},
+    homeConfig ? {},
+    nixosConfig ? {},
+    projectConfig ? {},
+  }: {
+    config =
+      if options ? homebrew
+      then darwinConfig
+      else if options ? home
+      then homeConfig
+      else if options ? boot
+      then nixosConfig
+      else projectConfig;
+  };
 }
