@@ -40,6 +40,8 @@ This project is built with [Cabal](https://cabal.readthedocs.io/en/stable/index.
 
 ## versioning
 
+[The Haskell Package Versioning Policy](https://pvp.haskell.org/) is a good starting point for versioning Haskell code, however, this project is generally more strictly versioned than described there.
+
 In the absolute, almost every change is a breaking change. This section describes how we mitigate that to provide minor updates and revisions.
 
 Here are some common changes that can have unintended effects:

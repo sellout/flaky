@@ -23,7 +23,7 @@ in {
   };
 
   imports = [
-    (import ./github-ci.nix githubSystems [self.project.name])
+    (import ./github-ci.nix githubSystems [config.project.name])
     ./hackage-publish.nix
     ./hlint.nix
   ];
