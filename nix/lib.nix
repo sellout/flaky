@@ -150,13 +150,13 @@ in {
   };
 
   ## Adds `flaky` as an additional module argument.
-  projectConfigurations.default = {
-    modules ? [],
-    supportedSystems ? self.lib.defaultSystems,
-    ...
-  } @ args:
+  projectConfigurations.default = {modules ? [], ...} @ args:
     project-manager.lib.defaultConfiguration (
-      args
+      ## `@` patterns are simply pattern matchers, they don’t construct a new
+      ## value, so they don’t pick up the defaults set by `?` (see
+      ## NixOS/nix#334). This is consequently a “workaround” for that behavior.
+      {supportedSystems = self.lib.defaultSystems;}
+      // args
       // {
         modules =
           modules
