@@ -332,7 +332,7 @@
       url = "github:nix-community/home-manager/release-23.11";
     };
 
-    nixpkgs.url = "github:NixOS/nixpkgs/release-23.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/release-24.05";
 
     project-manager = {
       inputs = {

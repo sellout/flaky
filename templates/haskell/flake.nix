@@ -261,6 +261,6 @@
       url = "github:sellout/flaky-haskell";
     };
 
-    nixpkgs.url = "github:NixOS/nixpkgs/release-23.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/release-24.05";
   };
 }
