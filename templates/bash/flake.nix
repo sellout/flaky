@@ -66,7 +66,7 @@
           (pkgs.stdenv.mkDerivation {
             inherit pname src;
 
-            version = "{{project.version}}";
+            version = "0.1.0";
 
             meta = {
               description = "{{project.summary}}";

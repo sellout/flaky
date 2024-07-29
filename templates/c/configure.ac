@@ -1,4 +1,4 @@
-AC_INIT([{{project.name}}], [{{project.version}}], [greg@technomadic.org])
+AC_INIT([{{project.name}}], [0.1.0], [greg@technomadic.org])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects])
 
 AC_PROG_CXX
