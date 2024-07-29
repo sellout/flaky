@@ -1,10 +1,25 @@
 {
-  ## Currently there is no trivial way to run a command before the PR with
-  ## either Renovate or DeterminateSystems/update-flake-lock. The former because
-  ## `postUpgradeTasks` can only be used on self-hosted instances
-  ## (https://docs.renovatebot.com/configuration-options/#postupgradetasks) and
-  ## the latter because of DeterminateSystems/update-flake-lock#91. Until one of
-  ## those things changes (or another approach presents itself), this is the
-  ## simpler implementation.
-  services.renovate.settings.lockFileMaintenance.enabled = true;
+  config,
+  lib,
+  ...
+}: {
+  services.renovate.settings = let
+    ## If all checks are expected to be run by CI, then we can allow automerge
+    ## to happen after a successful CI run.
+    automerge = config.project.unsandboxedChecks == {};
+  in {
+    lockFileMaintenance = {
+      inherit automerge;
+      enabled = true;
+    };
+    packageRules = lib.mkIf automerge [
+      {
+        automerge = true;
+        ## Don’t automerge updates of pre-release software.
+        matchCurrentVersion = "!/^0/";
+        ## Only automerge non-major version updates.
+        matchUpdateTypes = ["minor" "patch"];
+      }
+    ];
+  };
 }
