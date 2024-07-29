@@ -50,8 +50,10 @@
     treefmt = {
       enable = true;
       ## NB: This is normally "flake.nix", but since this repo contains
-      ##     sub-flakes, we use the .git/config because it’s unique.
-      projectRootFile = lib.mkForce ".git/config";
+      ##     sub-flakes, we pick a random file that is unlikely to exist
+      ##     anywhere else in the tree (and we can’t use .git/config, because it
+      ##     doesn’t exist in worktrees).
+      projectRootFile = lib.mkForce "scripts/sync-template";
       programs = {
         ## Shell linter
         shellcheck.enable = true;
