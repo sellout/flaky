@@ -1,4 +1,8 @@
-{config, lib, ...}: {
+{
+  config,
+  lib,
+  ...
+}: {
   project = {
     name = "{{project.name}}";
     summary = "{{project.summary}}";

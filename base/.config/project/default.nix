@@ -4,7 +4,11 @@
 ## NB: This doesn’t enable any modules, simply configures them. The templates
 ##     (and concrete projects) enable the modules, making it easy to see which
 ##     ones are applied to any given project.
-{lib, pkgs, ...}: {
+{
+  lib,
+  pkgs,
+  ...
+}: {
   project = {
     authors = [lib.maintainers.sellout];
     license = "AGPL-3.0-or-later";
