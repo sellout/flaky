@@ -56,17 +56,7 @@
             prev.haskellPackages.extend (self.overlays.haskell-dependencies final prev);
         };
 
-        ## TODO: Various packages fail their tests on i686-linux. Should
-        ##       probably fix them at some point.
-        haskell-dependencies = final: prev: hfinal: hprev:
-          if final.system == sys.i686-linux
-          then {
-            hackage-security =
-              final.haskell.lib.dontCheck hprev.hackage-security;
-            persistent = final.haskell.lib.dontCheck hprev.persistent;
-            validity = final.haskell.lib.dontCheck hprev.validity;
-          }
-          else {};
+        haskell-dependencies = import ./nix/haskell-dependencies.nix;
       };
 
       lib = import ./nix/lib.nix {
