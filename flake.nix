@@ -27,7 +27,7 @@
       ## This ensures that we explicitly list all the platforms we support while
       ## protecting against changes in `defaultSystems` (removing a system from
       ## `defaultSystems` shouldn’t remove it from here, but one being added
-      ## should alert us to any failures.
+      ## should alert us to any failures).
       nixpkgs.lib.unique
       (flake-utils.lib.defaultSystems
         ++ [

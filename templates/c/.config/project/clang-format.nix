@@ -84,18 +84,18 @@ in {
     #     However, here we only categorize the parts that can be identified syntactically. Any
     #     sub-ordering would be project-specific.
     IncludeCategories = [
-      { # system
+      {
         Regex = "<[^/.]+>";
         Priority = 3;
-      }
-      { # third-party
+      } # system
+      {
         Regex = "<.*>";
         Priority = 2;
-      }
-      { # local
+      } # third-party
+      {
         Regex = ".*";
         Priority = 1;
-      }
+      } # local
     ];
     IndentAccessModifiers = true; # consistent
     IndentCaseBlocks = true; # consistent, case blocks aren’t blocks, they only scope, so don’t format like blocks
@@ -172,10 +172,9 @@ in {
     SpacesInCStyleCastParentheses = false; # consistent
     SpacesInContainerLiterals = false; # consistent
     SpacesInLineCommentPrefix = {
-      # consistent
       Minimum = 1;
       Maximum = 1;
-    };
+    }; # consistent
     SpacesInParentheses = false; # consistent
     SpacesInSquareBrackets = false; # consistent
     Standard = "c++20";
