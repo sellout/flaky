@@ -2,20 +2,20 @@
 ## • have automated formatting to avoid wasting time editing and debating
 ## • minimize diff-sensitivity to things like changing function names (e.g.,
 ##   don’t want whitespace diffs on all the parameter lines)
-
+##
 ## Decisions
 ## • break before operators – it’s much easier to understand multi-line
 ##   expressions when the interior operators are aligned up front
 ## • no bin-packing – subexpressions at the same level should either _all_ be on
 ##   one line, or each on their own line for readability, bin packing makes it
 ##   easy to miss elements
-
+#
 # NB: If clang-format can’t parse this file (or doesn’t understand any of the
 #     values), it will format with the default settings. If this happens it’s
 #     important to _revert_ the formatting, not just reformat after fixing it.
 #     This is because some formatting changes aren’t reversible, so you may
 #     introduce formatting regressions if you simply reformat.
-
+#
 # NB: Any disabling of auto-formatting needs a justification. This can be
 #     provided like
 #
@@ -84,9 +84,18 @@ in {
     #     However, here we only categorize the parts that can be identified syntactically. Any
     #     sub-ordering would be project-specific.
     IncludeCategories = [
-      {Regex = "<[^/.]+>"; Priority = 3;} # system
-      {Regex = "<.*>"; Priority = 2;} # third-party
-      {Regex = ".*"; Priority = 1;} # local
+      {
+        Regex = "<[^/.]+>";
+        Priority = 3;
+      } # system
+      {
+        Regex = "<.*>";
+        Priority = 2;
+      } # third-party
+      {
+        Regex = ".*";
+        Priority = 1;
+      } # local
     ];
     IndentAccessModifiers = true; # consistent
     IndentCaseBlocks = true; # consistent, case blocks aren’t blocks, they only scope, so don’t format like blocks
@@ -101,7 +110,8 @@ in {
     InsertBraces = true; # consistent, avoids accidentally breaking control flow when an additional statement is added
     InsertNewlineAtEOF = true; # POSIX!
     InsertTrailingCommas = "Wrapped"; # consistent, prevents spurious whitespace diffs
-    IntegerLiteralSeparator = { # readability (although 8-digit groups may be too large)
+    IntegerLiteralSeparator = {
+      # readability (although 8-digit groups may be too large)
       Binary = 8; # byte
       Decimal = 3; # many standards, see https://en.wikipedia.org/wiki/Decimal_separator#Digit_grouping
       Hex = 8; # common machine word (64b)
@@ -131,7 +141,13 @@ in {
     ## • `constexpr` implies both `const` and `inline`, but it applies to the declaration, not the type, so it belongs with `inline`, but the order of the two doesn’t matter, as long as they’re adjacent
     QualifierOrder = [
       "constexpr"
-      "inline" "static" "type" "const" "volatile" "restrict"];
+      "inline"
+      "static"
+      "type"
+      "const"
+      "volatile"
+      "restrict"
+    ];
     ReflowComments = true; # Wadler
     RemoveBracesLLVM = false; # consistent with InsertBraces
     RequiresClausePosition = "SingleLine"; # compact & consistent
@@ -155,7 +171,10 @@ in {
     SpacesInAngles = "Never"; # consistent with function call syntax
     SpacesInCStyleCastParentheses = false; # consistent
     SpacesInContainerLiterals = false; # consistent
-    SpacesInLineCommentPrefix = {Minimum = 1; Maximum = 1;}; # consistent
+    SpacesInLineCommentPrefix = {
+      Minimum = 1;
+      Maximum = 1;
+    }; # consistent
     SpacesInParentheses = false; # consistent
     SpacesInSquareBrackets = false; # consistent
     Standard = "c++20";

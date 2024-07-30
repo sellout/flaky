@@ -5,7 +5,6 @@
       name: "template-example",
       repo: "sellout/system-configurations",
       summary: "An example template instantiation",
-      version: "0.1.0",
     },
   type: { name: "Whitespace" },
 }

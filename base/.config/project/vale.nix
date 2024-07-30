@@ -1,5 +1,9 @@
 ## Editorial style – https://vale.sh/
-{config, lib, ...}: {
+{
+  config,
+  lib,
+  ...
+}: {
   programs.vale = {
     coreSettings = {
       MinAlertLevel = "suggestion";

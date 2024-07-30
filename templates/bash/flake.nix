@@ -66,7 +66,7 @@
           (pkgs.stdenv.mkDerivation {
             inherit pname src;
 
-            version = "{{project.version}}";
+            version = "0.1.0";
 
             meta = {
               description = "{{project.summary}}";
@@ -104,24 +104,11 @@
     });
 
   inputs = {
-    bash-strict-mode = {
-      inputs = {
-        flaky.follows = "flaky";
-        nixpkgs.follows = "nixpkgs";
-      };
-      url = "github:sellout/bash-strict-mode";
-    };
+    ## Flaky should generally be the source of truth for its inputs.
+    flaky.url = "github:sellout/flaky";
 
-    flake-utils.url = "github:numtide/flake-utils";
-
-    flaky = {
-      inputs = {
-        bash-strict-mode.follows = "bash-strict-mode";
-        nixpkgs.follows = "nixpkgs";
-      };
-      url = "github:sellout/flaky";
-    };
-
-    nixpkgs.url = "github:NixOS/nixpkgs/release-24.05";
+    bash-strict-mode.follows = "flaky/bash-strict-mode";
+    flake-utils.follows = "flaky/flake-utils";
+    nixpkgs.follows = "flaky/nixpkgs";
   };
 }
