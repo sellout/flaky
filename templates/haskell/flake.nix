@@ -242,17 +242,16 @@
     });
 
   inputs = {
-    flake-utils.url = "github:numtide/flake-utils";
+    ## Flaky should generally be the source of truth for its inputs.
+    flaky.url = "github:sellout/flaky";
 
-    flaky = {
-      inputs = {
-        flake-utils.follows = "flake-utils";
-        nixpkgs.follows = "nixpkgs";
-      };
-      url = "github:sellout/flaky";
-    };
+    bash-strict-mode.follows = "flaky/bash-strict-mode";
+    flake-utils.follows = "flaky/flake-utils";
+    nixpkgs.follows = "flaky/nixpkgs";
 
     flaky-haskell = {
+      ## TODO: Once flaky-haskell gets its inputs from Flaky, we can remove the
+      ##       inputs here other than Flaky.
       inputs = {
         flake-utils.follows = "flake-utils";
         flaky.follows = "flaky";
@@ -260,7 +259,5 @@
       };
       url = "github:sellout/flaky-haskell";
     };
-
-    nixpkgs.url = "github:NixOS/nixpkgs/release-23.11";
   };
 }

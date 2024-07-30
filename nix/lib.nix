@@ -92,9 +92,6 @@ in {
             {} \;
           ## Reference _this_ version of flaky, rather than a published one.
           sed -i -e 's#github:sellout/flaky#${self}#g' ./flake.nix
-          ## Speed up the check by priming the lockfile.
-          cp "$src/flake.lock" ./
-          chmod +w ./flake.lock
           git init
           git add --all
           project-manager switch
