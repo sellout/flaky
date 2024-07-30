@@ -12,14 +12,17 @@
       inherit automerge;
       enabled = true;
     };
-    packageRules = lib.mkIf automerge [
-      {
-        automerge = true;
-        ## Don’t automerge updates of pre-release software.
-        matchCurrentVersion = "!/^0/";
-        ## Only automerge non-major version updates.
-        matchUpdateTypes = ["minor" "patch"];
-      }
-    ];
+    packageRules =
+      if automerge
+      then [
+        {
+          automerge = true;
+          ## Don’t automerge updates of pre-release software.
+          matchCurrentVersion = "!/^0/";
+          ## Only automerge non-major version updates.
+          matchUpdateTypes = ["minor" "patch"];
+        }
+      ]
+      else [];
   };
 }
