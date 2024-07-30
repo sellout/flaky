@@ -104,7 +104,7 @@
 
       lib = {
         ## TODO: Extract this automatically from `pkgs.haskellPackages`.
-        defaultCompiler = "ghc948";
+        defaultCompiler = "ghc965";
 
         ## Test the oldest revision possible for each minor release. If it’s not
         ## available in nixpkgs, test the oldest available, then try an older
@@ -116,10 +116,11 @@
             self.lib.defaultCompiler
             "ghc8107"
             "ghc902"
-            "ghc924"
-            "ghc942"
-            "ghc962"
+            "ghc925"
+            "ghc945"
+            "ghc963"
             "ghc981"
+            "ghc9101"
             # "ghcHEAD" # doctest doesn’t work on current HEAD
           ]
           ## dependency compiler-rt-libc-7.1.0 is broken in on aarch64-darwin.
@@ -139,7 +140,9 @@
           "9.2.1"
           "9.4.1"
           "9.6.1"
-          "9.8.1" # since `cabal-plan-bounds` doesn’t work under Nix
+          ## since `cabal-plan-bounds` doesn’t work under Nix
+          "9.8.1"
+          "9.10.1"
         ];
 
         ## However, provide packages in the default overlay for _every_
