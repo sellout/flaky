@@ -67,7 +67,7 @@
     (flaky.lib.forGarnixSystems supportedSystems (sys: [
       "check elisp-doctor [${sys}]"
       "check elisp-lint [${sys}]"
-      "homeConfig ${sys}-${config.project.name}-example"
+      "homeConfig ${sys}-example"
       "package default [${sys}]"
       "package emacs-${config.project.name} [${sys}]"
       ## FIXME: These are duplicated from the base config
