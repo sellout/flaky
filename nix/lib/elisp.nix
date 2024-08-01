@@ -110,7 +110,7 @@ in {
 
   overlays.default = emacsOverlay: final: prev: {
     emacsPackagesFor = emacs:
-      (prev.emacsPackagesFor emacs).overrideScope'
+      (prev.emacsPackagesFor emacs).overrideScope
       (emacsOverlay final prev);
   };
 
