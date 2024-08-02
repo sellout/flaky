@@ -308,10 +308,7 @@
 
   inputs = {
     bash-strict-mode = {
-      inputs = {
-        flaky.follows = "";
-        nixpkgs.follows = "nixpkgs";
-      };
+      inputs.flaky.follows = "";
       url = "github:sellout/bash-strict-mode";
     };
 
