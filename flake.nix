@@ -322,11 +322,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/release-24.05";
 
     project-manager = {
-      inputs = {
-        bash-strict-mode.follows = "bash-strict-mode";
-        flake-utils.follows = "flake-utils";
-        flaky.follows = "";
-      };
+      inputs.flaky.follows = "";
       url = "github:sellout/project-manager";
     };
   };
