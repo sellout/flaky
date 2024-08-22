@@ -223,6 +223,7 @@
               ++ [
                 pkgs.cargo
                 pkgs.rust-analyzer
+                pkgs.rustPackages.clippy
                 pkgs.rustc
                 pkgs.rustfmt
               ]);
