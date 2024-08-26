@@ -53,10 +53,10 @@
 
         dependencies = final: prev: {
           haskellPackages =
-            prev.haskellPackages.extend (self.overlays.haskell-dependencies final prev);
+            prev.haskellPackages.extend (self.overlays.haskellDependencies final prev);
         };
 
-        haskell-dependencies = import ./nix/haskell-dependencies.nix;
+        haskellDependencies = import ./nix/haskell-dependencies.nix;
       };
 
       lib = import ./nix/lib.nix {

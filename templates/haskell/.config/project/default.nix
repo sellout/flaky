@@ -7,7 +7,12 @@
   supportedSystems,
   ...
 }: let
-  githubSystems = ["macos-13" "ubuntu-22.04" "windows-2022"];
+  githubSystems = [
+    "macos-13" # x86_64-darwin
+    "macos-14" # aarch64-darwin
+    "ubuntu-22.04" # x86_64-linux
+    "windows-2022"
+  ];
 in {
   project = {
     name = "{{project.name}}";
@@ -23,7 +28,12 @@ in {
   };
 
   imports = [
-    (import ./github-ci.nix githubSystems [self.project.name])
+    (import ./github-ci.nix {
+      inherit (self.lib) defaultGhcVersion;
+      systems = githubSystems;
+      packages = {"${config.project.name}" = config.project.name;};
+      latestGhcVersion = "9.10.1";
+    })
     ./hackage-publish.nix
     ./hlint.nix
   ];
@@ -62,6 +72,7 @@ in {
         "*.cabal"
         "*.hs"
         "*.lhs"
+        "*/docs/license-report.md"
         "./cabal.project"
       ];
       vocab.${config.project.name}.accept = [
@@ -94,7 +105,9 @@ in {
               "devShells.${sys}.default"
               "packages.${sys}.default"
             ]
-            ++ lib.concatMap (ghc: [
+            ++ lib.concatMap (version: let
+              ghc = self.lib.nixifyGhcVersion version;
+            in [
               "devShells.${sys}.${ghc}"
               "packages.${sys}.${ghc}_all"
             ])
@@ -116,7 +129,9 @@ in {
         self.lib.nonNixTestedGhcVersions)
       githubSystems
       ++ flaky.lib.forGarnixSystems supportedSystems (sys:
-        lib.concatMap (ghc: [
+        lib.concatMap (version: let
+          ghc = self.lib.nixifyGhcVersion version;
+        in [
           "devShell ${ghc} [${sys}]"
           "package ${ghc}_all [${sys}]"
         ])
