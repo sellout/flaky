@@ -69,9 +69,10 @@
       # - NixOS/nixpkgs#26561
       # - https://discourse.nixos.org/t/nix-haskell-development-2020/6170
       overlays = {
-        default =
+        default = final:
           flaky-haskell.lib.overlayHaskellPackages
-          (self.lib.supportedGhcVersions "")
+          (map self.lib.nixifyGhcVersion
+            (self.lib.supportedGhcVersions final.system))
           (final: prev:
             nixpkgs.lib.composeManyExtensions [
               ## TODO: I think this overlay is only needed by formatters,
@@ -80,7 +81,8 @@
               (flaky.overlays.haskellDependencies final prev)
               (self.overlays.haskell final prev)
               (self.overlays.haskellDependencies final prev)
-            ]);
+            ])
+          final;
 
         haskell = flaky-haskell.lib.haskellOverlay cabalPackages;
 
@@ -103,8 +105,10 @@
           supportedSystems);
 
       lib = {
+        nixifyGhcVersion = version: "ghc" ++ nixpkgs.lib.remove "." version;
+
         ## TODO: Extract this automatically from `pkgs.haskellPackages`.
-        defaultCompiler = "ghc965";
+        defaultGhcVersion = "9.6.5";
 
         ## Test the oldest revision possible for each minor release. If it’s not
         ## available in nixpkgs, test the oldest available, then try an older
@@ -113,18 +117,18 @@
         ## maps to in the nixpkgs we depend on.
         testedGhcVersions = system:
           [
-            self.lib.defaultCompiler
-            "ghc8107"
-            "ghc902"
-            "ghc925"
-            "ghc945"
-            "ghc963"
-            "ghc981"
-            "ghc9101"
+            self.lib.defaultGhcVersion
+            "8.10.7"
+            "9.0.2"
+            "9.2.5"
+            "9.4.5"
+            "9.6.3"
+            "9.8.1"
+            "9.10.1"
             # "ghcHEAD" # doctest doesn’t work on current HEAD
           ]
           ## dependency compiler-rt-libc-7.1.0 is broken in on aarch64-darwin.
-          ++ nixpkgs.lib.optional (system != "aarch64-darwin") "ghc884";
+          ++ nixpkgs.lib.optional (system != "aarch64-darwin") "8.8.4";
 
         ## The versions that are older than those supported by Nix that we
         ## prefer to test against.
@@ -150,16 +154,16 @@
         supportedGhcVersions = system:
           self.lib.testedGhcVersions system
           ++ [
-            "ghc925"
-            "ghc926"
-            "ghc927"
-            "ghc928"
-            "ghc943"
-            "ghc944"
-            "ghc945"
-            "ghc946"
-            "ghc947"
-            "ghc963"
+            "9.2.6"
+            "9.2.7"
+            "9.2.8"
+            "9.4.6"
+            "9.4.7"
+            "9.4.8"
+            "9.6.4"
+            "9.6.5"
+            "9.6.6"
+            "9.8.2"
           ];
       };
     }
@@ -176,27 +180,34 @@
       };
     in {
       packages =
-        {default = self.packages.${system}."${self.lib.defaultCompiler}_all";}
+        {
+          default =
+            self.packages.${system}."${self.lib.nixifyGhcVersion self.lib.defaultGhcVersion}_all";
+        }
         // flaky-haskell.lib.mkPackages
         pkgs
-        (self.lib.supportedGhcVersions system)
+        (map self.lib.nixifyGhcVersion (self.lib.supportedGhcVersions system))
         cabalPackages;
 
       devShells =
-        {default = self.devShells.${system}.${self.lib.defaultCompiler};}
+        {
+          default =
+            self.devShells.${system}.${self.lib.nixifyGhcVersion self.lib.defaultGhcVersion};
+        }
         // flaky-haskell.lib.mkDevShells
         pkgs
-        (self.lib.supportedGhcVersions system)
+        (map self.lib.nixifyGhcVersion (self.lib.supportedGhcVersions system))
         cabalPackages
         (hpkgs:
           [self.projectConfigurations.${system}.packages.path]
-          ## NB: Haskell Language Server no longer supports GHC <9.
-          ## TODO: HLS also apparently broken on 9.8.1.
-          ## NB: And there are some 32-bit issues on i686.
+          ## NB: Haskell Language Server no longer supports GHC <9.2, and 9.4
+          ##     has an issue with it on i686-linux.
           ++ nixpkgs.lib.optional
-          (nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9"
-            && builtins.compareVersions hpkgs.ghc.version "9.8.1" != 0
-            && system != "i686-linux")
+          (
+            if system == "i686-linux"
+            then nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9.4"
+            else nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9.2"
+          )
           hpkgs.haskell-language-server);
 
       projectConfigurations =
@@ -210,18 +221,11 @@
     ## Flaky should generally be the source of truth for its inputs.
     flaky.url = "github:sellout/flaky";
 
-    bash-strict-mode.follows = "flaky/bash-strict-mode";
     flake-utils.follows = "flaky/flake-utils";
     nixpkgs.follows = "flaky/nixpkgs";
 
     flaky-haskell = {
-      ## TODO: Once flaky-haskell gets its inputs from Flaky, we can remove the
-      ##       inputs here other than Flaky.
-      inputs = {
-        flake-utils.follows = "flake-utils";
-        flaky.follows = "flaky";
-        nixpkgs.follows = "nixpkgs";
-      };
+      inputs.flaky.follows = "flaky";
       url = "github:sellout/flaky-haskell";
     };
   };
