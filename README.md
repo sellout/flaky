@@ -1,6 +1,6 @@
 # Flaky templates & `devShells`
 
-[![built with garnix](https://img.shields.io/endpoint?url=https%3A%2F%2Fgarnix.io%2Fapi%2Fbadges%2Fsellout%2Fflaky)](https://garnix.io)
+[![built with garnix](https://img.shields.io/endpoint?url=https%3A%2F%2Fgarnix.io%2Fapi%2Fbadges%2Fsellout%2Fflaky)](https://garnix.io/repo/sellout/flaky)
 
 Templates for Sellout’s personal projects, plus a flake `lib` to make the templates as lightweight and easy to keep in sync as possible.
 
