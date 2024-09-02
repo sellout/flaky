@@ -5,6 +5,9 @@
 ### the same version of a package across all systems & compilers.
 final: prev: hfinal: hprev:
 (
+  ## TODO: Much or all of this can go away once
+  ##       https://github.com/NixOS/nixpkgs/commit/e87381d634cb1ddd2bd7e121c44fbc926a8c026a
+  ##       lands on nixpkgs-unstable.
   if final.lib.versionAtLeast hprev.ghc.version "9.10.0"
   then {
     ChasingBottoms =
@@ -14,11 +17,25 @@ final: prev: hfinal: hprev:
         revision = "1";
         sha256 = "vuzRlfSR/RcjYgXQD4gu521r2Re/EENQ31enBeyJt2Y=";
       };
+    ## Earlier versions are too restrictive on `containers` and
+    ## `ghc-exactprint`.
+    apply-refact = final.haskell.lib.overrideCabal hprev.apply-refact {
+      editedCabalFile = null;
+      sha256 = "c0aPbhBtus0vm9lfZAD69dLByXres4VzIgFEejNstp0=";
+      version = "0.14.0.0";
+    };
     ## Earlier versions are too restrictive on `base`.
     base64 = final.haskell.lib.overrideCabal hprev.base64 {
-      editedCabalFile = null;
+      editedCabalFile = "q4CEYIUF8w1s9915AnH5J/2KAJVsXn9VRvXPVrKYAiw=";
+      revision = "1";
       sha256 = "eUIjnxgElF/W0xmpU/JsU7ZFGAds0pQUH9qYPy/xsrY=";
       version = "1.0";
+    };
+    ## Earlier versions are too restricted on `containers`.
+    blaze-html = final.haskell.lib.overrideCabal hprev.blaze-html {
+      editedCabalFile = "hcQvhPTq0sSIRPvghlBprdO7O7MyLThgfpPVUVpMnFg=";
+      revision = "1";
+      sha256 = "ZVQu8592RKPXavyt65dtPjNMaUdRa3MT/LWRZc6hYI8=";
     };
     ## Earlier versions are too restrictive on `base`.
     boring = hfinal.boring_0_2_2;
@@ -69,21 +86,29 @@ final: prev: hfinal: hprev:
       version = "0.1.0.2";
     };
     ## Earlier versions are too restrictive on `base`.
-    ghc-trace-events =
-      final.haskell.lib.overrideCabal
-      hprev.ghc-trace-events {
-        editedCabalFile = null;
-        sha256 = "6afff442G4ouUJsYB0B8RlTxanNWQtVOhcjJQ/5B0wU=";
-        version = "0.1.2.9";
-      };
+    ghc-exactprint = final.haskell.lib.overrideCabal hprev.ghc-exactprint {
+      editedCabalFile = null;
+      sha256 = "YKdR1lcHHuHvgS75qM8kRvxA6J71H63LZi0ugUGfXJI=";
+      version = "1.10.0.0";
+    };
     ## This is the version for this compiler.
-    ghc-lib-parser =
-      final.haskell.lib.overrideCabal
-      hprev.ghc-lib-parser {
-        editedCabalFile = null;
-        sha256 = "N9HfXP5D3USDxl3FfFIs2wRsju3cu/2MyqW/5bDW8Tk=";
-        version = "9.10.1.20240511";
-      };
+    ghc-lib-parser = final.haskell.lib.overrideCabal hprev.ghc-lib-parser {
+      editedCabalFile = null;
+      sha256 = "N9HfXP5D3USDxl3FfFIs2wRsju3cu/2MyqW/5bDW8Tk=";
+      version = "9.10.1.20240511";
+    };
+    ## Earlier versions are too restrictive on `ghc-lib-parser`.
+    ghc-lib-parser-ex = final.haskell.lib.overrideCabal hprev.ghc-lib-parser-ex {
+      editedCabalFile = null;
+      sha256 = "Zumz8ZcpCjkkZssoUY1L7sAC1p8X+fuwbXelty3Cluw=";
+      version = "9.10.0.0";
+    };
+    ## Earlier versions are too restrictive on `base`.
+    ghc-trace-events = final.haskell.lib.overrideCabal hprev.ghc-trace-events {
+      editedCabalFile = null;
+      sha256 = "6afff442G4ouUJsYB0B8RlTxanNWQtVOhcjJQ/5B0wU=";
+      version = "0.1.2.9";
+    };
     ## Otherwise `hashable` picks up a version of `os-string`
     ## different from GHC’s.
     hashable = hprev.hashable.override {os-string = null;};
@@ -99,6 +124,12 @@ final: prev: hfinal: hprev:
       editedCabalFile = "dKhYWpDjwGZnE0k5zRcM/yQGfVqYjhSCl4WvDfpr0Q8=";
       revision = "1";
       sha256 = "FWhmEEEOQePe2SpFICK03C8JSFg/HgJg36NhID4QBVQ=";
+    };
+    ## Earlier versions are too restrictive on `base` and `ghc`.
+    hiedb = final.haskell.lib.overrideCabal hprev.hiedb {
+      editedCabalFile = null;
+      sha256 = "ljlD9KKRibJyKyHhDVgCDOsMHrV+CFnWXuo0zKHsa18=";
+      version = "0.6.0.1";
     };
     ## Earlier versions are too restrictive on `base` & `containers`.
     indexed-traversable = hfinal.indexed-traversable_0_1_4;
@@ -122,21 +153,33 @@ final: prev: hfinal: hprev:
     lifted-base = final.haskell.lib.dontCheck hprev.lifted-base;
     ## There is no release that supports base 4.20 yet.
     lucid = final.haskell.lib.doJailbreak hprev.lucid;
+    ## Earlier versions are too restrictive on `containers`.`
+    monoid-subclasses = final.haskell.lib.overrideCabal hprev.monoid-subclasses {
+      editedCabalFile = null;
+      sha256 = "JVCoW1zc8XEys2viM4TrHOlWrwCvcaARZ/ahxsjUK3c=";
+      version = "1.2.5.1";
+    };
     ## Earlier revisions are too restrictive on `base`.
     nothunks = final.haskell.lib.overrideCabal hprev.nothunks {
       editedCabalFile = "JDJOr7UEoAvZwDSFUEFkGfsPoFXStypqzx6b5eCZhBE=";
       revision = "1";
       sha256 = "nHwKOFIRxdFCfbFWiWpW/AWwN01XXEKaHHoJ88ojveg=";
     };
-    ## This version is too restrictive on `base`, but later versions
-    ## lead to infinite recursion.
-    # primitive = final.haskell.lib.doJailbreak hprev.primitive;
+    ## This version is too restrictive on `containers`, but newer ones break in weirder ways.
+    ordered-containers = final.haskell.lib.doJailbreak hprev.ordered-containers;
     ## Earlier versions are too restrictive on `base`.
     primitive = final.haskell.lib.overrideCabal hprev.primitive {
       editedCabalFile = "LgjFQJ41WcfxZp71DpoNmjl+aOz1ERDV4s7fBc3X2Tw=";
       revision = "1";
       sha256 = "aW1L0pHJTXNhQtYYIRfcpCWNPvKL/v22SayLXs0Jmcc=";
       version = "0.9.0.0";
+    };
+    ## Tests don’t compile.
+    primitive-unlifted = final.haskell.lib.dontCheck hprev.primitive-unlifted;
+    semialign = final.haskell.lib.overrideCabal hprev.semialign {
+      editedCabalFile = null;
+      sha256 = "Zuh7wlT/7C7pCL9iXELTtzYyONarHPuok0u+51kMnfc=";
+      version = "1.3.1";
     };
     ## Earlier versions are too restrictive on `base` & `containers`.
     quickcheck-instances =
@@ -152,6 +195,11 @@ final: prev: hfinal: hprev:
       editedCabalFile = null;
       sha256 = "E7NDvKiqJtdxjlLmIuWhGAVmU+2vy8fMxTM75yFyGM8=";
       version = "0.3.8.0";
+    };
+    semirings = final.haskell.lib.overrideCabal hprev.semirings {
+      editedCabalFile = null;
+      sha256 = "j8gK4iIZbeLHQm5L4BHR8Lo+5VrF0minBcW+64P+XeY=";
+      version = "0.7";
     };
     ## Earlier versions are too restrictive on `containers` &
     ## `template-haskell`.
@@ -185,6 +233,11 @@ final: prev: hfinal: hprev:
         revision = "4";
         sha256 = "mThMuo1W2dYbheOKMTqT6823i+ZWY2fwkw71gFl/4+M=";
       };
+    uuid = final.haskell.lib.overrideCabal hprev.uuid {
+      editedCabalFile = null;
+      sha256 = "GkZ5z7TsX8yN1YS9T8ZvdEv9BDPHdeQAI1BYwT9yDfY=";
+      version = "1.3.16";
+    };
     ## Earlier versions are too restrictive on `template-haskell`.
     uuid-types = final.haskell.lib.overrideCabal hprev.uuid-types {
       editedCabalFile = null;

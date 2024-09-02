@@ -69,7 +69,7 @@
       # - NixOS/nixpkgs#26561
       # - https://discourse.nixos.org/t/nix-haskell-development-2020/6170
       overlays = {
-        default = final:
+        default = final: prev:
           flaky-haskell.lib.overlayHaskellPackages
           (map self.lib.nixifyGhcVersion
             (self.lib.supportedGhcVersions final.system))
@@ -82,7 +82,8 @@
               (self.overlays.haskell final prev)
               (self.overlays.haskellDependencies final prev)
             ])
-          final;
+          final
+          prev;
 
         haskell = flaky-haskell.lib.haskellOverlay cabalPackages;
 
@@ -126,9 +127,7 @@
             "9.8.1"
             "9.10.1"
             # "ghcHEAD" # doctest doesn’t work on current HEAD
-          ]
-          ## dependency compiler-rt-libc-7.1.0 is broken in on aarch64-darwin.
-          ++ nixpkgs.lib.optional (system != "aarch64-darwin") "8.8.4";
+          ];
 
         ## The versions that are older than those supported by Nix that we
         ## prefer to test against.

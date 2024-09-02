@@ -41,6 +41,12 @@ in {
                   os = "ubuntu-22.04";
                 }
               ]
+              ## GitHub can’t install GHC older than 9.4 on macos-14.
+              ++ map (ghc: {
+                inherit ghc;
+                os = "macos-14";
+              }) (builtins.filter (ghc: lib.versionOlder ghc "9.4")
+                self.lib.nonNixTestedGhcVersions)
               ++ exclude;
           };
         };
@@ -180,12 +186,12 @@ in {
             name = "check if licenses have changed";
             run = ''
               ${lib.toShellVar "packages" packages}
-              for package in "''${packages[@]}"; do
+              for package in "''${!packages[@]}"; do
                 {
                   echo "**NB**: This captures the licenses associated with a particular set of dependency versions. If your own build solves differently, it’s possible that the licenses may have changed, or even that the set of dependencies itself is different. Please make sure you run [\`cabal-plan license-report\`](https://hackage.haskell.org/package/cabal-plan) on your own components rather than assuming this is authoritative."
                   echo
                   cabal-plan license-report "$package:lib:$package"
-                } >"$package/docs/license-report.md"
+                } >"''${packages[$package]}/docs/license-report.md"
               done
               git diff --exit-code */docs/license-report.md
             '';
