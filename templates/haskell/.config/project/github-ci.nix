@@ -5,6 +5,7 @@
   ## TODO: Prefer ignoring most known failures once
   ##       https://github.com/orgs/community/discussions/15452 is resolved.
   exclude ? [],
+  include ? [],
   defaultGhcVersion,
   latestGhcVersion,
 }: {
@@ -30,6 +31,7 @@ in {
         strategy = {
           fail-fast = false;
           matrix = {
+            inherit include;
             bounds = ["--prefer-oldest" ""];
             ghc = self.lib.nonNixTestedGhcVersions;
             os = systems;

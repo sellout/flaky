@@ -106,7 +106,8 @@
           supportedSystems);
 
       lib = {
-        nixifyGhcVersion = version: "ghc" ++ nixpkgs.lib.remove "." version;
+        nixifyGhcVersion = version:
+          "ghc" + nixpkgs.lib.replaceStrings ["."] [""] version;
 
         ## TODO: Extract this automatically from `pkgs.haskellPackages`.
         defaultGhcVersion = "9.6.5";
@@ -161,7 +162,6 @@
             "9.4.8"
             "9.6.4"
             "9.6.5"
-            "9.6.6"
             "9.8.2"
           ];
       };
@@ -201,11 +201,17 @@
           [self.projectConfigurations.${system}.packages.path]
           ## NB: Haskell Language Server no longer supports GHC <9.2, and 9.4
           ##     has an issue with it on i686-linux.
+          ## TODO: Remove the restriction on GHC 9.10 once
+          ##       https://github.com/NixOS/nixpkgs/commit/e87381d634cb1ddd2bd7e121c44fbc926a8c026a
+          ##       finds its way into 24.05.
           ++ nixpkgs.lib.optional
           (
-            if system == "i686-linux"
-            then nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9.4"
-            else nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9.2"
+            (
+              if system == "i686-linux"
+              then nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9.4"
+              else nixpkgs.lib.versionAtLeast hpkgs.ghc.version "9.2"
+            )
+            && nixpkgs.lib.versionOlder hpkgs.ghc.version "9.10"
           )
           hpkgs.haskell-language-server);
 

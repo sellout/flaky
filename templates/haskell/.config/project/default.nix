@@ -76,13 +76,19 @@ in {
         "./cabal.project"
       ];
       vocab.${config.project.name}.accept = [
+        "API"
         "bugfix"
         "comonad"
         "conditionalize"
+        "formatter"
         "functor"
         "GADT"
+        "inline"
         "Kleisli"
         "Kmett"
+        "pragma"
+        "unformatted"
+        "widening"
       ];
     };
   };
