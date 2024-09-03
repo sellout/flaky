@@ -2,7 +2,7 @@
 
 # Dependency License Report
 
-Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.8.1`.
+Bold-faced **`package-name`**s denote standard libraries bundled with `ghc-9.10.1`.
 
 ## Direct dependencies of `{{project.name}}:lib:{{project.name}}`
 
