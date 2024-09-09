@@ -16,27 +16,16 @@
   outputs = {
     bash-strict-mode,
     flake-utils,
+    garnix-systems,
     home-manager,
     nixpkgs,
     project-manager,
     self,
+    systems,
   }: let
     sys = flake-utils.lib.system;
 
-    defaultSystems =
-      ## This ensures that we explicitly list all the platforms we support while
-      ## protecting against changes in `defaultSystems` (removing a system from
-      ## `defaultSystems` shouldn’t remove it from here, but one being added
-      ## should alert us to any failures).
-      nixpkgs.lib.unique
-      (flake-utils.lib.defaultSystems
-        ++ [
-          sys.aarch64-darwin
-          sys.aarch64-linux
-          sys.i686-linux
-          sys.x86_64-darwin
-          sys.x86_64-linux
-        ]);
+    supportedSystems = import systems;
   in
     {
       ## These are also consumed by downstream projects, so it may include more
@@ -62,12 +51,13 @@
       lib = import ./nix/lib.nix {
         inherit
           bash-strict-mode
-          defaultSystems
           flake-utils
+          garnix-systems
           home-manager
           nixpkgs
           project-manager
           self
+          supportedSystems
           ;
       };
 
@@ -131,9 +121,9 @@
         (builtins.map
           (self.lib.homeConfigurations.example self
             [({pkgs, ...}: {home.packages = [pkgs.flaky-management-scripts];})])
-          defaultSystems);
+          supportedSystems);
     }
-    // flake-utils.lib.eachSystem defaultSystems
+    // flake-utils.lib.eachSystem supportedSystems
     (system: let
       pkgs = import nixpkgs {
         inherit system;
@@ -315,7 +305,12 @@
       url = "github:sellout/bash-strict-mode";
     };
 
-    flake-utils.url = "github:numtide/flake-utils";
+    flake-utils = {
+      inputs.systems.follows = "systems";
+      url = "github:numtide/flake-utils";
+    };
+
+    garnix-systems.url = "github:garnix-io/nix-systems";
 
     home-manager = {
       inputs.nixpkgs.follows = "nixpkgs";
@@ -328,5 +323,9 @@
       inputs.flaky.follows = "";
       url = "github:sellout/project-manager";
     };
+
+    ## See https://github.com/nix-systems/nix-systems#readme for an explanation
+    ## of this input.
+    systems.url = "github:sellout/nix-systems";
   };
 }

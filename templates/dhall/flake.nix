@@ -25,10 +25,11 @@
     flaky,
     nixpkgs,
     self,
+    systems,
   }: let
     pname = "{{project.name}}";
 
-    supportedSystems = flaky.lib.defaultSystems;
+    supportedSystems = import systems;
   in
     {
       schemas = {
@@ -103,5 +104,6 @@
     bash-strict-mode.follows = "flaky/bash-strict-mode";
     flake-utils.follows = "flaky/flake-utils";
     nixpkgs.follows = "flaky/nixpkgs";
+    systems.follows = "flaky/systems";
   };
 }
