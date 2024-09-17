@@ -1,21 +1,14 @@
 {
   bash-strict-mode,
-  defaultSystems,
   flake-utils,
+  garnix-systems,
   home-manager,
   nixpkgs,
   project-manager,
   self,
+  supportedSystems,
 }: let
-  ## The systems supported by garnix.
-  garnixSystems = let
-    sys = flake-utils.lib.system;
-  in [
-    sys.aarch64-darwin
-    sys.aarch64-linux
-    sys.i686-linux
-    sys.x86_64-linux
-  ];
+  garnixSystems = import garnix-systems;
 
   ## A wrapper around `pkgs.runCommand` that uses `bash-strict-mode`.
   runCommand = pkgs: name: attrs: cmd:
@@ -51,7 +44,7 @@
       cp ${hashInput command} "$out"
     '';
 in {
-  inherit defaultSystems garnixSystems runCommand runEmptyCommand;
+  inherit runCommand runEmptyCommand;
 
   checks = let
     simple = pkgs: src: name: nativeBuildInputs:
@@ -103,6 +96,10 @@ in {
       .overrideAttrs (old: {__noChroot = true;});
   };
 
+  ## TODO: Remove this once bash-strict-mode and Project Manager have migrated
+  ##       to use nix-systems.
+  defaultSystems = supportedSystems;
+
   devShells.default = system: self: nativeBuildInputs: shellHook:
     self.projectConfigurations.${system}.devShells.project-manager.overrideAttrs
     (old: {
@@ -152,7 +149,7 @@ in {
       ## `@` patterns are simply pattern matchers, they don’t construct a new
       ## value, so they don’t pick up the defaults set by `?` (see
       ## NixOS/nix#334). This is consequently a “workaround” for that behavior.
-      {supportedSystems = self.lib.defaultSystems;}
+      {supportedSystems = supportedSystems;}
       // args
       // {
         modules =

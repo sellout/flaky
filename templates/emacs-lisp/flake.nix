@@ -18,11 +18,12 @@
     flaky,
     nixpkgs,
     self,
+    systems,
   }: let
     pname = "{{project.name}}";
     ename = "emacs-${pname}";
 
-    supportedSystems = flaky.lib.defaultSystems;
+    supportedSystems = import systems;
   in
     {
       schemas = {
@@ -96,5 +97,6 @@
 
     flake-utils.follows = "flaky/flake-utils";
     nixpkgs.follows = "flaky/nixpkgs";
+    systems.follows = "flaky/systems";
   };
 }

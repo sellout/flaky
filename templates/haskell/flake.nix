@@ -35,10 +35,11 @@
     flaky-haskell,
     nixpkgs,
     self,
+    systems,
   }: let
     pname = "{{project.name}}";
 
-    supportedSystems = flaky.lib.defaultSystems;
+    supportedSystems = import systems;
 
     cabalPackages = pkgs: hpkgs:
       flaky-haskell.lib.cabalProject2nix
@@ -166,9 +167,6 @@
           ];
       };
     }
-    ## NB: This uses `eachSystem defaultSystems` instead of `eachDefaultSystem`
-    ##     because users often have to locally replace `defaultSystems` with
-    ##     their specific system to avoid issues with IFD.
     // flake-utils.lib.eachSystem supportedSystems
     (system: let
       pkgs = import nixpkgs {
@@ -228,6 +226,7 @@
 
     flake-utils.follows = "flaky/flake-utils";
     nixpkgs.follows = "flaky/nixpkgs";
+    systems.follows = "flaky/systems";
 
     flaky-haskell = {
       inputs.flaky.follows = "flaky";
