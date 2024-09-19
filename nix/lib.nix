@@ -182,14 +182,12 @@ in {
     homeConfig ? {},
     nixosConfig ? {},
     projectConfig ? {},
-  }: {
-    config =
-      if options ? homebrew
-      then darwinConfig
-      else if options ? home
-      then homeConfig
-      else if options ? boot
-      then nixosConfig
-      else projectConfig;
-  };
+  }:
+    if options ? homebrew
+    then darwinConfig
+    else if options ? home
+    then homeConfig
+    else if options ? boot
+    then nixosConfig
+    else projectConfig;
 }
