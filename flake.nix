@@ -212,6 +212,7 @@
               pkgs.libiconv
               ++ [
                 pkgs.cargo
+                pkgs.cargo-fuzz
                 pkgs.rust-analyzer
                 pkgs.rustPackages.clippy
                 pkgs.rustc
