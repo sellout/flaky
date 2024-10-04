@@ -19,7 +19,7 @@
   ## In elisp repos, we prefer Org over Markdown, so we don’t need this
   ## formatter.
   programs.treefmt.programs.prettier.enable = lib.mkForce false;
-  vale = {
+  programs.vale = {
     excludes = [
       "*.el"
       "./Eldev"

@@ -154,11 +154,11 @@ in {
         // args
         // {
           modules =
-            modules
-            ++ [
+            [
               {_module.args.flaky = self;}
-              self.projectModules.default
-            ];
+              primaryModule
+            ]
+            ++ modules;
         }
       );
   in {

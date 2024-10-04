@@ -1,4 +1,8 @@
 {
+  imports = [
+    ./..
+  ];
+
   ## This defaults to `true`, because I want most projects to be
   ## contributable-to by non-Nix users. However, Nix-specific projects can lean
   ## into Project Manager and avoid committing extra files.
