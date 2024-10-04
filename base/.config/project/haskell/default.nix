@@ -1,6 +1,7 @@
 {
   config,
   flaky,
+  lib,
   pkgs,
   self,
   supportedSystems,
@@ -59,30 +60,24 @@
     };
   };
 
-  services.garnix = {
-    builds = {
-      include =
-        [
-          "homeConfigurations.*"
-          "nixosConfigurations.*"
-        ]
-        ++ flaky.lib.forGarnixSystems supportedSystems (
-          sys:
-            [
-              "checks.${sys}.*"
-              "devShells.${sys}.default"
-              "packages.${sys}.default"
-            ]
-            ++ lib.concatMap (version: let
-              ghc = self.lib.nixifyGhcVersion version;
-            in [
-              "devShells.${sys}.${ghc}"
-              "packages.${sys}.${ghc}_all"
-            ])
-            (self.lib.testedGhcVersions sys)
-        );
-    };
-  };
+  services.garnix.builds."*".include =
+    [
+      "homeConfigurations.*"
+      "nixosConfigurations.*"
+    ]
+    ++ flaky.lib.forGarnixSystems supportedSystems (sys:
+      [
+        "checks.${sys}.*"
+        "devShells.${sys}.default"
+        "packages.${sys}.default"
+      ]
+      ++ lib.concatMap (version: let
+        ghc = self.lib.nixifyGhcVersion version;
+      in [
+        "devShells.${sys}.${ghc}"
+        "packages.${sys}.${ghc}_all"
+      ])
+      (self.lib.testedGhcVersions sys));
   # NB: Can’t use IFD on FlakeHub (see DeterminateSystems/flakehub-push#69), so
   #     this is disabled until we have a way to build Haskell without IFD.
   services.flakehub.enable = false;
