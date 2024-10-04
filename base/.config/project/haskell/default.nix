@@ -5,6 +5,7 @@
   pkgs,
   self,
   supportedSystems,
+  ...
 }: {
   imports = [
     ./..
