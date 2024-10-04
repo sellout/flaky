@@ -144,22 +144,32 @@ in {
   };
 
   ## Adds `flaky` as an additional module argument.
-  projectConfigurations.default = {modules ? [], ...} @ args:
-    project-manager.lib.defaultConfiguration (
-      ## `@` patterns are simply pattern matchers, they don’t construct a new
-      ## value, so they don’t pick up the defaults set by `?` (see
-      ## NixOS/nix#334). This is consequently a “workaround” for that behavior.
-      {supportedSystems = supportedSystems;}
-      // args
-      // {
-        modules =
-          modules
-          ++ [
-            {_module.args.flaky = self;}
-            self.projectModules.default
-          ];
-      }
-    );
+  projectConfigurations = let
+    base = primaryModule: {modules ? [], ...} @ args:
+      project-manager.lib.defaultConfiguration (
+        ## `@` patterns are simply pattern matchers, they don’t construct a new
+        ## value, so they don’t pick up the defaults set by `?` (see
+        ## NixOS/nix#334). This is consequently a “workaround” for that behavior.
+        {supportedSystems = supportedSystems;}
+        // args
+        // {
+          modules =
+            modules
+            ++ [
+              {_module.args.flaky = self;}
+              self.projectModules.default
+            ];
+        }
+      );
+  in {
+    default = base self.projectModules.default;
+    bash = base self.projectModules.bash;
+    c = base self.projectModules.c;
+    dhall = base self.projectModules.dhall;
+    emacs-lisp = base self.projectModules.emacs-lisp;
+    haskell = base self.projectModules.haskell;
+    nix = base self.projectModules.nix;
+  };
 
   ## Converts a list of values parameterized by  a system (generally flake
   ## attributes like `sys: "packages.${sys}.foo"`) and replicates each of them

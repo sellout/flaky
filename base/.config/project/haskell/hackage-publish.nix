@@ -17,7 +17,7 @@ in {
       };
     };
     jobs.hackage-publish = {
-      runs-on = "ubuntu-latest";
+      runs-on = "ubuntu-24.04";
       permissions = {
         id-token = "write";
         contents = "read";
