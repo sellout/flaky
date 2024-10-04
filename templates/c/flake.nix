@@ -76,7 +76,7 @@
       };
 
       projectConfigurations =
-        flaky.lib.projectConfigurations.default {inherit pkgs self;};
+        flaky.lib.projectConfigurations.c {inherit pkgs self;};
 
       devShells =
         self.projectConfigurations.${system}.devShells

@@ -1,6 +1,7 @@
 ## TODO: Map `systems` and `exclude` from Nixier values – perhaps flake-utils
 ##       systems, and a bool for `--prefer-oldest`?
-{ systems,
+{
+  systems,
   packages,
   ## TODO: Prefer ignoring most known failures once
   ##       https://github.com/orgs/community/discussions/15452 is resolved.
@@ -15,7 +16,7 @@
   ...
 }: let
   planName = "plan-\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
-  runs-on = "ubuntu-22.04";
+  runs-on = "ubuntu-24.04";
 in {
   services.github.workflow."build.yml".text = lib.generators.toYAML {} {
     name = "CI";
@@ -40,7 +41,7 @@ in {
                 ## GHCup can’t find this version for Linux.
                 {
                   ghc = "7.10.3";
-                  os = "ubuntu-22.04";
+                  os = "ubuntu-24.04";
                 }
               ]
               ## GitHub can’t install GHC older than 9.4 on macos-14.

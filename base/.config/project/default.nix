@@ -11,7 +11,7 @@
 }: {
   project = {
     authors = [lib.maintainers.sellout];
-    license = "AGPL-3.0-or-later";
+    license = lib.mkDefault "AGPL-3.0-or-later";
 
     ## Packages to install in the devShells that reference projectConfiguration.
     devPackages = [
@@ -21,7 +21,7 @@
     ];
 
     ## NB: This allows non-Nix users to contribute to the project.
-    commit-by-default = true;
+    commit-by-default = lib.mkDefault true;
 
     stateVersion = 0;
   };

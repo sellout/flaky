@@ -113,7 +113,13 @@
       projectModules = {
         ## The settings shared across my projects.
         default = ./base/.config/project;
+        bash = ./base/.config/project/bash;
+        c = ./base/.config/project/c;
+        dhall = ./base/.config/project/dhall;
+        emacs-lisp = ./base/.config/project/emacs-lisp;
         hacktoberfest = ./base/.config/project/hacktoberfest.nix;
+        haskell = ./base/.config/project/haskell;
+        nix = ./base/.config/project/nix;
       };
 
       homeConfigurations =
@@ -293,8 +299,13 @@
           # doInstallCheck = true;
         });
 
-      projectConfigurations =
-        self.lib.projectConfigurations.default {inherit pkgs self;};
+      projectConfigurations = self.lib.projectConfigurations.default {
+        inherit pkgs self;
+        modules = [
+          self.projectModules.bash
+          self.projectModules.nix
+        ];
+      };
 
       checks = self.projectConfigurations.${system}.checks;
       formatter = self.projectConfigurations.${system}.formatter;

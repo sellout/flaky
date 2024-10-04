@@ -1,4 +1,4 @@
-{lib, ...}: let
+{projectName}: {lib, ...}: let
   defaultBranch = "main";
 in {
   services.github = {
@@ -33,7 +33,7 @@ in {
 
       jobs = {
         build = {
-          runs-on = "ubuntu-latest";
+          runs-on = "ubuntu-24.04";
           steps = [
             {
               name = "Checkout";
@@ -55,8 +55,8 @@ in {
               "with".command = ''
                 dhall-docs \
                   --input ./dhall \
-                  --base-import-url "https://sellout.github.io/{{project.name}}" \
-                  --package-name "{{project.name}}"
+                  --base-import-url "https://sellout.github.io/${projectName}" \
+                  --package-name "${projectName}"
                 ## We copy here to fix the permissions from the Nix symlinks
                 cp -r ./docs ./_site
                 chmod --recursive +rwx ./_site
@@ -74,7 +74,7 @@ in {
             name = "github-pages";
             url = "\${{ steps.deployment.outputs.page_url }}";
           };
-          runs-on = "ubuntu-latest";
+          runs-on = "ubuntu-24.04";
           needs = "build";
           steps = [
             {

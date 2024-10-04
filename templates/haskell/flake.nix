@@ -165,6 +165,13 @@
             "9.6.5"
             "9.8.2"
           ];
+
+        githubSystems = [
+          "macos-13" # x86_64-darwin
+          "macos-14" # aarch64-darwin
+          "ubuntu-24.04" # x86_64-linux
+          "windows-2022"
+        ];
       };
     }
     // flake-utils.lib.eachSystem supportedSystems
@@ -214,7 +221,7 @@
           hpkgs.haskell-language-server);
 
       projectConfigurations =
-        flaky.lib.projectConfigurations.default {inherit pkgs self;};
+        flaky.lib.projectConfigurations.haskell {inherit pkgs self;};
 
       checks = self.projectConfigurations.${system}.checks;
       formatter = self.projectConfigurations.${system}.formatter;

@@ -19,27 +19,12 @@
   ## formatting
   editorconfig.enable = true;
   programs = {
-    treefmt = {
-      enable = true;
-      ## Shell linter
-      programs.shellcheck.enable = true;
-      ## Shell formatter
-      programs.shfmt.enable = true;
-    };
-    vale = {
-      enable = true;
-      excludes = [
-        "./.github/settings.yml"
-      ];
-    };
+    treefmt.enable = true;
+    vale.enable = true;
   };
 
   ## CI
-  services.garnix = {
-    enable = true;
-    ## TODO: Remove once garnix-io/garnix#285 is fixed.
-    builds.exclude = ["homeConfigurations.x86_64-darwin-example"];
-  };
+  services.garnix.enable = true;
 
   ## publishing
   services = {

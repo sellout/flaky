@@ -18,29 +18,13 @@
 
   ## formatting
   editorconfig.enable = true;
-  imports = [./clang-format.nix];
   programs = {
     treefmt.enable = true;
-    vale = {
-      enable = true;
-      excludes = [
-        "*/Makefile.am"
-        "./.github/settings.yml"
-        "./configure.ac"
-      ];
-      vocab.${config.project.name}.accept = [
-        "Autotools"
-        "GNU"
-      ];
-    };
+    vale.enable = true;
   };
 
   ## CI
-  services.garnix = {
-    enable = true;
-    ## TODO: Remove once garnix-io/garnix#285 is fixed.
-    builds.exclude = ["homeConfigurations.x86_64-darwin-example"];
-  };
+  services.garnix.enable = true;
 
   ## publishing
   services = {
