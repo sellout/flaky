@@ -9,12 +9,7 @@
 }: {
   imports = [
     ./..
-    (import ./github-ci.nix {
-      inherit (self.lib) defaultGhcVersion;
-      systems = self.lib.githubSystems;
-      packages = {"${config.project.name}" = config.project.name;};
-      latestGhcVersion = "9.10.1";
-    })
+    ./github-ci.nix
     ./hackage-publish.nix
   ];
 

@@ -1,23 +1,126 @@
-## TODO: Map `systems` and `exclude` from Nixier values – perhaps flake-utils
-##       systems, and a bool for `--prefer-oldest`?
 {
-  systems,
-  packages,
-  ## TODO: Prefer ignoring most known failures once
-  ##       https://github.com/orgs/community/discussions/15452 is resolved.
-  exclude ? [],
-  include ? [],
-  defaultGhcVersion,
-  latestGhcVersion,
-}: {
+  config,
   lib,
+  options,
   pkgs,
-  self,
   ...
 }: let
-  planName = "plan-\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
-  runs-on = "ubuntu-24.04";
+  cfg = config.services.haskell-ci;
 in {
+  options.services.haskell-ci = {
+    enable = lib.mkEnableOption "Haskell CI on GitHub"
+           // {default = config.services.github.enable;};
+
+    ## TODO: Map `systems` and `exclude` from Nixier values – perhaps flake-utils
+    ##       systems, and a bool for `--prefer-oldest`?
+    systems = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      description = ''
+        A list of GitHub system names to run CI against.
+      '';
+      example = lib.literalMD ''
+        ["macos-14" "ubuntu-24.04"]
+      '';
+    };
+
+    ghcVersions = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      description = ''
+        A list of GHC version numbers to run CI against.
+      '';
+      example = lib.literalMD ''
+        ["8.10.7" "9.0.2" "9.2.2"]
+      '';
+    };
+
+    cabalPackages = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      description = ''
+        An attrSet of Cabal package names to run CI again. The value is the
+        directory containing the corresponding Cabal file.
+      '';
+      example = lib.literalMD ''
+        {
+          yaya = "core";
+          yaya-unsafe = "unsafe";
+        }
+      '';
+    };
+
+    ## TODO: Prefer ignoring most known failures once
+    ##       https://github.com/orgs/community/discussions/15452 is resolved.
+    exclude = lib.mkOption {
+      type = lib.types.listOf (lib.types.attrsOf lib.types.str);
+      default = [];
+      description = ''
+        A list of matrix entries to exclude from CI. They can have the
+        attributes `ghc`, `os`, and `bounds`.
+      '';
+      example = lib.literalMD ''
+        [{os = "macos-14"; ghc = "8.10.7"; bounds = "--prefer-oldest";}]
+      '';
+    };
+
+    include = lib.mkOption {
+      type = lib.types.listOf (lib.types.attrsOf lib.types.str);
+      default = [];
+      description = ''
+        A list of builds to add to the matrix. They can have the attributes
+       `ghc`, `os`, and `bounds`.
+      '';
+      example = lib.literalMD ''
+        [{os = "macos-14"; ghc = "8.10.7"; bounds = "--prefer-oldest";}]
+      '';
+    };
+
+    defaultGhcVersion = lib.mkOption {
+      type = lib.types.str;
+      description = ''
+        The version of GHC to use for tools that aggregate data from the builds.
+      '';
+      example = lib.literalMD ''
+        "9.6.5"
+      '';
+
+    };
+
+    latestGhcVersion = lib.mkOption {
+      type = lib.types.str;
+      description = ''
+        The version of GHC to use for things that only get built once. We use
+        the latest to have things be as up-to-date as possible. E.g., for the
+        license report.
+      '';
+      example = lib.literalMD ''
+        "9.10.1"
+      '';
+
+    };
+
+    extraDependencyVersions = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = ''
+        A list of Cabal package versions to include in the bounds, even if the
+        Cabal solver doesn’t select them. This is useful for supporting older
+        versions of packages in the same repo, or version that are in the Nix
+        package set, but not selected by the solver on GitHub.
+      '';
+      example = lib.literalMD ''
+        [
+          "yaya-0.5.1.0"
+          "yaya-0.6.0.0"
+          "yaya-hedgehog-0.2.1.0"
+          "yaya-hedgehog-0.3.0.0"
+          "th-abstraction-0.5.0.0"
+        ]
+      '';
+    };
+  };
+  config = lib.mkIf cfg.enable (let
+    planName = "plan-\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
+    runs-on = "ubuntu-24.04";
+  in {
   services.github.workflow."build.yml".text = lib.generators.toYAML {} {
     name = "CI";
     on = {
@@ -32,10 +135,10 @@ in {
         strategy = {
           fail-fast = false;
           matrix = {
-            inherit include;
+            inherit (cfg) include;
             bounds = ["--prefer-oldest" ""];
-            ghc = self.lib.nonNixTestedGhcVersions;
-            os = systems;
+            ghc = cfg.ghcVersions;
+            os = cfg.systems;
             exclude =
               [
                 ## GHCup can’t find this version for Linux.
@@ -49,8 +152,8 @@ in {
                 inherit ghc;
                 os = "macos-14";
               }) (builtins.filter (ghc: lib.versionOlder ghc "9.4")
-                self.lib.nonNixTestedGhcVersions)
-              ++ exclude;
+                cfg.ghcVersions)
+              ++ cfg.exclude;
           };
         };
         runs-on = "\${{ matrix.os }}";
@@ -104,7 +207,7 @@ in {
             id = "setup-haskell-cabal";
             "with" = {
               cabal-version = pkgs.cabal-install.version;
-              ghc-version = defaultGhcVersion;
+              ghc-version = cfg.defaultGhcVersion;
             };
           }
           {
@@ -141,7 +244,7 @@ in {
                   ${
                 lib.concatMapStrings
                 (pkg: "--also " + pkg + " ")
-                self.lib.extraDependencyVersions or []
+                cfg.extraDependencyVersions
               } \
                   plans/*.json \
                   --cabal {} \;)"
@@ -166,7 +269,7 @@ in {
             id = "setup-haskell-cabal";
             "with" = {
               cabal-version = pkgs.cabal-install.version;
-              ghc-version = defaultGhcVersion;
+              ghc-version = cfg.defaultGhcVersion;
             };
           }
           {run = "cabal install cabal-plan -flicense-report";}
@@ -182,13 +285,13 @@ in {
           {
             run = ''
               mkdir -p dist-newstyle/cache
-              mv plans/plan-${runs-on}-${latestGhcVersion}.json dist-newstyle/cache/plan.json
+              mv plans/plan-${runs-on}-${cfg.latestGhcVersion}.json dist-newstyle/cache/plan.json
             '';
           }
           {
             name = "check if licenses have changed";
             run = ''
-              ${lib.toShellVar "packages" packages}
+              ${lib.toShellVar "packages" cfg.cabalPackages}
               for package in "''${!packages[@]}"; do
                 {
                   echo "**NB**: This captures the licenses associated with a particular set of dependency versions. If your own build solves differently, it’s possible that the licenses may have changed, or even that the set of dependencies itself is different. Please make sure you run [\`cabal-plan license-report\`](https://hackage.haskell.org/package/cabal-plan) on your own components rather than assuming this is authoritative."
@@ -203,4 +306,5 @@ in {
       };
     };
   };
+  });
 }
