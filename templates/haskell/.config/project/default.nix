@@ -65,6 +65,13 @@
           "check vale [${sys}]"
           "devShell default [${sys}]"
         ]));
+  services.haskell-ci = {
+    inherit (self.lib) defaultGhcVersion;
+    systems = self.lib.githubSystems;
+    ghcVersions = self.lib.nonNixTestedGhcVersions;
+    cabalPackages = {"${config.project.name}" = config.project.name;};
+    latestGhcVersion = "9.10.1";
+  };
 
   ## publishing
   services.github.enable = true;
