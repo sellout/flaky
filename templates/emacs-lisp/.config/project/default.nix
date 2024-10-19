@@ -28,22 +28,6 @@
 
   ## CI
   services.garnix.enable = true;
-  ## FIXME: Shouldn’t need `mkForce` here (or to duplicate the base contexts).
-  ##        Need to improve module merging.
-  services.github.settings.branches.main.protection.required_status_checks.contexts =
-    lib.mkForce
-    (flaky.lib.forGarnixSystems supportedSystems (sys: [
-      "check elisp-doctor [${sys}]"
-      "check elisp-lint [${sys}]"
-      "homeConfig ${sys}-example"
-      "package default [${sys}]"
-      "package emacs-${config.project.name} [${sys}]"
-      ## FIXME: These are duplicated from the base config
-      "check formatter [${sys}]"
-      "check project-manager-files [${sys}]"
-      "check vale [${sys}]"
-      "devShell default [${sys}]"
-    ]));
 
   ## publishing
   services.flakehub.enable = true;
