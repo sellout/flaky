@@ -40,7 +40,10 @@
   ##        Need to improve module merging.
   services.github.settings.branches.main.protection.required_status_checks.contexts =
     lib.mkForce
-    (["check-bounds"]
+      ([
+        "All Garnix checks"
+        "check-bounds"
+      ]
       ++ lib.concatMap (sys:
         lib.concatMap (ghc: [
           "build (${ghc}, ${sys})"

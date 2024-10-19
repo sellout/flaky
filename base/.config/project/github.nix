@@ -69,26 +69,17 @@
         };
       };
 
-      branches = {
-        main = {
-          # https://docs.github.com/en/rest/branches/branch-protection?apiVersion=2022-11-28#update-branch-protection
-          protection = {
-            required_pull_request_reviews = null;
-            required_status_checks = {
-              strict = false;
-              contexts = flaky.lib.forGarnixSystems supportedSystems (sys: [
-                "check formatter [${sys}]"
-                "check project-manager-files [${sys}]"
-                "check vale [${sys}]"
-                "devShell default [${sys}]"
-              ]);
-            };
-            enforce_admins = true;
-            required_linear_history = false;
-            allow_force_pushes = false;
-            restrictions = null;
-          };
+      # https://docs.github.com/en/rest/branches/branch-protection?apiVersion=2022-11-28#update-branch-protection
+      branches.main.protection = {
+        required_pull_request_reviews = null;
+        required_status_checks = {
+          strict = false;
+          contexts = ["All Garnix checks"];
         };
+        enforce_admins = true;
+        required_linear_history = false;
+        allow_force_pushes = false;
+        restrictions = null;
       };
 
       ## TODO: This doesn’t seem to actually set the
