@@ -121,6 +121,7 @@ in {
   config = lib.mkIf cfg.enable (let
     planName = "plan-\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
     runs-on = "ubuntu-24.04";
+    filterGhcVersions = lib.intersectLists cfg.ghcVersions;
   in {
     services.github.workflow."build.yml".text = lib.generators.toYAML {} {
       name = "CI";
@@ -144,7 +145,7 @@ in {
                 map (ghc: {
                   inherit ghc;
                   os = "ubuntu-24.04";
-                }) ["7.10.3" "8.0.2" "8.2.2"]
+                }) (filterGhcVersions ["7.10.3" "8.0.2" "8.2.2"])
                 ## GitHub can’t install GHC older than 9.4 on macos-14.
                 ++ map (ghc: {
                   inherit ghc;
@@ -157,7 +158,7 @@ in {
                   map (ghc: {
                     inherit bounds ghc;
                     os = "ubuntu-22.04";
-                  }) ["8.0.2" "8.2.2"])
+                  }) (filterGhcVersions ["8.0.2" "8.2.2"]))
                 bounds
                 ++ cfg.include;
             };
