@@ -34,7 +34,9 @@
       excludes = [
         "*.cabal"
         "*.hs"
+        "*.hs-boot"
         "*.lhs"
+        "*.lhs-boot"
         "*/docs/license-report.md"
         "./cabal.project"
       ];
