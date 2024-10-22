@@ -1,5 +1,8 @@
-{
+{pkgs, ...}: {
   programs.treefmt = {
+    ## NB: Treefmt 2 formats “hidden” files, which are ignored by the default
+    ##     version. See numtide/treefmt-nix#228.
+    package = pkgs.treefmt2;
     projectRootFile = "flake.nix";
     programs = {
       ## Nix formatter
