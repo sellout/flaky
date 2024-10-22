@@ -138,14 +138,11 @@
     }
     // flake-utils.lib.eachSystem supportedSystems
     (system: let
-      pkgs = import nixpkgs {
-        inherit system;
-        overlays = [
-          bash-strict-mode.overlays.default
-          project-manager.overlays.default
-          self.overlays.dependencies
-        ];
-      };
+      pkgs = nixpkgs.legacyPackages.${system}.appendOverlays [
+        bash-strict-mode.overlays.default
+        project-manager.overlays.default
+        self.overlays.dependencies
+      ];
     in {
       ## These shells are quick-and-dirty development environments for various
       ## programming languages. They’re meant to be used in projects that don’t

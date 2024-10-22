@@ -51,7 +51,7 @@
           supportedSystems);
     }
     // flake-utils.lib.eachSystem supportedSystems (system: let
-      pkgs = import nixpkgs {inherit system;};
+      pkgs = nixpkgs.legacyPackages.${system};
 
       src = pkgs.lib.cleanSource ./.;
     in {

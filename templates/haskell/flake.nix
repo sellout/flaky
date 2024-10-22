@@ -175,12 +175,12 @@
     }
     // flake-utils.lib.eachSystem supportedSystems
     (system: let
-      pkgs = import nixpkgs {
-        inherit system;
-        ## NB: This uses `self.overlays.default` because packages need to
-        ##     be able to find other packages in this flake as dependencies.
-        overlays = [self.overlays.default];
-      };
+      pkgs = nixpkgs.legacyPackages.${system}.appendOverlays [
+        flaky.overlays.dependencies
+        ## NB: This uses `self.overlays.default` because packages need to be
+        ##     able to find other packages in this flake as dependencies.
+        self.overlays.default
+      ];
     in {
       packages =
         {
