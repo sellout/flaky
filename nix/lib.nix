@@ -123,10 +123,8 @@ in {
   homeConfigurations.example = self: modules: system: {
     name = "${system}-example";
     value = home-manager.lib.homeManagerConfiguration {
-      pkgs = import nixpkgs {
-        inherit system;
-        overlays = [self.overlays.default];
-      };
+      pkgs =
+        nixpkgs.legacyPackages.${system}.appendOverlays [self.overlays.default];
 
       modules =
         [

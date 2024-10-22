@@ -232,6 +232,10 @@
         "garnix-systems": "garnix-systems",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
+        "nixpkgs-unstable": [
+          "project-manager",
+          "nixpkgs-unstable"
+        ],
         "project-manager": "project-manager",
         "systems": "systems"
       }

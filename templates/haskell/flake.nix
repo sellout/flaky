@@ -9,8 +9,8 @@
       "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
     ];
     ## Isolate the build.
-    registries = false;
     sandbox = "relaxed";
+    use-registries = false;
   };
 
   ### This is a complicated flake. Here’s the rundown:
@@ -118,18 +118,17 @@
         ## one via GitHub workflow. Additionally, check any revisions that have
         ## explicit conditionalization. And check whatever version `pkgs.ghc`
         ## maps to in the nixpkgs we depend on.
-        testedGhcVersions = system:
-          [
-            self.lib.defaultGhcVersion
-            "8.10.7"
-            "9.0.2"
-            "9.2.5"
-            "9.4.5"
-            "9.6.3"
-            "9.8.1"
-            "9.10.1"
-            # "ghcHEAD" # doctest doesn’t work on current HEAD
-          ];
+        testedGhcVersions = system: [
+          self.lib.defaultGhcVersion
+          "8.10.7"
+          "9.0.2"
+          "9.2.5"
+          "9.4.5"
+          "9.6.3"
+          "9.8.1"
+          "9.10.1"
+          # "ghcHEAD" # doctest doesn’t work on current HEAD
+        ];
 
         ## The versions that are older than those supported by Nix that we
         ## prefer to test against.
@@ -176,12 +175,12 @@
     }
     // flake-utils.lib.eachSystem supportedSystems
     (system: let
-      pkgs = import nixpkgs {
-        inherit system;
-        ## NB: This uses `self.overlays.default` because packages need to
-        ##     be able to find other packages in this flake as dependencies.
-        overlays = [self.overlays.default];
-      };
+      pkgs = nixpkgs.legacyPackages.${system}.appendOverlays [
+        flaky.overlays.dependencies
+        ## NB: This uses `self.overlays.default` because packages need to be
+        ##     able to find other packages in this flake as dependencies.
+        self.overlays.default
+      ];
     in {
       packages =
         {

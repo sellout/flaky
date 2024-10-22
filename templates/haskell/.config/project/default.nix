@@ -40,9 +40,10 @@
   ##        Need to improve module merging.
   services.github.settings.branches.main.protection.required_status_checks.contexts =
     lib.mkForce
-      ([
+    ([
         "All Garnix checks"
         "check-bounds"
+        "check-licenses"
       ]
       ++ lib.concatMap (sys:
         lib.concatMap (ghc: [
@@ -50,24 +51,7 @@
           "build (--prefer-oldest, ${ghc}, ${sys})"
         ])
         self.lib.nonNixTestedGhcVersions)
-      self.lib.githubSystems
-      ++ flaky.lib.forGarnixSystems supportedSystems (sys:
-        lib.concatMap (version: let
-          ghc = self.lib.nixifyGhcVersion version;
-        in [
-          "devShell ${ghc} [${sys}]"
-          "package ${ghc}_all [${sys}]"
-        ])
-        (self.lib.testedGhcVersions sys)
-        ++ [
-          "homeConfig ${sys}-${config.project.name}-example"
-          "package default [${sys}]"
-          ## FIXME: These are duplicated from the base config
-          "check formatter [${sys}]"
-          "check project-manager-files [${sys}]"
-          "check vale [${sys}]"
-          "devShell default [${sys}]"
-        ]));
+      self.lib.githubSystems);
   services.haskell-ci = {
     inherit (self.lib) defaultGhcVersion;
     systems = self.lib.githubSystems;

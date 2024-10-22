@@ -1,0 +1,10 @@
+{
+  "project":
+    {
+      "description": "Making it simpler to manage poly-repo projects (and projectiverses).",
+      "name": "flaky",
+      "repo": "sellout/flaky",
+      "summary": "Templates for dev environments",
+    },
+  "type": { "name": "nix" },
+}
