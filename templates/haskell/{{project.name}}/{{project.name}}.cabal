@@ -137,6 +137,7 @@ common defaults
       -- Inference good.
       -Wno-missing-role-annotations
   default-extensions:
+    -- BlockArguments - uncomment if the oldest supported version is GHC 8.6.1+
     DefaultSignatures
     ExplicitNamespaces
     FunctionalDependencies
