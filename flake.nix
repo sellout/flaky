@@ -19,6 +19,7 @@
     garnix-systems,
     home-manager,
     nixpkgs,
+    nixpkgs-unstable,
     project-manager,
     self,
     systems,
@@ -42,7 +43,13 @@
 
         dependencies = final: prev: {
           haskellPackages =
-            prev.haskellPackages.extend (self.overlays.haskellDependencies final prev);
+            prev.haskellPackages.extend
+            (self.overlays.haskellDependencies final prev);
+
+          ## NB: The `treefmt2` in Nixpkgs 24.05 fails when multiple formatters
+          ##     apply to the same file (which is a problem when we have both a
+          ##     formatter and linter(s)).
+          treefmt2 = nixpkgs-unstable.legacyPackages.${final.system}.treefmt2;
         };
 
         haskellDependencies = import ./nix/haskell-dependencies.nix;
@@ -330,6 +337,8 @@
     };
 
     nixpkgs.url = "github:NixOS/nixpkgs/release-24.05";
+
+    nixpkgs-unstable.follows = "project-manager/nixpkgs-unstable";
 
     project-manager = {
       inputs.flaky.follows = "";

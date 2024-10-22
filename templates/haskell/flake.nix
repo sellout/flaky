@@ -118,18 +118,17 @@
         ## one via GitHub workflow. Additionally, check any revisions that have
         ## explicit conditionalization. And check whatever version `pkgs.ghc`
         ## maps to in the nixpkgs we depend on.
-        testedGhcVersions = system:
-          [
-            self.lib.defaultGhcVersion
-            "8.10.7"
-            "9.0.2"
-            "9.2.5"
-            "9.4.5"
-            "9.6.3"
-            "9.8.1"
-            "9.10.1"
-            # "ghcHEAD" # doctest doesn’t work on current HEAD
-          ];
+        testedGhcVersions = system: [
+          self.lib.defaultGhcVersion
+          "8.10.7"
+          "9.0.2"
+          "9.2.5"
+          "9.4.5"
+          "9.6.3"
+          "9.8.1"
+          "9.10.1"
+          # "ghcHEAD" # doctest doesn’t work on current HEAD
+        ];
 
         ## The versions that are older than those supported by Nix that we
         ## prefer to test against.
