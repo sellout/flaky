@@ -41,7 +41,7 @@ in {
           "with" = {
             inherit packagesPath;
             hackageToken = "\${{ secrets.HACKAGE_AUTH_TOKEN }}";
-            publish = false;
+            publish = true;
           };
         }
       ];
