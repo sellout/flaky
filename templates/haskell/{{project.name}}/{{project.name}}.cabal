@@ -120,19 +120,17 @@ common defaults
   else
     ghc-options:
       -Wall
+  -- remove if the oldest supported version is GHC 8.10.1+
   if impl(ghc >= 8.10.1)
     ghc-options:
-      -- If we didn’t allow inferred-safe imports, nothing would be `Safe`.
-      -Wno-inferred-safe-imports
-      -- We support GHC versions without qualified-post.
       -Wno-prepositive-qualified-module
+  -- remove if the oldest supported version is GHC 9.2.1+
   if impl(ghc >= 9.2.1)
     ghc-options:
-      -- We support GHC versions without kind signatures.
       -Wno-missing-kind-signatures
   if impl(ghc >= 9.8.1)
     ghc-options:
-      -- We support GHC versions without kind signatures.
+      -- remove if the oldest supported version is GHC 9.2.1+
       -Wno-missing-poly-kind-signatures
       -- Inference good.
       -Wno-missing-role-annotations
