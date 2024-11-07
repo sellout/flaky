@@ -52,10 +52,10 @@ in {
   in {
     inherit simple;
 
-    validate-template = name: pkgs:
+    validate-template = name: src: pkgs:
       (simple
         pkgs
-        self
+        src
         "validate ${name}"
         [
           pkgs.cacert
@@ -81,10 +81,10 @@ in {
           find . -iname "*{{project.name}}*" -depth \
             -execdir rename 's/{{project.name}}/template-example/g' {} +
           find . -type f -exec bash -c \
-            'mustache "${self}/templates/example.yaml" "$0" | sponge "$0"' \
+            'mustache "$src/templates/example.yaml" "$0" | sponge "$0"' \
             {} \;
           ## Reference _this_ version of flaky, rather than a published one.
-          sed -i -e 's#github:sellout/flaky#${self}#g' ./flake.nix
+          sed -i -e 's#"github:sellout/flaky"#"${self}"#g' ./flake.nix
           git init
           git add --all
           project-manager switch

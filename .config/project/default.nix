@@ -1,21 +1,7 @@
-{
-  config,
-  flaky,
-  lib,
-  pkgs,
-  supportedSystems,
-  ...
-}: {
+{config, ...}: {
   project = {
     name = "flaky";
-    summary = "Templates for dev environments";
-
-    checks = builtins.listToAttrs (map (name: {
-        name = "${name}-template-validity";
-        value = flaky.lib.checks.validate-template name pkgs;
-      })
-      ## TODO: Haskell template check fails for some reason.
-      (lib.remove "haskell" (builtins.attrNames flaky.templates)));
+    summary = "Shared configuration for dev environments";
   };
 
   ## dependency management
@@ -38,22 +24,7 @@
   ## formatting
   editorconfig.enable = true;
   programs = {
-    treefmt = {
-      enable = true;
-      ## NB: This is normally "flake.nix", but since this repo contains
-      ##     sub-flakes, we pick a random file that is unlikely to exist
-      ##     anywhere else in the tree (and we can’t use .git/config, because it
-      ##     doesn’t exist in worktrees).
-      projectRootFile = lib.mkForce "scripts/sync-template";
-      settings = {
-        formatter.shfmt.includes = ["scripts/*"];
-        ## Each template has its own formatter that is run during checks, so
-        ## we don’t check them here. The `*/*` is needed so that we don’t miss
-        ## formatting anything in the templates directory that is not part of
-        ## a specific template.
-        global.excludes = ["templates/*/*"];
-      };
-    };
+    treefmt.enable = true;
     vale = {
       enable = true;
       ## This is a personal repository.
@@ -69,12 +40,6 @@
         "Probot"
         "shfmt"
       ];
-      excludes = [
-        ## These either use Vale or not themselves.
-        "./templates/*"
-        ## TODO: Not sure how to tell Vale that these are code files.
-        "./scripts/*"
-      ];
     };
   };
 
@@ -87,6 +52,5 @@
   services.github.settings.repository.topics = [
     "development"
     "nix-flakes"
-    "nix-templates"
   ];
 }
