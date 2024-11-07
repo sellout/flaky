@@ -1,9 +1,9 @@
 ## This is the foundational config for all my projects. Each one uses this
 ## module and overrides what it wants.
 ##
-## NB: This doesn’t enable any modules, simply configures them. The templates
-##     (and concrete projects) enable the modules, making it easy to see which
-##     ones are applied to any given project.
+## NB: This doesn’t enable any modules, simply configures them. The templates in
+##     flaky-environments (and concrete projects) enable the modules, making it
+##     easy to see which ones are applied to any given project.
 {
   lib,
   pkgs,
