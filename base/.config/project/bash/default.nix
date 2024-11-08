@@ -9,4 +9,9 @@
     ## Shell formatter
     programs.shfmt.enable = true;
   };
+
+  programs.vale.excludes = [
+    "*.bash"
+    "*.bats"
+  ];
 }

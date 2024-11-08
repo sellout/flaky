@@ -13,18 +13,24 @@
           "flaky",
           "nixpkgs"
         ],
-        "shellcheck-nix-attributes": "shellcheck-nix-attributes"
+        "shellcheck-nix-attributes": "shellcheck-nix-attributes",
+        "systems": [
+          "bash-strict-mode",
+          "flaky",
+          "systems"
+        ]
       },
       "locked": {
-        "lastModified": 1722346313,
-        "narHash": "sha256-qxIzt/0BCP9LlVE1Lze/2qlM5eZ8X5hQk4E6ghiBF5w=",
+        "lastModified": 1730995892,
+        "narHash": "sha256-hw5E8zDZJsL2hiRy1zzHEU38wP9aiXJAvMZmB8hVP+w=",
         "owner": "sellout",
         "repo": "bash-strict-mode",
-        "rev": "098ffd0f072b3b7b3e84d9c524d18d6c62f64a47",
+        "rev": "581d0dcb33b428a87185033f251bba5ad879f4fe",
         "type": "github"
       },
       "original": {
         "owner": "sellout",
+        "ref": "adopt-pkgsLib",
         "repo": "bash-strict-mode",
         "type": "github"
       }
@@ -183,11 +189,6 @@
     },
     "project-manager": {
       "inputs": {
-        "bash-strict-mode": [
-          "project-manager",
-          "flaky",
-          "bash-strict-mode"
-        ],
         "flake-schemas": "flake-schemas",
         "flake-utils": [
           "project-manager",
@@ -212,15 +213,16 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1729562990,
-        "narHash": "sha256-dKDPMp8v604Rg5Z4vOEN71jp7r8nNMEqm3rSTkJAlQ8=",
+        "lastModified": 1731033565,
+        "narHash": "sha256-5ffNXqJbkIv1xXvurctY5fRuH/5yswNdol2mqyj1F9U=",
         "owner": "sellout",
         "repo": "project-manager",
-        "rev": "287e442cb19b845fc4d6e112975fb7de4c37d229",
+        "rev": "6018e54be1f63044bb63b8d8b9bc1790b9d0ae8a",
         "type": "github"
       },
       "original": {
         "owner": "sellout",
+        "ref": "modular-lib",
         "repo": "project-manager",
         "type": "github"
       }

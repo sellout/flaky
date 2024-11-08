@@ -27,6 +27,8 @@
     sys = flake-utils.lib.system;
 
     supportedSystems = import systems;
+
+    localPkgsLib = pkgs: import ./nix/pkgsLib {inherit pkgs self;};
   in
     {
       ## These are also consumed by downstream projects, so it may include more
@@ -34,10 +36,16 @@
       schemas = project-manager.schemas;
 
       overlays = {
-        default = final: prev: {
-          flaky-management-scripts =
-            self.packages.${final.system}.management-scripts;
-        };
+        default = nixpkgs.lib.composeManyExtensions [
+          bash-strict-mode.overlays.local
+          project-manager.overlays.local
+          self.overlays.dependencies
+          self.overlays.local
+        ];
+
+        local = final: prev:
+          {lib = prev.lib // self.lib;}
+          // localPkgsLib final;
 
         elisp-dependencies = import ./nix/elisp-dependencies.nix;
 
@@ -55,10 +63,8 @@
         haskellDependencies = import ./nix/haskell-dependencies.nix;
       };
 
-      lib = import ./nix/lib.nix {
+      lib = import ./nix/lib {
         inherit
-          bash-strict-mode
-          flake-utils
           garnix-systems
           home-manager
           nixpkgs
@@ -66,6 +72,7 @@
           self
           supportedSystems
           ;
+        inherit (nixpkgs) lib;
       };
 
       projectModules = {
@@ -88,6 +95,8 @@
         self.overlays.dependencies
       ];
     in {
+      pkgsLib = localPkgsLib pkgs;
+
       devShells =
         self.projectConfigurations.${system}.devShells
         // {default = self.lib.devShells.default system self [] "";};
@@ -104,7 +113,7 @@
   inputs = {
     bash-strict-mode = {
       inputs.flaky.follows = "";
-      url = "github:sellout/bash-strict-mode";
+      url = "github:sellout/bash-strict-mode/adopt-pkgsLib";
     };
 
     flake-utils = {
@@ -125,7 +134,7 @@
 
     project-manager = {
       inputs.flaky.follows = "";
-      url = "github:sellout/project-manager";
+      url = "github:sellout/project-manager/modular-lib";
     };
 
     ## See https://github.com/nix-systems/nix-systems#readme for an explanation
