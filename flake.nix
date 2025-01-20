@@ -52,6 +52,11 @@
           haskellPackages =
             prev.haskellPackages.extend
             (self.overlays.haskellDependencies final prev);
+          ## One test fails on i686-linux.
+          nodejs =
+            if final.system == "i686-linux"
+            then prev.nodejs.overrideAttrs (old: {doCheck = false;})
+            else prev.nodejs;
         };
 
         haskellDependencies = import ./nix/haskell-dependencies.nix;
