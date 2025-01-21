@@ -1,12 +1,12 @@
 {
   ELDEV_LOCAL,
   checkedDrv,
+  emacs,
   emacsPackages,
-  emacsWithPackages,
   lib,
   stdenv,
 }: src: epkgs: let
-  emacs = emacsWithPackages (e:
+  emacsWithPkgs = emacs.pkgs.withPackages (e:
     [
       e.elisp-lint
       e.package-lint
@@ -20,11 +20,11 @@ in
     name = "eldev lint";
 
     nativeBuildInputs = [
-      emacs
+      emacsWithPkgs
       emacsPackages.eldev
     ];
 
-    postPatch = lib.elisp.setUpLocalDependencies emacs.deps;
+    postPatch = lib.elisp.setUpLocalDependencies emacsWithPkgs.deps;
 
     buildPhase = ''
       runHook preBuild
