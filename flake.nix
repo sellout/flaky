@@ -19,7 +19,6 @@
     garnix-systems,
     home-manager,
     nixpkgs,
-    nixpkgs-unstable,
     project-manager,
     self,
     systems,
@@ -53,11 +52,11 @@
           haskellPackages =
             prev.haskellPackages.extend
             (self.overlays.haskellDependencies final prev);
-
-          ## NB: The `treefmt2` in Nixpkgs 24.05 fails when multiple formatters
-          ##     apply to the same file (which is a problem when we have both a
-          ##     formatter and linter(s)).
-          treefmt2 = nixpkgs-unstable.legacyPackages.${final.system}.treefmt2;
+          ## One test fails on i686-linux.
+          nodejs =
+            if final.system == "i686-linux"
+            then prev.nodejs.overrideAttrs (old: {doCheck = false;})
+            else prev.nodejs;
         };
 
         haskellDependencies = import ./nix/haskell-dependencies.nix;
@@ -113,7 +112,7 @@
   inputs = {
     bash-strict-mode = {
       inputs.flaky.follows = "";
-      url = "github:sellout/bash-strict-mode/adopt-pkgsLib";
+      url = "github:sellout/bash-strict-mode";
     };
 
     flake-utils = {
@@ -125,16 +124,14 @@
 
     home-manager = {
       inputs.nixpkgs.follows = "nixpkgs";
-      url = "github:nix-community/home-manager/release-24.05";
+      url = "github:nix-community/home-manager/release-24.11";
     };
 
-    nixpkgs.url = "github:NixOS/nixpkgs/release-24.05";
-
-    nixpkgs-unstable.follows = "project-manager/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/release-24.11";
 
     project-manager = {
       inputs.flaky.follows = "";
-      url = "github:sellout/project-manager/modular-lib";
+      url = "github:sellout/project-manager";
     };
 
     ## See https://github.com/nix-systems/nix-systems#readme for an explanation
