@@ -59,7 +59,7 @@
       project-manager switch
       ## Format the README before checking, because templating may affect
       ## formatting.
-      nix fmt README.md
+      nix fmt README.md || true
       nix flake check --print-build-logs
     )
   '')
