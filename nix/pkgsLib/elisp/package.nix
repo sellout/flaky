@@ -35,7 +35,8 @@ in
 
     buildPhase = ''
       runHook preBuild
-      ${eldev "build --warnings-as-errors"}
+      EMACSLOADPATH="$PWD:$EMACSLOADPATH" \
+        ${eldev "build --warnings-as-errors"}
       ${eldev "package"}
       runHook postBuild
     '';
