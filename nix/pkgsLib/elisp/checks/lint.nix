@@ -31,6 +31,13 @@ in
       emacsPackages.eldev
     ];
 
+    configurePhase = ''
+      runHook preConfigure
+      ## Build complains if this is unset.
+      export EMACSNATIVELOADPATH=
+      runHook postConfigure
+    '';
+
     buildPhase = ''
       runHook preBuild
       ${eldev "lint --required"}
