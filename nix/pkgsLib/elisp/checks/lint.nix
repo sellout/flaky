@@ -13,6 +13,13 @@
       e.relint
     ]
     ++ epkgs e);
+
+  eldev = args: ''
+    ## TODO: Currently needed to make a temp file in
+    ##      `eldev--create-internal-pseudoarchive-descriptor`.
+    HOME="$(mktemp --directory --tmpdir fake-home.XXXXXX)" \
+      eldev --debug --use-emacsloadpath ${args}
+  '';
 in
   checkedDrv (stdenv.mkDerivation {
     inherit ELDEV_LOCAL src;
@@ -24,19 +31,9 @@ in
       emacsPackages.eldev
     ];
 
-    postPatch = lib.elisp.setUpLocalDependencies emacsWithPkgs.deps;
-
     buildPhase = ''
       runHook preBuild
-      ## TODO: Currently needed to make a temp file in
-      ##      `eldev--create-internal-pseudoarchive-descriptor`.
-      export HOME="$(mktemp --directory --tmpdir fake-home.XXXXXX)"
-
-      ## Need `--external` here so that we don’t try to download any
-      ## package archives (which would break the sandbox).
-      ## TODO: I'm not sure why this needs `EMACSNATIVELOADPATH`, but it
-      ##       does.
-      EMACSNATIVELOADPATH= eldev --external lint --required
+      ${eldev "lint --required"}
       runHook postBuild
     '';
 
