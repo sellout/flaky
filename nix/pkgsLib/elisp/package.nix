@@ -7,8 +7,6 @@
   stdenv,
   writeText,
 }: pname: src: epkgs: let
-  emacsWithPkgs = emacs.pkgs.withPackages epkgs;
-
   eldev = args: ''
     ## TODO: Currently needed to make a temp file in
     ##      `eldev--create-internal-pseudoarchive-descriptor`.
@@ -22,10 +20,10 @@ in
     version = lib.elisp.readVersion "${src}/${pname}.el";
 
     nativeBuildInputs = [
-      emacsWithPkgs
+      emacs
       # Emacs-lisp build tool, https://doublep.github.io/eldev/
       emacsPackages.eldev
-    ];
+    ] ++ epkgs emacsPackages;
 
     setupHook = writeText "setup-hook.sh" ''
       source ${./emacs-funcs.bash}
