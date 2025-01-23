@@ -4,20 +4,18 @@
   emacs,
   emacsPackages,
   lib,
-  ...
+  stdenv,
 }: pname: src: epkgs: let
-  emacsWithPkgs = emacs.pkgs.withPackages (e: epkgs e ++ [e.buttercup]);
+  emacsWithPkgs = emacs.pkgs.withPackages epkgs;
 
-  ## Need `--external` here so that we don’t try to download any package
-  ## archives (which would break the sandbox).
   eldev = args: ''
     ## TODO: Currently needed to make a temp file in
     ##      `eldev--create-internal-pseudoarchive-descriptor`.
     HOME="$(mktemp --directory --tmpdir fake-home.XXXXXX)" \
-      eldev --debug --external ${args}
+      eldev --debug --use-emacsloadpath ${args}
   '';
 in
-  checkedDrv (emacsPackages.trivialBuild {
+  checkedDrv (stdenv.mkDerivation {
     inherit ELDEV_LOCAL pname src;
 
     version = lib.elisp.readVersion "${src}/${pname}.el";
@@ -28,18 +26,38 @@ in
       emacsPackages.eldev
     ];
 
-    postPatch = lib.elisp.setUpLocalDependencies emacsWithPkgs.deps;
+    configurePhase = ''
+      runHook preConfigure
+      ## Build complains if this is unset.
+      export EMACSNATIVELOADPATH=
+      runHook postConfigure
+    '';
+
+    buildPhase = ''
+      runHook preBuild
+      ${eldev "build --warnings-as-errors"}
+      ${eldev "package"}
+      runHook postBuild
+    '';
 
     doCheck = true;
 
     checkPhase = ''
       runHook preCheck
-      ${eldev "test"}
+      EMACSLOADPATH="$PWD:$EMACSLOADPATH" \
+        ${eldev "test"}
       runHook postCheck
     '';
 
-    ## FIXME: Temporarily disabled because Eldev isn’t finding the test files
-    doInstallCheck = false;
+    installPhase = ''
+      runHook preInstall
+      ${eldev "package"}
+      mkdir -p "$out/share/emacs/site-lisp/elpa"
+      tar -x --file dist/*.tar --directory "$out/share/emacs/site-lisp/elpa"
+      runHook postInstall
+    '';
+
+    doInstallCheck = true;
 
     installCheckPhase = ''
       runHook preInstallCheck
