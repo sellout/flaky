@@ -21,6 +21,7 @@ final: prev: hfinal: hprev:
   if final.system == "i686-linux"
   then {
     aeson = final.haskell.lib.dontCheck hprev.aeson;
+    base64 = final.haskell.lib.dontCheck hprev.base64;
     enummapset = final.haskell.lib.dontCheck hprev.enummapset;
     ## Tests run out of memory (at least on garnix)
     generic-arbitrary = final.haskell.lib.dontCheck hprev.generic-arbitrary;
@@ -30,6 +31,7 @@ final: prev: hfinal: hprev:
     slist = final.haskell.lib.dontCheck hprev.slist;
     ## Stack smashing
     sqlite-simple = final.haskell.lib.dontCheck hprev.sqlite-simple;
+    stan = final.haskell.lib.dontCheck hprev.stan;
     unordered-containers =
       final.haskell.lib.dontCheck hprev.unordered-containers;
     validity = final.haskell.lib.dontCheck hprev.validity;
