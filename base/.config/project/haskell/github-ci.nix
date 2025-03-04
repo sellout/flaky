@@ -217,16 +217,7 @@ in {
                 ghc-version = cfg.defaultGhcVersion;
               };
             }
-            {
-              run = ''
-                ## TODO: Remove the manual cloning once cabal-plan-bounds >0.1.5.1
-                ##       is released. Currently, it’s needed because of
-                ##       nomeata/cabal-plan-bounds#19.
-                git clone https://github.com/nomeata/cabal-plan-bounds
-                cd cabal-plan-bounds
-                cabal install cabal-plan-bounds
-              '';
-            }
+            {run = "cabal install cabal-plan-bounds";}
             {
               name = "download Cabal plans";
               uses = "actions/download-artifact@v4";
@@ -279,7 +270,13 @@ in {
                 ghc-version = cfg.defaultGhcVersion;
               };
             }
-            {run = "cabal install cabal-plan -flicense-report";}
+            {
+              run = ''
+                cabal install cabal-plan \
+                  --flags='exe license-report' \
+                  --ghc-options='-Wwarn'
+              '';
+            }
             {
               name = "download Cabal plans";
               uses = "actions/download-artifact@v4";
