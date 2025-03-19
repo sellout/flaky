@@ -65,7 +65,7 @@ in {
             }
             {
               name = "Upload artifact";
-              uses = "actions/upload-pages-artifact@v2";
+              uses = "actions/upload-pages-artifact@v3";
             }
           ];
         };
@@ -80,7 +80,7 @@ in {
             {
               name = "Deploy to GitHub Pages";
               id = "deployment";
-              uses = "actions/deploy-pages@v3";
+              uses = "actions/deploy-pages@v4";
             }
           ];
         };
