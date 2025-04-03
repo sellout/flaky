@@ -122,6 +122,17 @@ in {
         "th-abstraction-0.5.0.0"
       ];
     };
+
+    licenseReportDiffOptions = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = ''
+        Extra options to pass to `git diff` when checking for changes to license
+        reports. This is useful to work around issues like
+        [haskell-hvr/cabal-plan#106](https://github.com/haskell-hvr/cabal-plan/issues/106).
+      '';
+      example = ["--ignore-matching-lines='^| `yaya'"];
+    };
   };
   config = lib.mkIf cfg.enable (let
     planName = "plan-\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
@@ -309,7 +320,10 @@ in {
                     cabal-plan license-report "$package:lib:$package"
                   } >"''${packages[$package]}/docs/license-report.md"
                 done
-                git diff --exit-code */docs/license-report.md
+                git diff \
+                  --exit-code \
+                  ${lib.escapeShellArgs cfg.licenseReportDiffOptions} \
+                  */docs/license-report.md
               '';
             }
           ];
