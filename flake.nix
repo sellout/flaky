@@ -129,7 +129,7 @@
       url = "github:nix-community/home-manager/release-24.11";
     };
 
-    nixpkgs.url = "github:NixOS/nixpkgs/release-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/release-25.05";
 
     project-manager = {
       inputs.flaky.follows = "";
