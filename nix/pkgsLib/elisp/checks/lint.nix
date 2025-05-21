@@ -33,7 +33,8 @@ in
 
     configurePhase = ''
       runHook preConfigure
-      ## Build complains if this is unset.
+      ## Emacs wrapper complains if these is unset.
+      export EMACSLOADPATH=
       export EMACSNATIVELOADPATH=
       runHook postConfigure
     '';
