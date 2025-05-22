@@ -4,20 +4,9 @@
 ### Tests should be disabled as tightly as possible, but we should try to use
 ### the same version of a package across all systems & compilers.
 final: prev: hfinal: hprev:
-(
-  ## TODO: Much or all of this can go away once
-  ##       https://github.com/NixOS/nixpkgs/commit/e87381d634cb1ddd2bd7e121c44fbc926a8c026a
-  ##       lands on nixpkgs-unstable.
-  if final.lib.versionAtLeast hprev.ghc.version "9.10.0"
-  then {
-    ## This defaults to 1.0.4, which doesn’t support base 4.21.
-    binary-instances = hfinal.binary-instances_1_0_5;
-  }
-  else {}
-)
 ## TODO: Various packages fail their tests on i686-linux. Should probably fix
 ##       them at some point.
-// (
+(
   if final.system == "i686-linux"
   then {
     aeson = final.haskell.lib.dontCheck hprev.aeson;
