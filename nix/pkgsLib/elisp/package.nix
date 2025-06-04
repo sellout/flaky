@@ -43,7 +43,8 @@ in
 
     configurePhase = ''
       runHook preConfigure
-      ## Build complains if this is unset.
+      ## Build complains if these are unset.
+      export EMACSLOADPATH=
       export EMACSNATIVELOADPATH=
       runHook postConfigure
     '';
