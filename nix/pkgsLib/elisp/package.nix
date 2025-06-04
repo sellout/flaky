@@ -4,6 +4,7 @@
   emacs,
   emacsPackages,
   lib,
+  tree,
   stdenv,
   writeText,
 }: pname: src: epkgs: let
@@ -66,11 +67,17 @@ in
       runHook postCheck
     '';
 
-    installPhase = ''
+    installPhase = let
+      elpaDir = "$out/share/emacs/site-lisp/elpa";
+    in ''
       runHook preInstall
       ${eldev ["package"]}
-      mkdir -p "$out/share/emacs/site-lisp/elpa"
-      tar -x --file dist/*.tar --directory "$out/share/emacs/site-lisp/elpa"
+      mkdir -p "${elpaDir}"
+      tar -x --file dist/*.tar --directory "${elpaDir}"
+      ## There should be only one directory in ${elpaDir}, but rather than
+      ## having to know what it is, we just loop over all of them.
+      find "${elpaDir}" -type d -mindepth 1 -maxdepth 1 -exec \
+        cp *-autoloads.el {} \;
       runHook postInstall
     '';
 
