@@ -13,7 +13,7 @@
     ## TODO: Currently needed to make a temp file in
     ##      `eldev--create-internal-pseudoarchive-descriptor`.
     HOME="$(mktemp --directory --tmpdir fake-home.XXXXXX)" \
-      eldev --debug --use-emacsloadpath ${args}
+      eldev --debug --use-emacsloadpath ${lib.escapeShellArgs args}
   '';
 in
   checkedDrv (stdenv.mkDerivation {
@@ -51,8 +51,8 @@ in
     buildPhase = ''
       runHook preBuild
       EMACSLOADPATH="$PWD:$EMACSLOADPATH" \
-        ${eldev "build --warnings-as-errors"}
-      ${eldev "package"}
+        ${eldev ["build" "--warnings-as-errors"]}
+      ${eldev ["package"]}
       runHook postBuild
     '';
 
@@ -61,13 +61,13 @@ in
     checkPhase = ''
       runHook preCheck
       EMACSLOADPATH="$PWD:$EMACSLOADPATH" \
-        ${eldev "test"}
+        ${eldev ["test"]}
       runHook postCheck
     '';
 
     installPhase = ''
       runHook preInstall
-      ${eldev "package"}
+      ${eldev ["package"]}
       mkdir -p "$out/share/emacs/site-lisp/elpa"
       tar -x --file dist/*.tar --directory "$out/share/emacs/site-lisp/elpa"
       runHook postInstall
@@ -77,7 +77,7 @@ in
 
     installCheckPhase = ''
       runHook preInstallCheck
-      ${eldev "--packaged test"}
+      ${eldev ["--packaged" "test"]}
       runHook postInstallCheck
     '';
   })
