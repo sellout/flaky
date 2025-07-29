@@ -272,7 +272,10 @@ in {
             }
             {
               run = ''
+                ## The `--constraint` is needed to work around
+                ## haskell-hvr/cabal-plan#114
                 cabal install cabal-plan \
+                  --constraint 'cabal-plan < 0.7.6' \
                   --flags='exe license-report' \
                   --ghc-options='-Wwarn'
               '';
