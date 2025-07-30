@@ -152,13 +152,30 @@ in {
                   os = "macos-14";
                 }) (builtins.filter (ghc: lib.versionOlder ghc "9.4")
                   cfg.ghcVersions)
+                ## GHC added aarch64 support in 9.4, but early releases are
+                ## buggy. A later release is added a bit below this.
+                [
+                  {
+                    ghc = "9.4.1";
+                    os = "macos-14";
+                  }
+                ]
                 ++ cfg.exclude;
               include =
                 lib.concatMap (bounds:
                   map (ghc: {
                     inherit bounds ghc;
                     os = "ubuntu-22.04";
-                  }) (filterGhcVersions ["8.0.2" "8.2.2"]))
+                  }) (filterGhcVersions ["8.0.2" "8.2.2"])
+                  ++ [
+                    ## TODO: This could potentially work as far back as GHC
+                    ##       9.4.2, but needs to be tested.
+                    {
+                      inherit bounds;
+                      ghc = "9.4.5";
+                      os = "macos-14";
+                    }
+                  ])
                 bounds
                 ++ cfg.include;
             };
