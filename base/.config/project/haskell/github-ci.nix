@@ -142,11 +142,13 @@ in {
           "synchronize"
         ];
       };
-      jobs = {
+      jobs = let
+        freezeDir = ".local/state/cabal/freeze";
+      in {
         build = let
-          projectDir = ".local/state/cabal";
           qualifiedName = "\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
-          missingFreezeFile = "\${{ hashFiles('${projectDir}/${qualifiedName}.freeze') == '' }}";
+          missingFreezeFile = "\${{ hashFiles('${freezeDir}/${qualifiedName}.freeze') == '' }}";
+          notMissingFreezeFile = "\${{ hashFiles('${freezeDir}/${qualifiedName}.freeze') != '' }}";
           planName = "plan-${qualifiedName}";
         in {
           strategy = {
@@ -204,32 +206,6 @@ in {
           steps =
             haskellSetup "\${{ matrix.ghc }}"
             ++ [
-              ## Keep Cabal freeze files in the tree, so rebuilds don’t change
-              ## our bounds. They should be deleted on major version bumps.
-              ## Maybe the non-`--prefer-oldest` ones shouldn’t even be
-              ## preserved (but then there’s a chance we lose a major release
-              ## range).
-              {
-                name = "set up Cabal project file";
-                run = ''
-                  cp ${projectDir}/freeze/${qualifiedName} \
-                    cabal.project.freeze \
-                    || true
-                '';
-              }
-              {
-                "if" = missingFreezeFile;
-                run = "cabal v2-freeze $CONFIG";
-              }
-              {
-                "if" = missingFreezeFile;
-                name = "Upload freeze file as artifact";
-                uses = "actions/upload-artifact@v4";
-                "with" = {
-                  name = "${qualifiedName}.freeze";
-                  path = "cabal.project.freeze";
-                };
-              }
               {
                 uses = "actions/cache@v4";
                 "with" = {
@@ -237,7 +213,33 @@ in {
                     ''${{ steps.setup-haskell-cabal.outputs.cabal-store }}
                     dist-newstyle
                   '';
-                  key = "${qualifiedName}-\${{ hashFiles('${projectDir}/${qualifiedName}.freeze') }}";
+                  key = "${qualifiedName}-\${{ hashFiles('${freezeDir}/${qualifiedName}.freeze') }}";
+                };
+              }
+              ## Keep Cabal freeze files in the tree, so rebuilds don’t change
+              ## our bounds. They should be deleted on major version bumps.
+              ## Maybe the non-`--prefer-oldest` ones shouldn’t even be
+              ## preserved (but then there’s a chance we lose a major release
+              ## range).
+              {
+                "if" = notMissingFreezeFile;
+                name = "set up Cabal project file";
+                run = "cp ${freezeDir}/${qualifiedName}.freeze cabal.project.freeze";
+              }
+              {
+                "if" = missingFreezeFile;
+                run = "cabal v2-freeze $CONFIG";
+              }
+              {
+                "if" = missingFreezeFile;
+                run = "cp cabal.project.freeze ${freezeDir}/${qualifiedName}.freeze";
+              }
+              {
+                name = "Upload freeze file as artifact";
+                uses = "actions/upload-artifact@v4";
+                "with" = {
+                  name = "${qualifiedName}.freeze";
+                  path = "${freezeDir}/${qualifiedName}.freeze";
                 };
               }
               ## NB: The `doctests` suites don’t seem to get built without
@@ -254,6 +256,32 @@ in {
                 };
               }
             ];
+        };
+        collect-freeze-files = {
+          inherit runs-on;
+          ## Some "build" jobs are a bit flaky. This can give us useful bounds
+          ## information even without all of the build plans.
+          "if" = "always()";
+          needs = ["build"];
+          steps = [
+            {
+              name = "download Cabal freeze files";
+              uses = "actions/download-artifact@v4";
+              "with" = {
+                path = freezeDir;
+                pattern = "*.freeze";
+                merge-multiple = true;
+              };
+            }
+            {
+              name = "Upload all freeze files";
+              uses = "actions/upload-artifact@v4";
+              "with" = {
+                name = "freeze-files";
+                path = freezeDir;
+              };
+            }
+          ];
         };
         check-bounds = {
           inherit runs-on;
