@@ -146,11 +146,12 @@ in {
                   inherit ghc;
                   os = "ubuntu-24.04";
                 }) (filterGhcVersions ["7.10.3" "8.0.2" "8.2.2"])
-                ## GitHub can’t install GHC older than 9.4 on macos-14.
-                ++ map (ghc: {
-                  inherit ghc;
-                  os = "macos-14";
-                }) (builtins.filter (ghc: lib.versionOlder ghc "9.4")
+                ## GitHub can’t install GHC older than 9.2 on ARM systems.
+                ++ lib.concatMap (ghc:
+                  map (os: {
+                    inherit ghc os;
+                  }) ["macos-15" "ubuntu-24.04-arm"])
+                (builtins.filter (ghc: lib.versionOlder ghc "9.2")
                   cfg.ghcVersions)
                 ++ cfg.exclude;
               include =
