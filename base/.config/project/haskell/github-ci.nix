@@ -21,9 +21,7 @@ in {
       description = ''
         A list of GitHub system names to run CI against.
       '';
-      example = lib.literalMD ''
-        ["macos-14" "ubuntu-24.04"]
-      '';
+      example = ["macos-14" "ubuntu-24.04"];
     };
 
     ghcVersions = lib.mkOption {
@@ -31,9 +29,7 @@ in {
       description = ''
         A list of GHC version numbers to run CI against.
       '';
-      example = lib.literalMD ''
-        ["8.10.7" "9.0.2" "9.2.2"]
-      '';
+      example = ["8.10.7" "9.0.2" "9.2.2"];
     };
 
     cabalPackages = lib.mkOption {
@@ -42,12 +38,10 @@ in {
         An attrSet of Cabal package names to run CI again. The value is the
         directory containing the corresponding Cabal file.
       '';
-      example = lib.literalMD ''
-        {
-          yaya = "core";
-          yaya-unsafe = "unsafe";
-        }
-      '';
+      example = {
+        yaya = "core";
+        yaya-unsafe = "unsafe";
+      };
     };
 
     ## TODO: Prefer ignoring most known failures once
@@ -59,9 +53,13 @@ in {
         A list of matrix entries to exclude from CI. They can have the
         attributes `ghc`, `os`, and `bounds`.
       '';
-      example = lib.literalMD ''
-        [{os = "macos-14"; ghc = "8.10.7"; bounds = "--prefer-oldest";}]
-      '';
+      example = [
+        {
+          os = "macos-14";
+          ghc = "8.10.7";
+          bounds = "--prefer-oldest";
+        }
+      ];
     };
 
     include = lib.mkOption {
@@ -71,9 +69,13 @@ in {
         A list of builds to add to the matrix. They can have the attributes
         `ghc`, `os`, and `bounds`.
       '';
-      example = lib.literalMD ''
-        [{os = "macos-14"; ghc = "8.10.7"; bounds = "--prefer-oldest";}]
-      '';
+      example = [
+        {
+          os = "macos-14";
+          ghc = "8.10.7";
+          bounds = "--prefer-oldest";
+        }
+      ];
     };
 
     defaultGhcVersion = lib.mkOption {
@@ -81,9 +83,7 @@ in {
       description = ''
         The version of GHC to use for tools that aggregate data from the builds.
       '';
-      example = lib.literalMD ''
-        "9.6.5"
-      '';
+      example = "9.6.5";
     };
 
     latestGhcVersion = lib.mkOption {
@@ -93,9 +93,16 @@ in {
         the latest to have things be as up-to-date as possible. E.g., for the
         license report.
       '';
-      example = lib.literalMD ''
-        "9.10.1"
+      example = "9.10.1";
+    };
+
+    extraCabalArgs = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = ''
+        A list of extra arguments to pass to the `cabal` invocations.
       '';
+      example = ["--enable-benchmarks" "--enable-tests"];
     };
 
     extraDependencyVersions = lib.mkOption {
@@ -107,15 +114,13 @@ in {
         versions of packages in the same repo, or version that are in the Nix
         package set, but not selected by the solver on GitHub.
       '';
-      example = lib.literalMD ''
-        [
-          "yaya-0.5.1.0"
-          "yaya-0.6.0.0"
-          "yaya-hedgehog-0.2.1.0"
-          "yaya-hedgehog-0.3.0.0"
-          "th-abstraction-0.5.0.0"
-        ]
-      '';
+      example = [
+        "yaya-0.5.1.0"
+        "yaya-0.6.0.0"
+        "yaya-hedgehog-0.2.1.0"
+        "yaya-hedgehog-0.3.0.0"
+        "th-abstraction-0.5.0.0"
+      ];
     };
   };
   config = lib.mkIf cfg.enable (let
@@ -165,7 +170,7 @@ in {
             };
           };
           runs-on = "\${{ matrix.os }}";
-          env.CONFIG = "--enable-tests --enable-benchmarks \${{ matrix.bounds }}";
+          env.CONFIG = "${lib.escapeShellArgs cfg.extraCabalArgs} \${{ matrix.bounds }}";
           steps = [
             {uses = "actions/checkout@v4";}
             {
