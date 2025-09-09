@@ -79,4 +79,9 @@
         "packages.${sys}.${ghc}_all"
       ])
       (self.lib.testedGhcVersions sys));
+  services.haskell-ci.extraCabalArgs = [
+    ## Make sure we’re building everything.
+    "--enable-benchmarks"
+    "--enable-tests"
+  ];
 }
