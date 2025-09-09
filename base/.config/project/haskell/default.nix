@@ -58,6 +58,9 @@
     };
   };
 
+  # NB: Can’t use IFD on FlakeHub (see DeterminateSystems/flakehub-push#69), so
+  #     this is disabled until we have a way to build Haskell without IFD.
+  services.flakehub.enable = false;
   services.garnix.builds."*".include =
     [
       "homeConfigurations.*"
@@ -76,7 +79,4 @@
         "packages.${sys}.${ghc}_all"
       ])
       (self.lib.testedGhcVersions sys));
-  # NB: Can’t use IFD on FlakeHub (see DeterminateSystems/flakehub-push#69), so
-  #     this is disabled until we have a way to build Haskell without IFD.
-  services.flakehub.enable = false;
 }
