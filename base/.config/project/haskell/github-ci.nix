@@ -119,7 +119,17 @@ in {
     };
   };
   config = lib.mkIf cfg.enable (let
-    planName = "plan-\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
+    haskellSetup = ghc-version: [
+      {uses = "actions/checkout@v4";}
+      {
+        uses = "haskell-actions/setup@v2";
+        id = "setup-haskell-cabal";
+        "with" = {
+          inherit ghc-version;
+          cabal-version = pkgs.cabal-install.version;
+        };
+      }
+    ];
     runs-on = "ubuntu-24.04";
     filterGhcVersions = lib.intersectLists cfg.ghcVersions;
   in {
@@ -132,8 +142,15 @@ in {
           "synchronize"
         ];
       };
-      jobs = {
-        build = {
+      jobs = let
+        freezeDir = ".local/state/cabal/freeze";
+      in {
+        build = let
+          qualifiedName = "\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
+          missingFreezeFile = "\${{ hashFiles('${freezeDir}/${qualifiedName}.freeze') == '' }}";
+          notMissingFreezeFile = "\${{ hashFiles('${freezeDir}/${qualifiedName}.freeze') != '' }}";
+          planName = "plan-${qualifiedName}";
+        in {
           strategy = {
             fail-fast = false;
             matrix = {
@@ -153,51 +170,116 @@ in {
                   }) ["macos-15" "ubuntu-24.04-arm"])
                 (builtins.filter (ghc: lib.versionOlder ghc "9.2")
                   cfg.ghcVersions)
+                ## GHC added aarch64 support in 9.4, but early releases are
+                ## buggy. A later release is added a bit below this.
+                ++ [
+                  {
+                    ghc = "9.4.1";
+                    os = "macos-14";
+                  }
+                ]
                 ++ cfg.exclude;
               include =
                 lib.concatMap (bounds:
                   map (ghc: {
                     inherit bounds ghc;
                     os = "ubuntu-22.04";
-                  }) (filterGhcVersions ["8.0.2" "8.2.2"]))
+                  }) (filterGhcVersions ["8.0.2" "8.2.2"])
+                  ++ [
+                    ## TODO: This could potentially work as far back as GHC
+                    ##       9.4.2, but needs to be tested.
+                    {
+                      inherit bounds;
+                      ghc = "9.4.5";
+                      os = "macos-14";
+                    }
+                  ])
                 bounds
                 ++ cfg.include;
             };
           };
           runs-on = "\${{ matrix.os }}";
-          env.CONFIG = "--enable-tests --enable-benchmarks \${{ matrix.bounds }}";
+          env.CONFIG = lib.concatStringsSep " " [
+            "--enable-tests"
+            "--enable-benchmarks"
+            "\${{ matrix.bounds }}"
+          ];
+          steps =
+            haskellSetup "\${{ matrix.ghc }}"
+            ++ [
+              {
+                uses = "actions/cache@v4";
+                "with" = {
+                  path = ''
+                    ''${{ steps.setup-haskell-cabal.outputs.cabal-store }}
+                    dist-newstyle
+                  '';
+                  key = "${qualifiedName}-\${{ hashFiles('${freezeDir}/${qualifiedName}.freeze') }}";
+                };
+              }
+              ## Keep Cabal freeze files in the tree, so rebuilds don’t change
+              ## our bounds. They should be deleted on major version bumps.
+              ## Maybe the non-`--prefer-oldest` ones shouldn’t even be
+              ## preserved (but then there’s a chance we lose a major release
+              ## range).
+              {
+                "if" = notMissingFreezeFile;
+                name = "set up Cabal project file";
+                run = "cp ${freezeDir}/${qualifiedName}.freeze cabal.project.freeze";
+              }
+              {
+                "if" = missingFreezeFile;
+                run = "cabal v2-freeze $CONFIG";
+              }
+              {
+                "if" = missingFreezeFile;
+                run = "cp cabal.project.freeze ${freezeDir}/${qualifiedName}.freeze";
+              }
+              {
+                name = "Upload freeze file as artifact";
+                uses = "actions/upload-artifact@v4";
+                "with" = {
+                  name = "${qualifiedName}.freeze";
+                  path = "${freezeDir}/${qualifiedName}.freeze";
+                };
+              }
+              ## NB: The `doctests` suites don’t seem to get built without
+              ##     explicitly doing so before running the tests.
+              {run = "cabal v2-build all $CONFIG";}
+              {run = "cabal v2-test all $CONFIG";}
+              {run = "mv dist-newstyle/cache/plan.json ${planName}.json";}
+              {
+                name = "Upload build plan as artifact";
+                uses = "actions/upload-artifact@v4";
+                "with" = {
+                  name = planName;
+                  path = "${planName}.json";
+                };
+              }
+            ];
+        };
+        collect-freeze-files = {
+          inherit runs-on;
+          ## Some "build" jobs are a bit flaky. This can give us useful bounds
+          ## information even without all of the build plans.
+          "if" = "always()";
+          needs = ["build"];
           steps = [
-            {uses = "actions/checkout@v4";}
             {
-              uses = "haskell-actions/setup@v2";
-              id = "setup-haskell-cabal";
+              name = "download Cabal freeze files";
+              uses = "actions/download-artifact@v4";
               "with" = {
-                cabal-version = pkgs.cabal-install.version;
-                ghc-version = "\${{ matrix.ghc }}";
+                path = freezeDir;
+                pattern = "*.freeze";
+                merge-multiple = true;
               };
             }
-            {run = "cabal v2-freeze $CONFIG";}
             {
-              uses = "actions/cache@v4";
-              "with" = {
-                path = ''
-                  ''${{ steps.setup-haskell-cabal.outputs.cabal-store }}
-                  dist-newstyle
-                '';
-                key = "\${{ matrix.os }}-\${{ matrix.ghc }}-\${{ hashFiles('cabal.project.freeze') }}";
-              };
-            }
-            ## NB: The `doctests` suites don’t seem to get built without
-            ##     explicitly doing so before running the tests.
-            {run = "cabal v2-build all $CONFIG";}
-            {run = "cabal v2-test all $CONFIG";}
-            {run = "mv dist-newstyle/cache/plan.json ${planName}.json";}
-            {
-              name = "Upload build plan as artifact";
+              name = "Upload all freeze files";
               uses = "actions/upload-artifact@v4";
               "with" = {
-                name = planName;
-                path = "${planName}.json";
+                name = "freeze-files";
+                path = freezeDir;
               };
             }
           ];
@@ -208,52 +290,45 @@ in {
           ## information even without all of the build plans.
           "if" = "always()";
           needs = ["build"];
-          steps = [
-            {uses = "actions/checkout@v4";}
-            {
-              uses = "haskell-actions/setup@v2";
-              id = "setup-haskell-cabal";
-              "with" = {
-                cabal-version = pkgs.cabal-install.version;
-                ghc-version = cfg.defaultGhcVersion;
-              };
-            }
-            {run = "cabal install cabal-plan-bounds";}
-            {
-              name = "download Cabal plans";
-              uses = "actions/download-artifact@v4";
-              "with" = {
-                path = "plans";
-                pattern = "plan-*";
-                merge-multiple = true;
-              };
-            }
-            {
-              name = "Cabal plans considered in generated bounds";
-              run = "find plans/";
-            }
-            {
-              name = "check if bounds have changed";
-              ## TODO: Simplify this once cabal-plan-bounds supports a `--check`
-              ##       option.
-              run = ''
-                diffs="$(find . -name '*.cabal' -exec \
-                  cabal-plan-bounds \
-                    --dry-run \
-                    ${
-                  lib.concatMapStrings
-                  (pkg: "--also " + pkg + " ")
-                  cfg.extraDependencyVersions
-                } \
-                    plans/*.json \
-                    --cabal {} \;)"
-                if [[ -n "$diffs" ]]; then
-                  echo "$diffs"
-                  exit 1
-                fi
-              '';
-            }
-          ];
+          steps =
+            haskellSetup cfg.defaultGhcVersion
+            ++ [
+              {run = "cabal install cabal-plan-bounds";}
+              {
+                name = "download Cabal plans";
+                uses = "actions/download-artifact@v4";
+                "with" = {
+                  path = "plans";
+                  pattern = "plan-*";
+                  merge-multiple = true;
+                };
+              }
+              {
+                name = "Cabal plans considered in generated bounds";
+                run = "find plans/";
+              }
+              {
+                name = "check if bounds have changed";
+                ## TODO: Simplify this once cabal-plan-bounds supports a `--check`
+                ##       option.
+                run = ''
+                  diffs="$(find . -name '*.cabal' -exec \
+                    cabal-plan-bounds \
+                      --dry-run \
+                      ${
+                    lib.concatMapStrings
+                    (pkg: "--also " + pkg + " ")
+                    cfg.extraDependencyVersions
+                  } \
+                      plans/*.json \
+                      --cabal {} \;)"
+                  if [[ -n "$diffs" ]]; then
+                    echo "$diffs"
+                    exit 1
+                  fi
+                '';
+              }
+            ];
         };
         check-licenses = {
           inherit runs-on;
@@ -261,53 +336,46 @@ in {
           ## jobs from the matrix, we run it regardless of build failures.
           "if" = "always()";
           needs = ["build"];
-          steps = [
-            {uses = "actions/checkout@v4";}
-            {
-              uses = "haskell-actions/setup@v2";
-              id = "setup-haskell-cabal";
-              "with" = {
-                cabal-version = pkgs.cabal-install.version;
-                ghc-version = cfg.defaultGhcVersion;
-              };
-            }
-            {
-              run = ''
-                cabal install cabal-plan \
-                  --flags='exe license-report' \
-                  --ghc-options='-Wwarn'
-              '';
-            }
-            {
-              name = "download Cabal plans";
-              uses = "actions/download-artifact@v4";
-              "with" = {
-                path = "plans";
-                pattern = "plan-*";
-                merge-multiple = true;
-              };
-            }
-            {
-              run = ''
-                mkdir -p dist-newstyle/cache
-                mv plans/plan-${runs-on}-${cfg.latestGhcVersion}.json dist-newstyle/cache/plan.json
-              '';
-            }
-            {
-              name = "check if licenses have changed";
-              run = ''
-                ${lib.toShellVar "packages" cfg.cabalPackages}
-                for package in "''${!packages[@]}"; do
-                  {
-                    echo "**NB**: This captures the licenses associated with a particular set of dependency versions. If your own build solves differently, it’s possible that the licenses may have changed, or even that the set of dependencies itself is different. Please make sure you run [\`cabal-plan license-report\`](https://hackage.haskell.org/package/cabal-plan) on your own components rather than assuming this is authoritative."
-                    echo
-                    cabal-plan license-report "$package:lib:$package"
-                  } >"''${packages[$package]}/docs/license-report.md"
-                done
-                git diff --exit-code */docs/license-report.md
-              '';
-            }
-          ];
+          steps =
+            haskellSetup cfg.defaultGhcVersion
+            ++ [
+              {
+                run = ''
+                  cabal install cabal-plan \
+                    --flags='exe license-report' \
+                    --ghc-options='-Wwarn'
+                '';
+              }
+              {
+                name = "download Cabal plans";
+                uses = "actions/download-artifact@v4";
+                "with" = {
+                  path = "plans";
+                  pattern = "plan-*";
+                  merge-multiple = true;
+                };
+              }
+              {
+                run = ''
+                  mkdir -p dist-newstyle/cache
+                  mv plans/plan-${runs-on}-${cfg.latestGhcVersion}.json dist-newstyle/cache/plan.json
+                '';
+              }
+              {
+                name = "check if licenses have changed";
+                run = ''
+                  ${lib.toShellVar "packages" cfg.cabalPackages}
+                  for package in "''${!packages[@]}"; do
+                    {
+                      echo "**NB**: This captures the licenses associated with a particular set of dependency versions. If your own build solves differently, it’s possible that the licenses may have changed, or even that the set of dependencies itself is different. Please make sure you run [\`cabal-plan license-report\`](https://hackage.haskell.org/package/cabal-plan) on your own components rather than assuming this is authoritative."
+                      echo
+                      cabal-plan license-report "$package:lib:$package"
+                    } >"''${packages[$package]}/docs/license-report.md"
+                  done
+                  git diff --exit-code */docs/license-report.md
+                '';
+              }
+            ];
         };
       };
     };
