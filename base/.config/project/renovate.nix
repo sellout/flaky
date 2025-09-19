@@ -8,6 +8,7 @@
     ## to happen after a successful CI run.
     automerge = config.project.unsandboxedChecks == {};
   in {
+    labels = ["automated"];
     lockFileMaintenance = {
       inherit automerge;
       enabled = true;
