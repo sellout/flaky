@@ -7,9 +7,11 @@
 }: {
   services.github = {
     settings = {
-      # These settings are synced to GitHub by https://probot.github.io/apps/settings/
+      ## These settings are synced to GitHub by
+      ## https://probot.github.io/apps/settings/
 
-      # See https://docs.github.com/en/rest/reference/repos#update-a-repository for all available settings.
+      ## See https://docs.github.com/en/rest/reference/repos#update-a-repository
+      ## for all available settings.
       repository = {
         name = config.project.name;
         description = config.project.summary;
@@ -32,7 +34,7 @@
 
       labels = {
         automated = {
-          color = "";
+          color = "#666666";
           description = "Created automatically by some service or process";
         };
         bug = {
@@ -69,7 +71,7 @@
         };
       };
 
-      # https://docs.github.com/en/rest/branches/branch-protection?apiVersion=2022-11-28#update-branch-protection
+      ## https://docs.github.com/en/rest/branches/branch-protection?apiVersion=2022-11-28#update-branch-protection
       branches.main.protection = {
         required_pull_request_reviews = null;
         required_status_checks = {
@@ -82,10 +84,9 @@
         restrictions = null;
       };
 
-      ## TODO: This doesn’t seem to actually set the
-      ##       Settings→Actions→General→“Allow GitHub Actions to create and
-      ##       approve pull requests” checkbox, see repository-settings/app#318.
-      actions.permissions.workflow.can_approve_pull_request_reviews = true;
+      ## TODO: This doesn’t work yet, and breaks the entire config if enabled.
+      ##       See repository-settings/app#318.
+      # actions.permissions.workflow.can_approve_pull_request_reviews = true;
     };
   };
 }
