@@ -79,15 +79,17 @@
         "packages.${sys}.${ghc}_all"
       ])
       (self.lib.testedGhcVersions sys));
-  services.haskell-ci.extraCabalArgs = [
+  services.haskell-ci = {
     ## In CI, we run without `build-depends` bounds. The cabal.project file
     ## contains any hard constraints (ones we’ve had to add to get the build
     ## matrix passing), and `cabal-plan-bounds` runs in CI to tell us if the
     ## bounds listed in the Cabal package files are still correct.
-    "--allow-newer"
-    "--allow-older"
-    ## Make sure we’re building everything.
-    "--enable-benchmarks"
-    "--enable-tests"
-  ];
+    allowNewer = true;
+    allowOlder = true;
+    extraCabalArgs = [
+      ## Make sure we’re building everything.
+      "--enable-benchmarks"
+      "--enable-tests"
+    ];
+  };
 }
