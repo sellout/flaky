@@ -35,13 +35,31 @@ in {
     cabalPackages = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
       description = ''
-        An attrSet of Cabal package names to run CI again. The value is the
+        An attrSet of Cabal package names to run CI against. The value is the
         directory containing the corresponding Cabal file.
       '';
       example = {
         yaya = "core";
         yaya-unsafe = "unsafe";
       };
+    };
+
+    allowNewer = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      example = true;
+      description = ''
+        Whether to allow ignore upper bounds on local package dependencies.
+      '';
+    };
+
+    allowOlder = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      example = true;
+      description = ''
+        Whether to allow ignore lower bounds on local package dependencies.
+      '';
     };
 
     ## TODO: Prefer ignoring most known failures once
@@ -170,7 +188,21 @@ in {
             };
           };
           runs-on = "\${{ matrix.os }}";
-          env.CONFIG = "${lib.escapeShellArgs cfg.extraCabalArgs} \${{ matrix.bounds }}";
+          env.CONFIG = let
+            packages = lib.concatStringsSep "," (map (name: "${name}:all") (lib.attrNames cfg.cabalPackages));
+            bounds =
+              (
+                if cfg.allowNewer
+                then [("--allow-newer=" + packages)]
+                else []
+              )
+              ++ (
+                if cfg.allowOlder
+                then [("--allow-older=" + packages)]
+                else []
+              );
+          in
+            lib.concatStringsSep " " (cfg.extraCabalArgs ++ bounds) + " \${{ matrix.bounds }}";
           steps = [
             {uses = "actions/checkout@v4";}
             {
