@@ -43,9 +43,6 @@
     };
   };
 
-  ## CI
-  services.garnix.enable = true;
-
   ## publishing
   services.flakehub.enable = true;
   services.github.enable = true;
