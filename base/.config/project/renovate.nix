@@ -29,7 +29,7 @@
 
   ## When Renovate opens a lock file update, run `project-manager switch` and
   ## push the new commit to the PR branch.
-  services.github.workflow."switch-pm-generation.yml".text = lib.generators.toYAML {} {
+  services.github.workflow."switch-pm-generation.yml".text = lib.pm.generators.toYAML {} {
     name = "Project Manager";
     on.pull_request = {
       branches = ["renovate/lock-file-maintenance"];

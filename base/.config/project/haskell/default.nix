@@ -92,4 +92,6 @@
       "--enable-tests"
     ];
   };
+  ## TODO: Remove this once projects have switched to Cabal.nix generation.
+  services.nix-ci.allow-import-from-derivation = lib.mkForce true;
 }

@@ -44,6 +44,7 @@
     ./flakehub.nix
     ./garnix.nix
     ./github.nix
+    ./nix-ci.nix
     ./renovate.nix
     ## editors
     ./editorconfig.nix
@@ -53,4 +54,10 @@
   ];
 
   programs.project-manager.enable = true;
+
+  ## For most modules, `enable` is set at the individual project level. However,
+  ## these are enabled globally on GitHub, so this just ensures that we
+  ## constrain them with the appropriate config.
+  services.garnix.enable = true;
+  services.nix-ci.enable = true;
 }
