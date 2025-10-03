@@ -9,6 +9,9 @@
   ## A command where we don’t preserve any output can be more lax than most
   ## derivations. By turning it into a fixed-output derivation based on the
   ## command, we can weaken some of the sandbox constraints.
+  ##
+  ## The tradeoff is that this uses IFD, so it should only be used for
+  ## derivations that would otherwise not be sandboxable.
   runEmptyCommand = name: attrs: command: let
     outputHashAlgo = "sha256";
     ## Runs a command and returns its output as a string.

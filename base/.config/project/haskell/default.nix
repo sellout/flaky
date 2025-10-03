@@ -91,6 +91,20 @@
       "--enable-benchmarks"
       "--enable-tests"
     ];
+    ## https://docs.github.com/en/actions/reference/runners/github-hosted-runners#standard-github-hosted-runners-for-public-repositories
+    ## for the current list of available runners.
+    systems = [
+      "macos-15" #         aarch64-darwin
+      ## NB: This is the final x86_64-darwin image that GitHub will provide, and
+      ##     it will be available through August 2027. See
+      ##     actions/runner-images#13045 for details.
+      "macos-15-intel" #   x86_64-darwin
+      "ubuntu-24.04" #     x86_64-linux
+      "ubuntu-24.04-arm" # aarch64-linux
+      ## TODO: GHCup doesn’t install on this platform at all.
+      # "windows-11-arm" #   aarch64-windows
+      "windows-2025" #     x86_64-windows
+    ];
   };
   ## TODO: Remove this once projects have switched to Cabal.nix generation.
   services.nix-ci.allow-import-from-derivation = lib.mkForce true;
