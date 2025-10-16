@@ -6,7 +6,21 @@
   self,
   supportedSystems,
   ...
-}: {
+}: let
+  nixBuildsFor = sys:
+    [
+      "checks.${sys}.*"
+      "devShells.${sys}.default"
+      "packages.${sys}.default"
+    ]
+    ++ lib.concatMap (version: let
+      ghc = self.lib.nixifyGhcVersion version;
+    in [
+      "devShells.${sys}.${ghc}"
+      "packages.${sys}.${ghc}_all"
+    ])
+    (self.lib.testedGhcVersions sys);
+in {
   imports = [
     ./..
     ./github-ci.nix
@@ -66,19 +80,7 @@
       "homeConfigurations.*"
       "nixosConfigurations.*"
     ]
-    ++ flaky.lib.forGarnixSystems supportedSystems (sys:
-      [
-        "checks.${sys}.*"
-        "devShells.${sys}.default"
-        "packages.${sys}.default"
-      ]
-      ++ lib.concatMap (version: let
-        ghc = self.lib.nixifyGhcVersion version;
-      in [
-        "devShells.${sys}.${ghc}"
-        "packages.${sys}.${ghc}_all"
-      ])
-      (self.lib.testedGhcVersions sys));
+    ++ flaky.lib.forGarnixSystems supportedSystems nixBuildsFor;
   services.haskell-ci = {
     ## In CI, we run without `build-depends` bounds. The cabal.project file
     ## contains any hard constraints (ones we’ve had to add to get the build
@@ -106,6 +108,9 @@
       "windows-2025" #     x86_64-windows
     ];
   };
-  ## TODO: Remove this once projects have switched to Cabal.nix generation.
-  services.nix-ci.allow-import-from-derivation = lib.mkForce true;
+  services.nix-ci = {
+    ## TODO: Remove this once projects have switched to Cabal.nix generation.
+    allow-import-from-derivation = lib.mkForce true;
+    services.nix-ci.onlyBuild = nixBuildsFor "x86_64-linux";
+  };
 }
