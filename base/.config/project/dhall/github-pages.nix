@@ -2,10 +2,14 @@
   defaultBranch = "main";
 in {
   services.github = {
-    settings.pages = {
-      build_type = "workflow";
-      source.branch = defaultBranch;
-    };
+    ## TODO: GitHub Pages can’t yet be managed via [ProBot
+    ##       Settings](https://github.com/repository-settings/app/blob/master/docs/configuration.md).
+    ##       These values should be set manually for any new repo until it can
+    ##       be.
+    # settings.pages = {
+    #   build_type = "workflow";
+    #   source.branch = defaultBranch;
+    # };
     workflow."pages.yml".text = lib.generators.toYAML {} {
       name = "Deploy modules & generated docs to Pages";
 
