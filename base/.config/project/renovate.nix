@@ -36,7 +36,14 @@
       "if" = "github.head_ref == 'renovate/lock-file-maintenance'";
       runs-on = "ubuntu-24.04";
       steps = [
-        {uses = "actions/checkout@v5";}
+        {
+          uses = "actions/checkout@v5";
+          "with" = {
+            repository = "\${{ github.event.pull_request.head.repo.full_name }}";
+            ref = "\${{ github.event.pull_request.head.ref }}}";
+            token = "\${{ secrets.PROJECT_MANAGER_TOKEN }}";
+          };
+        }
         {uses = "cachix/install-nix-action@v31";}
         {run = "nix develop .#project-manager --command project-manager kitchen-sink";}
         {
