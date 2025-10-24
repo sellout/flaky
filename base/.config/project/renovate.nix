@@ -31,15 +31,13 @@
   ## push the new commit to the PR branch.
   services.github.workflow."switch-pm-generation.yml".text = lib.pm.generators.toYAML {} {
     name = "Project Manager";
-    on.pull_request = {
-      branches = ["renovate/lock-file-maintenance"];
-      types = ["opened"];
-    };
+    on.pull_request = {};
     jobs.switch = {
+      "if" = "github.head_ref == 'renovate/lock-file-maintenance'";
       runs-on = "ubuntu-24.04";
       steps = [
         {uses = "actions/checkout@v5";}
-        {run = "project-manager switch";}
+        {run = "nix develop .#project-manager --command project-manager kitchen-sink";}
         {
           name = "commit changes";
           uses = "EndBug/add-and-commit@v9";
