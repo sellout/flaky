@@ -37,6 +37,7 @@
       runs-on = "ubuntu-24.04";
       steps = [
         {uses = "actions/checkout@v5";}
+        {uses = "cachix/install-nix-action@v31";}
         {run = "nix develop .#project-manager --command project-manager kitchen-sink";}
         {
           name = "commit changes";
