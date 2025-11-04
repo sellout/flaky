@@ -111,6 +111,6 @@ in {
   services.nix-ci = {
     ## TODO: Remove this once projects have switched to Cabal.nix generation.
     allow-import-from-derivation = lib.mkForce true;
-    services.nix-ci.onlyBuild = nixBuildsFor "x86_64-linux";
+    onlyBuild = nixBuildsFor "x86_64-linux";
   };
 }
