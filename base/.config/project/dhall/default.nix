@@ -13,7 +13,7 @@
   programs = {
     ## Treat all files in the “/dhall/” directory as Dhall files, no extension
     ## needed.
-    git.attributes = ["/dhall/** linguist-language=Dhall"];
+    git.attributes."/dhall/**".linguist-language = "Dhall";
     treefmt = {
       programs.dhall.enable = true;
       settings.formatter.dhall.includes = ["dhall/*"];
