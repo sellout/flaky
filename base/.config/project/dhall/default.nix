@@ -1,3 +1,5 @@
+### All available options for this file are listed in
+### https://sellout.github.io/project-manager/options.xhtml
 {
   config,
   lib,
@@ -11,7 +13,7 @@
   programs = {
     ## Treat all files in the “/dhall/” directory as Dhall files, no extension
     ## needed.
-    git.attributes = ["/dhall/** linguist-language=Dhall"];
+    git.attributes."/dhall/**".linguist-language = "Dhall";
     treefmt = {
       programs.dhall.enable = true;
       settings.formatter.dhall.includes = ["dhall/*"];

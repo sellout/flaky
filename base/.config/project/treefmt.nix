@@ -5,6 +5,9 @@
       ## Nix formatter
       alejandra.enable = true;
       dhall.lint = true;
+      ## language agnostic line sorter
+      ## (https://github.com/google/keep-sorted#readme)
+      keep-sorted.enable = true;
       ## Web/JSON/Markdown/TypeScript/YAML formatter
       ## TODO: This hangs during compile on i686-linux with Nixpkgs 25.05.
       prettier.enable = pkgs.system != "i686-linux";
@@ -13,5 +16,7 @@
       ##     used. See numtide/treefmt-nix#96.
       shfmt.indent_size = null;
     };
+    ## Require files that don’t match any formatter to be listed in `excludes`.
+    settings.global.on-unmatched = "error";
   };
 }

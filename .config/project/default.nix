@@ -1,3 +1,5 @@
+### All available options for this file are listed in
+### https://sellout.github.io/project-manager/options.xhtml
 {config, ...}: {
   project = {
     name = "flaky";
@@ -45,6 +47,7 @@
 
   ## publishing
   services.flakehub.enable = true;
+  services.flakestry.enable = true;
   services.github.enable = true;
   services.github.settings.repository.topics = [
     "development"
