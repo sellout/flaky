@@ -39,6 +39,7 @@
       emacs-lisp = ./base/.config/project/emacs-lisp;
       haskell = ./base/.config/project/haskell;
       nix = ./base/.config/project/nix;
+      rust = ./base/.config/project/rust;
     };
   in
     {
