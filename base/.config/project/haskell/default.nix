@@ -76,7 +76,7 @@ in {
 
   # NB: Can’t use IFD on FlakeHub (see DeterminateSystems/flakehub-push#69), so
   #     this is disabled until we have a way to build Haskell without IFD.
-  services.flakehub.enable = false;
+  services.flakehub.enable = lib.mkForce false;
   services.garnix.builds."*".include =
     [
       "homeConfigurations.*"
