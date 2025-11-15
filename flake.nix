@@ -86,6 +86,7 @@
           supportedSystems
           ;
         inherit (nixpkgs) lib;
+        configModules = nixpkgs.lib.attrNames configModules;
       };
 
       ## The settings shared across my projects.
