@@ -3,11 +3,18 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: {
   imports = [
     ./..
     (import ./github-pages.nix {projectName = config.project.name;})
+  ];
+
+  project.devPackages = [
+    pkgs.dhall
+    pkgs.dhall-docs
+    pkgs.dhall-lsp-server
   ];
 
   programs = {
