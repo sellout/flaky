@@ -1,4 +1,5 @@
 {
+  configModules,
   garnix-systems,
   home-manager,
   lib,
@@ -68,15 +69,8 @@ in {
             ++ modules;
         }
       );
-  in {
-    default = base self.projectModules.default;
-    bash = base self.projectModules.bash;
-    c = base self.projectModules.c;
-    dhall = base self.projectModules.dhall;
-    emacs-lisp = base self.projectModules.emacs-lisp;
-    haskell = base self.projectModules.haskell;
-    nix = base self.projectModules.nix;
-  };
+  in
+    lib.genAttrs configModules (name: base self.projectModules.${name});
 
   ## Converts a list of values parameterized by  a system (generally flake
   ## attributes like `sys: "packages.${sys}.foo"`) and replicates each of them
