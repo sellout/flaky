@@ -6,6 +6,7 @@
   lib,
   ...
 }: {
+  programs.vale.vocab.${config.project.name}.accept = ["Hacktoberfest"];
   services.github.settings.repository.topics =
     lib.mkIf (! config.services.github.settings.repository.private)
     ["hacktoberfest"];
