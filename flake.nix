@@ -26,11 +26,20 @@
     self,
     systems,
   }: let
-    sys = flake-utils.lib.system;
-
     supportedSystems = import systems;
 
     localPkgsLib = pkgs: import ./nix/pkgsLib {inherit pkgs self;};
+
+    ## Project modules that are meant to be used as top-level configurations.
+    configModules = {
+      default = ./base/.config/project;
+      bash = ./base/.config/project/bash;
+      c = ./base/.config/project/c;
+      dhall = ./base/.config/project/dhall;
+      emacs-lisp = ./base/.config/project/emacs-lisp;
+      haskell = ./base/.config/project/haskell;
+      nix = ./base/.config/project/nix;
+    };
   in
     {
       ## These are also consumed by downstream projects, so it may include more
@@ -77,19 +86,15 @@
           supportedSystems
           ;
         inherit (nixpkgs) lib;
+        configModules = nixpkgs.lib.attrNames configModules;
       };
 
-      projectModules = {
-        ## The settings shared across my projects.
-        default = ./base/.config/project;
-        bash = ./base/.config/project/bash;
-        c = ./base/.config/project/c;
-        dhall = ./base/.config/project/dhall;
-        emacs-lisp = ./base/.config/project/emacs-lisp;
-        hacktoberfest = ./base/.config/project/hacktoberfest.nix;
-        haskell = ./base/.config/project/haskell;
-        nix = ./base/.config/project/nix;
-      };
+      ## The settings shared across my projects.
+      projectModules =
+        configModules
+        // {
+          hacktoberfest = ./base/.config/project/hacktoberfest.nix;
+        };
     }
     // flake-utils.lib.eachSystem supportedSystems
     (system: let
@@ -110,7 +115,44 @@
         modules = [self.projectModules.bash];
       };
 
-      checks = self.projectConfigurations.${system}.checks;
+      checks = let
+        projectModule = name:
+          (self.lib.projectConfigurations.${name} {
+            inherit pkgs;
+            ## TODO: Modules here sholudn’t depend on the downstream `lib`, but
+            ##       should take these as options.
+            self =
+              self
+              // {
+                lib = {
+                  nixifyGhcVersion = version:
+                    "ghc" + nixpkgs.lib.replaceStrings ["."] [""] version;
+                  nonNixTestedGhcVersions = ["9.10.1"];
+                  testedGhcVersions = _: ["9.10.1"];
+                };
+              };
+            ## Options that needs to be defined by the downstream project.
+            modules = [
+              (
+                if name == "haskell"
+                then {
+                  services.haskell-ci = {
+                    cabalPackages.example-package = "core";
+                    defaultGhcVersion = "9.10.1";
+                    ghcVersions = ["9.10.1"];
+                    latestGhcVersion = "9.10.1";
+                  };
+                }
+                else {}
+              )
+            ];
+          }).packages.activation;
+      in
+        self.projectConfigurations.${system}.checks
+        // nixpkgs.lib.mapAttrs' (name: _:
+          nixpkgs.lib.nameValuePair (name + "ProjectModule")
+          (projectModule name))
+        configModules;
       formatter = self.projectConfigurations.${system}.formatter;
     });
 

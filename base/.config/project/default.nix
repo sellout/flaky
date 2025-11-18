@@ -58,9 +58,32 @@
 
   programs.project-manager.enable = true;
 
-  ## For most modules, `enable` is set at the individual project level. However,
-  ## these are enabled globally on GitHub, so this just ensures that we
-  ## constrain them with the appropriate config.
+  ## dependency management
+  services.renovate.enable = true;
+
+  ## development
+  programs = {
+    direnv.enable = true;
+    # This should default by whether there is a .git file/dir (and whether it’s
+    # a file (worktree) or dir determines other things – like where hooks
+    # are installed.
+    git.enable = true;
+  };
+
+  ## formatting
+  editorconfig.enable = true;
+  programs = {
+    treefmt.enable = true;
+    vale.enable = true;
+  };
+
+  ## CI
   services.garnix.enable = true;
   services.nix-ci.enable = true;
+
+  ## publishing
+  services = {
+    flakehub.enable = true;
+    github.enable = true;
+  };
 }
