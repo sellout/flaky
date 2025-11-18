@@ -29,13 +29,34 @@ in {
     ./hackage-publish.nix
   ];
 
-  project.devPackages = [
-    pkgs.cabal-install
-    pkgs.graphviz
-    ## So cabal-plan(-bounds) can be built in a devShell, since it doesn’t
-    ## work in Nix proper.
-    pkgs.zlib
-  ];
+  project = {
+    ## This runs `cabal check` on each Cabal file, giving us some assurance that
+    ## it’ll be accepted by Hackage.
+    checks.cabal = pkgs.runCommand "check cabal files" {src = self;} ''
+      ${lib.toShellVar "packages" config.services.haskell-ci.cabalPackages}
+      any_failure=0
+      trap 'any_failure=1' ERR
+      set +e
+      for package in "''${!packages[@]}"; do
+        echo
+        echo "$package"
+        echo "––––––––––––––––––––––––––––––––––––––––"
+        cd "$src/''${packages[$package]}"
+        ${lib.getExe pkgs.cabal-install} check
+      done
+      set -e
+      touch "$out"
+      exit $any_failure
+    '';
+
+    devPackages = [
+      pkgs.cabal-install
+      pkgs.graphviz
+      ## So cabal-plan(-bounds) can be built in a devShell, since it doesn’t
+      ## work in Nix proper.
+      pkgs.zlib
+    ];
+  };
 
   programs = {
     git.ignores = [
