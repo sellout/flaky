@@ -204,7 +204,7 @@ in {
           in
             lib.concatStringsSep " " (cfg.extraCabalArgs ++ bounds) + " \${{ matrix.bounds }}";
           steps = [
-            {uses = "actions/checkout@v4";}
+            {uses = "actions/checkout@v6";}
             {
               uses = "haskell-actions/setup@v2";
               id = "setup-haskell-cabal";
@@ -246,7 +246,7 @@ in {
           "if" = "always()";
           needs = ["build"];
           steps = [
-            {uses = "actions/checkout@v4";}
+            {uses = "actions/checkout@v6";}
             {
               uses = "haskell-actions/setup@v2";
               id = "setup-haskell-cabal";
@@ -299,7 +299,7 @@ in {
           "if" = "always()";
           needs = ["build"];
           steps = [
-            {uses = "actions/checkout@v4";}
+            {uses = "actions/checkout@v6";}
             {
               uses = "haskell-actions/setup@v2";
               id = "setup-haskell-cabal";
