@@ -24,7 +24,7 @@ in {
       };
       steps = [
         {
-          uses = "actions/checkout@v4";
+          uses = "actions/checkout@v6";
           "with".ref = "\${{ (inputs.tag != null) && format('refs/tags/{0}', inputs.tag) || '' }}";
         }
         {

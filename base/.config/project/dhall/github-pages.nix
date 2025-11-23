@@ -41,7 +41,7 @@ in {
           steps = [
             {
               name = "Checkout";
-              uses = "actions/checkout@v4";
+              uses = "actions/checkout@v6";
             }
             {
               name = "Setup Pages";
