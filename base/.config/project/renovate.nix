@@ -37,7 +37,7 @@
       runs-on = "ubuntu-24.04";
       steps = [
         {
-          uses = "actions/checkout@v5";
+          uses = "actions/checkout@v6";
           "with" = {
             repository = "\${{ github.event.pull_request.head.repo.full_name }}";
             ref = "\${{ github.event.pull_request.head.ref }}}";
