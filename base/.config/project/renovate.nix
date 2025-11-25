@@ -47,7 +47,7 @@
           };
         }
         {uses = "cachix/install-nix-action@v31";}
-        {run = "nix develop .#project-manager --command project-manager kitchen-sink";}
+        {run = "nix develop .#project-manager --accept-flake-config --command project-manager kitchen-sink";}
         {
           name = "commit changes";
           uses = "EndBug/add-and-commit@v9";
