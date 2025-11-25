@@ -40,7 +40,7 @@
           uses = "actions/checkout@v6";
           "with" = {
             repository = "\${{ github.event.pull_request.head.repo.full_name }}";
-            ref = "\${{ github.event.pull_request.head.ref }}}";
+            ref = "\${{ github.event.pull_request.head.ref }}";
             ## This uses a custom token because with the default GITHUB_TOKEN,
             ## it won’t re-run checks after creating the PR.
             token = "\${{ secrets.PROJECT_MANAGER_TOKEN }}";
