@@ -55,6 +55,7 @@
             add = "--all";
             default_author = "github_actions";
             message = "Switch Project Manager generation";
+            push = "origin --no-verify --set-upstream";
           };
         }
       ];
