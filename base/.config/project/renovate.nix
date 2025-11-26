@@ -40,12 +40,14 @@
           uses = "actions/checkout@v6";
           "with" = {
             repository = "\${{ github.event.pull_request.head.repo.full_name }}";
-            ref = "\${{ github.event.pull_request.head.ref }}}";
+            ref = "\${{ github.event.pull_request.head.ref }}";
+            ## This uses a custom token because with the default GITHUB_TOKEN,
+            ## it won’t re-run checks after creating the PR.
             token = "\${{ secrets.PROJECT_MANAGER_TOKEN }}";
           };
         }
         {uses = "cachix/install-nix-action@v31";}
-        {run = "nix develop .#project-manager --command project-manager kitchen-sink";}
+        {run = "nix develop .#project-manager --accept-flake-config --command project-manager kitchen-sink";}
         {
           name = "commit changes";
           uses = "EndBug/add-and-commit@v9";
@@ -53,6 +55,7 @@
             add = "--all";
             default_author = "github_actions";
             message = "Switch Project Manager generation";
+            push = "origin --no-verify --set-upstream";
           };
         }
       ];
