@@ -306,7 +306,18 @@ in {
           "if" = "always()";
           needs = ["build"];
           steps = [
-            {uses = "actions/checkout@v6";}
+            {
+              uses = "actions/checkout@v6";
+              "if" = "github.event_name != 'pull_request'";
+            }
+            {
+              uses = "actions/checkout@v6";
+              "if" = "github.event_name == 'pull_request'";
+              "with" = {
+                repository = "\${{ github.event.pull_request.head.repo.full_name }}";
+                ref = "\${{ github.event.pull_request.head.ref }}";
+              };
+            }
             {
               uses = "haskell-actions/setup@v2";
               id = "setup-haskell-cabal";
@@ -339,7 +350,7 @@ in {
               '';
             }
             {
-              name = "check if licenses have changed";
+              name = "update license reports";
               run = ''
                 ${lib.toShellVar "packages" cfg.cabalPackages}
                 for package in "''${!packages[@]}"; do
@@ -349,8 +360,23 @@ in {
                     cabal-plan license-report "$package:lib:$package"
                   } >"''${packages[$package]}/docs/license-report.md"
                 done
-                git diff --exit-code */docs/license-report.md
               '';
+            }
+            {
+              name = "check changes";
+              "if" = "github.event_name != 'pull_request'";
+              run = "git diff --exit-code */docs/license-report.md";
+            }
+            {
+              name = "commit changes";
+              "if" = "github.event_name == 'pull_request'";
+              uses = "EndBug/add-and-commit@v9";
+              "with" = {
+                add = "*/docs/license-report.md";
+                default_author = "github_actions";
+                message = "Update license reports";
+                push = "origin --no-verify --set-upstream";
+              };
             }
           ];
         };
