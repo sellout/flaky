@@ -78,7 +78,7 @@
         }
         {
           name = "commit changes";
-          uses = "EndBug/add-and-commit@v9";
+          uses = "EndBug/add-and-commit@v10";
           "with" = {
             add = "--all";
             default_author = "github_actions";
