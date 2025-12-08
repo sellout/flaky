@@ -54,9 +54,8 @@
       ##
       ## TODO: Make this more efficient: cascade _only_ if the failure is that
       ##      `project-manager` isn’t found.
-      ##nix develop --command project-manager switch "''${FLAKY_ARGS[@]}" \
-      ##  || nix develop .#project-manager --command project-manager switch \
-      project-manager switch
+      nix develop --command project-manager switch "''${FLAKY_ARGS[@]}" \
+       || nix develop .#project-manager --command project-manager switch \
       ## Format the README before checking, because templating may affect
       ## formatting.
       nix fmt README.md || true
