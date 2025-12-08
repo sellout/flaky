@@ -37,7 +37,7 @@
       nix flake new --template "$src#${name}" "${name}-example"
       cd "${name}-example"
       find . -iname "*{{project.name}}*" -depth \
-        -execdir rename 's/{{project.name}}/template-example/g' {} +
+        -execdir rename 's/\{\{project.name\}\}/template-example/g' {} +
       find . -type f -exec bash -c \
         'mustache "$src/templates/example.yaml" "$0" | sponge "$0"' \
         {} \;
