@@ -9,10 +9,11 @@
       ## (https://github.com/google/keep-sorted#readme)
       keep-sorted.enable = true;
       ## Web/JSON/Markdown/TypeScript/YAML formatter
+      ## TODO: This is broken on i686-linux in Nixpkgs 25.11.
       prettier.enable = pkgs.stdenv.hostPlatform.system != "i686-linux";
       ## Shell formatter
-      ## NB: This has to be unset to allow the .editorconfig settings to be
-      ##     used. See numtide/treefmt-nix#96.
+      ## NB: These settings are required to allow the .editorconfig settings to
+      ##     be used. See numtide/treefmt-nix#442.
       shfmt = {
         indent_size = null;
         simplify = false;

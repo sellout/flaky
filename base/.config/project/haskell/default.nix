@@ -65,6 +65,8 @@ in {
     ];
     treefmt = {
       programs.ormolu.enable = true;
+      ## TODO: This is conditionalized because of numtide/treefmt-nix#419. Clean
+      ##       this up once that’s fixed.
       settings.formatter =
         if pkgs.stdenv.hostPlatform.system != "i686-linux"
         then {prettier.excludes = ["*/docs/license-report.md"];}
