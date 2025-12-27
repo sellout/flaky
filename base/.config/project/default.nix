@@ -25,7 +25,7 @@
       ++ (
         ## NB: pnpm (a dependency of bash-language-server) fails to build on
         ##     i686-linux.
-        if pkgs.system == "i686-linux"
+        if pkgs.stdenv.hostPlatform.system == "i686-linux"
         then []
         else [pkgs.nodePackages.bash-language-server]
       );

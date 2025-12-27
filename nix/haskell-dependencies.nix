@@ -7,7 +7,7 @@ final: prev: hfinal: hprev:
 ## TODO: Various packages fail their tests on i686-linux. Should probably fix
 ##       them at some point.
 (
-  if final.system == "i686-linux"
+  if final.stdenv.hostPlatform.system == "i686-linux"
   then {
     aeson = final.haskell.lib.dontCheck hprev.aeson;
     base64 = final.haskell.lib.dontCheck hprev.base64;
