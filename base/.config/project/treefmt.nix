@@ -13,7 +13,10 @@
       ## Shell formatter
       ## NB: This has to be unset to allow the .editorconfig settings to be
       ##     used. See numtide/treefmt-nix#96.
-      shfmt.indent_size = null;
+      shfmt = {
+        indent_size = null;
+        simplify = false;
+      };
     };
     ## Require files that don’t match any formatter to be listed in `excludes`.
     settings.global.on-unmatched = "error";
