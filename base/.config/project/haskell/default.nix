@@ -65,7 +65,10 @@ in {
     ];
     treefmt = {
       programs.ormolu.enable = true;
-      settings.formatter.prettier.excludes = ["*/docs/license-report.md"];
+      settings.formatter =
+        if pkgs.stdenv.hostPlatform.system != "i686-linux"
+        then {prettier.excludes = ["*/docs/license-report.md"];}
+        else {};
     };
     vale = {
       excludes = [

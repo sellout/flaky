@@ -1,4 +1,4 @@
-{
+{pkgs, ...}: {
   programs.treefmt = {
     projectRootFile = "flake.nix";
     programs = {
@@ -9,7 +9,7 @@
       ## (https://github.com/google/keep-sorted#readme)
       keep-sorted.enable = true;
       ## Web/JSON/Markdown/TypeScript/YAML formatter
-      prettier.enable = true;
+      prettier.enable = pkgs.stdenv.hostPlatform.system != "i686-linux";
       ## Shell formatter
       ## NB: This has to be unset to allow the .editorconfig settings to be
       ##     used. See numtide/treefmt-nix#96.
