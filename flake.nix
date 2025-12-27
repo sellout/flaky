@@ -64,13 +64,6 @@
           haskellPackages =
             prev.haskellPackages.extend
             (self.overlays.haskellDependencies final prev);
-          nodejs = prev.nodejs.overrideAttrs (old: {
-            ## Various tests fail in various cases. One failed on i686-linux at
-            ## some point, and there are more tests failing on macOS 15.4, until
-            ## https://github.com/NixOS/nixpkgs/commit/bb11d476f50aa93f4129bbdc58cb004bbc601971
-            ## hits a release branch.
-            doCheck = false;
-          });
         };
 
         haskellDependencies = import ./nix/haskell-dependencies.nix;
