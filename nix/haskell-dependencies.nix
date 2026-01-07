@@ -4,9 +4,25 @@
 ### Tests should be disabled as tightly as possible, but we should try to use
 ### the same version of a package across all systems & compilers.
 final: prev: hfinal: hprev:
+{
+  ## There’s an issue with stylish-haskell in the GHC 9.8 package sets for Linux
+  ## in Nixpkgs 25.11. Rather than get too delicate with the conditionals, just
+  ## disable all the non-Ormolu formatters all the time.
+  ##
+  ## NB: This is fine for using the HLS binary, but is probably not what you
+  ##     want if you have it as a library dependency.
+  haskell-language-server =
+    final.lib.foldr final.haskell.lib.disableCabalFlag
+    hprev.haskell-language-server
+    [
+      "floskell"
+      "fourmolu"
+      "stylishhaskell"
+    ];
+}
 ## TODO: Various packages fail their tests on i686-linux. Should probably fix
 ##       them at some point.
-(
+// (
   if final.stdenv.hostPlatform.system == "i686-linux"
   then {
     aeson = final.haskell.lib.dontCheck hprev.aeson;
