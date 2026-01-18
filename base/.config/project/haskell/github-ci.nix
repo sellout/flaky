@@ -145,6 +145,19 @@ in {
     planName = "plan-\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
     runs-on = "ubuntu-24.04";
     filterGhcVersions = lib.intersectLists cfg.ghcVersions;
+    cache = suffix: extra-restore-keys: {
+      uses = "actions/cache@v4";
+      "with" = {
+        path = ''
+          ''${{ steps.setup-haskell-cabal.outputs.cabal-store }}
+          dist-newstyle
+        '';
+        key = "\${{ matrix.os }}-\${{ matrix.ghc }}-${suffix}";
+        restore-keys =
+          lib.concatLines
+          (extra-restore-keys ++ ["\${{ matrix.os }}-\${{ matrix.ghc }}"]);
+      };
+    };
   in {
     services.github.workflow."build.yml".text = lib.generators.toYAML {} {
       name = "CI";
@@ -214,16 +227,9 @@ in {
               };
             }
             {run = "cabal v2-freeze $CONFIG";}
-            {
-              uses = "actions/cache@v4";
-              "with" = {
-                path = ''
-                  ''${{ steps.setup-haskell-cabal.outputs.cabal-store }}
-                  dist-newstyle
-                '';
-                key = "\${{ matrix.os }}-\${{ matrix.ghc }}-\${{ hashFiles('cabal.project.freeze') }}";
-              };
-            }
+            (cache "build-\${{ hashFiles('cabal.project.freeze') }}" [
+              "\${{ matrix.os }}-\${{ matrix.ghc }}-build"
+            ])
             ## NB: The `doctests` suites don’t seem to get built without
             ##     explicitly doing so before running the tests.
             {run = "cabal v2-build all $CONFIG";}
@@ -255,6 +261,7 @@ in {
                 ghc-version = cfg.defaultGhcVersion;
               };
             }
+            (cache "cabal-plan-bounds" [])
             {run = "cabal install cabal-plan-bounds";}
             {
               name = "download Cabal plans";
@@ -308,6 +315,7 @@ in {
                 ghc-version = cfg.defaultGhcVersion;
               };
             }
+            (cache "cabal-plan" [])
             {
               run = ''
                 cabal install cabal-plan \
