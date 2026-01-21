@@ -29,11 +29,21 @@
 
   ## When Renovate opens a lock file update, run `project-manager switch` and
   ## push the new commit to the PR branch.
+  ##
+  ## NB: This requires a GitHub PAT (added as an environment secret named
+  ##     “PROJECT_MANAGER_TOKEN”) in order to work (otherwise it wouldn’t re-run
+  ##     the checks). Technically the PAT only requires write access to
+  ##     “Content”, but if you generate GitHub workflows (like this one) via
+  ##     Project Manager, you’ll also want write access to “Workflows”. PATs can
+  ##     be edited after they’re created, though, so if you’re unsure, you can
+  ##     avoid the “Workflows” permission until it causes a failure.
   services.github.workflow."switch-pm-generation.yml".text = lib.pm.generators.toYAML {} {
     name = "Project Manager";
     on.pull_request = {};
     jobs.switch = {
-      "if" = "github.head_ref == 'renovate/lock-file-maintenance'";
+      ## `maintainer_can_modify` is apparently only ever `true` on forks, so
+      ## first check whether the PR is from the same repo.
+      "if" = "\${{ github.event.pull_request.head.repo.full_name == github.repository || github.event.pull_request.maintainer_can_modify }}";
       runs-on = "ubuntu-24.04";
       steps = [
         {
@@ -47,7 +57,13 @@
           };
         }
         {uses = "cachix/install-nix-action@v31";}
-        {run = "nix develop .#project-manager --accept-flake-config --command project-manager kitchen-sink";}
+        {
+          run = ''
+            nix develop .#project-manager \
+              --accept-flake-config \
+              --command project-manager kitchen-sink
+          '';
+        }
         {
           name = "commit changes";
           uses = "EndBug/add-and-commit@v9";
