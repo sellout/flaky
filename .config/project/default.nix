@@ -32,5 +32,16 @@
       "development"
       "nix-flakes"
     ];
+    ## Only run Renovate monthly (on the 15th). This reduces the amount of
+    ## cascading Nixpkgs updates, which makes it more likely that checked out
+    ## repos are on the same revision.
+    renovate.settings.lockFileMaintenance = {
+      ## FIXME: Should only need the `schedule` field here, but this doesn’t
+      ##        currently merge properly, so need to replicate the whole
+      ##        structure.
+      automerge = true;
+      enabled = true;
+      schedule = ["* 0-4 15 * *"];
+    };
   };
 }

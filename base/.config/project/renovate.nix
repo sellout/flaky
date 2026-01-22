@@ -12,6 +12,15 @@
     lockFileMaintenance = {
       inherit automerge;
       enabled = true;
+      ## Run at any time. This might seem noisy, but all of these repos should
+      ## get their Nixpkgs via Flaky, which only runs `lockFileMaintenance`
+      ## monthly. So this ensures that packges stay very in-sync with Flaky and
+      ## other not-too-quick-to-update inputs while hopefully still not having
+      ## too many `lockFileMaintenance` PRs.
+      ##
+      ## If updates _are_ to frequent, this can be reduced here, or via
+      ## `mkForce` per-repo.
+      schedule = ["* * * * *"];
     };
     packageRules =
       if automerge
@@ -25,6 +34,7 @@
         }
       ]
       else [];
+    platformAutomerge = true;
   };
 
   ## When Renovate opens a lock file update, run `project-manager switch` and
