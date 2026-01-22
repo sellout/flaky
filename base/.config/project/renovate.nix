@@ -39,7 +39,9 @@
   ##     avoid the “Workflows” permission until it causes a failure.
   services.github.workflow."switch-pm-generation.yml".text = lib.pm.generators.toYAML {} {
     name = "Project Manager";
-    on.pull_request = {};
+    ## NB: Need `_target` so PRs from forks have access to the PAT that allows
+    ##     re-running checks.
+    on.pull_request_target = {};
     jobs.switch = {
       ## `maintainer_can_modify` is apparently only ever `true` on forks, so
       ## first check whether the PR is from the same repo.
