@@ -78,7 +78,10 @@
           strict = false;
           contexts = ["All Garnix checks"];
         };
-        enforce_admins = true;
+        ## There’s still an extra step required to bypass protection settings,
+        ## so we don’t need to completely block merging something that isn’t
+        ## passing.
+        enforce_admins = false;
         required_linear_history = false;
         allow_force_pushes = false;
         restrictions = null;

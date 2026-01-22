@@ -10,6 +10,7 @@
         trim_trailing_whitespace = true;
         ## for shfmt
         binary_next_line = true;
+        simplify = true;
         space_redirects = true;
         switch_case_indent = true;
       };

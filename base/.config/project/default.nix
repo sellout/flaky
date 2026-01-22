@@ -84,6 +84,7 @@
   ## publishing
   services = {
     flakehub.enable = true;
+    flakestry.enable = true;
     github.enable = true;
   };
 }
