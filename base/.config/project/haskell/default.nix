@@ -109,13 +109,17 @@ in {
       "nixosConfigurations.*"
     ]
     ++ flaky.lib.forGarnixSystems supportedSystems nixBuildsFor;
-  services.haskell-ci = {
+  services.haskell-ci = let
+    filterGhcVersions =
+      lib.intersectLists config.services.haskell-ci.ghcVersions;
+  in {
     ## In CI, we run without `build-depends` bounds. The cabal.project file
     ## contains any hard constraints (ones we’ve had to add to get the build
     ## matrix passing), and `cabal-plan-bounds` runs in CI to tell us if the
     ## bounds listed in the Cabal package files are still correct.
     allowNewer = true;
     allowOlder = true;
+    checkBounds.enable = lib.mkDefault true;
     extraCabalArgs = [
       ## Make sure we’re building everything.
       "--enable-benchmarks"
@@ -135,6 +139,25 @@ in {
       # "windows-11-arm" #   aarch64-windows
       "windows-2025" #     x86_64-windows
     ];
+    exclude =
+      ## GHCup needs an older Ubuntu for these versions..
+      map (ghc: {
+        inherit ghc;
+        os = "ubuntu-24.04";
+      }) (filterGhcVersions ["7.10.3" "8.0.2" "8.2.2"])
+      ## GitHub can’t install GHC older than 9.2 on ARM systems.
+      ++ lib.concatMap (ghc:
+        map (os: {
+          inherit ghc os;
+        }) ["macos-15" "ubuntu-24.04-arm"])
+      (builtins.filter (ghc: lib.versionOlder ghc "9.2")
+        config.services.haskell-ci.ghcVersions);
+    include = lib.concatMap (bounds:
+      map (ghc: {
+        inherit bounds ghc;
+        os = "ubuntu-22.04";
+      }) (filterGhcVersions ["7.10.3" "8.0.2" "8.2.2"]))
+    ["--prefer-oldest" ""];
   };
   services.nix-ci = {
     ## TODO: Remove this once projects have switched to Cabal.nix generation.

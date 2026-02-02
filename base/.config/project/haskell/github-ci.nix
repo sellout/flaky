@@ -6,8 +6,6 @@
   ...
 }: let
   cfg = config.services.haskell-ci;
-
-  bounds = ["--prefer-oldest" ""];
 in {
   options.services.haskell-ci = {
     enable =
@@ -123,28 +121,31 @@ in {
       example = ["--enable-benchmarks" "--enable-tests"];
     };
 
-    extraDependencyVersions = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [];
-      description = ''
-        A list of Cabal package versions to include in the bounds, even if the
-        Cabal solver doesn’t select them. This is useful for supporting older
-        versions of packages in the same repo, or version that are in the Nix
-        package set, but not selected by the solver on GitHub.
-      '';
-      example = [
-        "yaya-0.5.1.0"
-        "yaya-0.6.0.0"
-        "yaya-hedgehog-0.2.1.0"
-        "yaya-hedgehog-0.3.0.0"
-        "th-abstraction-0.5.0.0"
-      ];
+    checkBounds = {
+      enable = lib.mkEnableOption "checking of dependency bounds";
+
+      extraDependencyVersions = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        description = ''
+          A list of Cabal package versions to include in the bounds, even if the
+          Cabal solver doesn’t select them. This is useful for supporting older
+          versions of packages in the same repo, or version that are in the Nix
+          package set, but not selected by the solver on GitHub.
+        '';
+        example = [
+          "yaya-0.5.1.0"
+          "yaya-0.6.0.0"
+          "yaya-hedgehog-0.2.1.0"
+          "yaya-hedgehog-0.3.0.0"
+          "th-abstraction-0.5.0.0"
+        ];
+      };
     };
   };
   config = lib.mkIf cfg.enable (let
     planName = "plan-\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
     runs-on = "ubuntu-24.04";
-    filterGhcVersions = lib.intersectLists cfg.ghcVersions;
     cache = suffix: extra-restore-keys: {
       uses = "actions/cache@v4";
       "with" = {
@@ -159,7 +160,7 @@ in {
       };
     };
   in {
-    services.github.workflow."build.yml".text = lib.generators.toYAML {} {
+    services.github.workflow."build.yml".text = lib.pm.generators.toYAML {} {
       name = "CI";
       on = {
         push.branches = ["main"];
@@ -173,31 +174,10 @@ in {
           strategy = {
             fail-fast = false;
             matrix = {
-              inherit bounds;
+              inherit (cfg) exclude include;
+              bounds = ["" "--prefer-oldest"];
               ghc = cfg.ghcVersions;
               os = cfg.systems;
-              exclude =
-                ## GHCup needs an older Ubuntu for these versions..
-                map (ghc: {
-                  inherit ghc;
-                  os = "ubuntu-24.04";
-                }) (filterGhcVersions ["7.10.3" "8.0.2" "8.2.2"])
-                ## GitHub can’t install GHC older than 9.2 on ARM systems.
-                ++ lib.concatMap (ghc:
-                  map (os: {
-                    inherit ghc os;
-                  }) ["macos-15" "ubuntu-24.04-arm"])
-                (builtins.filter (ghc: lib.versionOlder ghc "9.2")
-                  cfg.ghcVersions)
-                ++ cfg.exclude;
-              include =
-                lib.concatMap (bounds:
-                  map (ghc: {
-                    inherit bounds ghc;
-                    os = "ubuntu-22.04";
-                  }) (filterGhcVersions ["8.0.2" "8.2.2"]))
-                bounds
-                ++ cfg.include;
             };
           };
           runs-on = "\${{ matrix.os }}";
@@ -249,7 +229,7 @@ in {
           inherit runs-on;
           ## Some "build" jobs are a bit flaky. This can give us useful bounds
           ## information even without all of the build plans.
-          "if" = "always()";
+          "if" = "\${{ !cancelled() }}";
           needs = ["build"];
           steps = [
             {uses = "actions/checkout@v6";}
@@ -278,8 +258,9 @@ in {
             }
             {
               name = "check if bounds have changed";
+              continue-on-error = !cfg.checkBounds.enable;
               ## TODO: Simplify this once cabal-plan-bounds supports a `--check`
-              ##       option.
+              ##       option (nomeata/cabal-plan-bounds#26).
               run = ''
                 diffs="$(find . -name '*.cabal' -exec \
                   cabal-plan-bounds \
@@ -287,7 +268,7 @@ in {
                     ${
                   lib.concatMapStrings
                   (pkg: "--also " + pkg + " ")
-                  cfg.extraDependencyVersions
+                  cfg.checkBounds.extraDependencyVersions
                 } \
                     plans/*.json \
                     --cabal {} \;)"
@@ -303,7 +284,7 @@ in {
           inherit runs-on;
           ## Some "build" jobs are a bit flaky. Since this only uses one of the
           ## jobs from the matrix, we run it regardless of build failures.
-          "if" = "always()";
+          "if" = "\${{ !cancelled() }}";
           needs = ["build"];
           steps = [
             {uses = "actions/checkout@v6";}
