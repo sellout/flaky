@@ -8,22 +8,32 @@ final: prev: hfinal: hprev:
 ##       them at some point.
 (
   if final.stdenv.hostPlatform.system == "i686-linux"
-  then {
-    aeson = final.haskell.lib.dontCheck hprev.aeson;
-    base64 = final.haskell.lib.dontCheck hprev.base64;
-    enummapset = final.haskell.lib.dontCheck hprev.enummapset;
-    ## Tests run out of memory (at least on garnix)
-    generic-arbitrary = final.haskell.lib.dontCheck hprev.generic-arbitrary;
-    hackage-security = final.haskell.lib.dontCheck hprev.hackage-security;
-    persistent = final.haskell.lib.dontCheck hprev.persistent;
-    relude = final.haskell.lib.dontCheck hprev.relude;
-    slist = final.haskell.lib.dontCheck hprev.slist;
-    ## Stack smashing
-    sqlite-simple = final.haskell.lib.dontCheck hprev.sqlite-simple;
-    stan = final.haskell.lib.dontCheck hprev.stan;
-    unordered-containers =
-      final.haskell.lib.dontCheck hprev.unordered-containers;
-    validity = final.haskell.lib.dontCheck hprev.validity;
-  }
+  then
+    {
+      aeson = final.haskell.lib.dontCheck hprev.aeson;
+      base64 = final.haskell.lib.dontCheck hprev.base64;
+      enummapset = final.haskell.lib.dontCheck hprev.enummapset;
+      ## Tests run out of memory (at least on garnix)
+      generic-arbitrary = final.haskell.lib.dontCheck hprev.generic-arbitrary;
+      hackage-security = final.haskell.lib.dontCheck hprev.hackage-security;
+      persistent = final.haskell.lib.dontCheck hprev.persistent;
+      relude = final.haskell.lib.dontCheck hprev.relude;
+      slist = final.haskell.lib.dontCheck hprev.slist;
+      ## Stack smashing
+      sqlite-simple = final.haskell.lib.dontCheck hprev.sqlite-simple;
+      stan = final.haskell.lib.dontCheck hprev.stan;
+      unordered-containers =
+        final.haskell.lib.dontCheck hprev.unordered-containers;
+      validity = final.haskell.lib.dontCheck hprev.validity;
+    }
+    // (
+      if
+        final.lib.versionAtLeast hprev.ghc.version "9.6"
+        && final.lib.versionOlder hprev.ghc.version "9.8"
+      then {
+        retrie = final.haskell.lib.dontCheck hprev.retrie;
+      }
+      else {}
+    )
   else {}
 )
