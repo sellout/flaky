@@ -169,7 +169,16 @@ in {
           "synchronize"
         ];
       };
-      jobs = {
+      jobs = let
+        setUpHaskell = ghc-version: {
+          uses = "haskell-actions/setup@v2";
+          id = "setup-haskell-cabal";
+          "with" = {
+            inherit ghc-version;
+            cabal-version = pkgs.cabal-install.version;
+          };
+        };
+      in {
         build = {
           strategy = {
             fail-fast = false;
@@ -198,14 +207,7 @@ in {
             lib.concatStringsSep " " (cfg.extraCabalArgs ++ bounds) + " \${{ matrix.bounds }}";
           steps = [
             {uses = "actions/checkout@v6";}
-            {
-              uses = "haskell-actions/setup@v2";
-              id = "setup-haskell-cabal";
-              "with" = {
-                cabal-version = pkgs.cabal-install.version;
-                ghc-version = "\${{ matrix.ghc }}";
-              };
-            }
+            (setUpHaskell "\${{ matrix.ghc }}")
             {run = "cabal v2-freeze $CONFIG";}
             (cache
               "\${{ matrix.os }}"
@@ -235,14 +237,7 @@ in {
           needs = ["build"];
           steps = [
             {uses = "actions/checkout@v6";}
-            {
-              uses = "haskell-actions/setup@v2";
-              id = "setup-haskell-cabal";
-              "with" = {
-                cabal-version = pkgs.cabal-install.version;
-                ghc-version = cfg.defaultGhcVersion;
-              };
-            }
+            (setUpHaskell cfg.defaultGhcVersion)
             (cache runs-on cfg.defaultGhcVersion "cabal-plan-bounds" [])
             {run = "cabal install cabal-plan-bounds";}
             {
@@ -290,14 +285,7 @@ in {
           needs = ["build"];
           steps = [
             {uses = "actions/checkout@v6";}
-            {
-              uses = "haskell-actions/setup@v2";
-              id = "setup-haskell-cabal";
-              "with" = {
-                cabal-version = pkgs.cabal-install.version;
-                ghc-version = cfg.defaultGhcVersion;
-              };
-            }
+            (setUpHaskell cfg.defaultGhcVersion)
             (cache runs-on cfg.defaultGhcVersion "cabal-plan" [])
             {
               run = ''
