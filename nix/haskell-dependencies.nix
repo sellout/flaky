@@ -4,9 +4,16 @@
 ### Tests should be disabled as tightly as possible, but we should try to use
 ### the same version of a package across all systems & compilers.
 final: prev: hfinal: hprev:
-## TODO: Various packages fail their tests on i686-linux. Should probably fix
-##       them at some point.
-(
+{
+  ghc-compat-plugin = hfinal.callHackageDirect {
+    pkg = "ghc-compat-plugin";
+    ver = "0.0.2.0";
+    sha256 = "xQ+v0G6ZYjRjSIS2I9DaXRXnLsJ/gOq7F7oXtHHaaNo=";
+  } {};
+}
+// (
+  ## TODO: Various packages fail their tests on i686-linux. Should probably fix
+  ##       them at some point.
   if final.stdenv.hostPlatform.system == "i686-linux"
   then
     {
