@@ -151,13 +151,28 @@ in {
           inherit ghc os;
         }) ["macos-15" "ubuntu-24.04-arm"])
       (builtins.filter (ghc: lib.versionOlder ghc "9.2")
-        config.services.haskell-ci.ghcVersions);
+        config.services.haskell-ci.ghcVersions)
+      ++ [
+        ## GHC 9.2.1 relied on libnuma at runtime for aarch64-linux
+        ## https://gitlab.haskell.org/ghc/ghc/-/merge_requests/7357
+        {
+          ghc = "9.2.1";
+          os = "ubuntu-24.04-arm";
+        }
+      ];
     include = lib.concatMap (bounds:
       map (ghc: {
         inherit bounds ghc;
         os = "ubuntu-22.04";
-      }) (filterGhcVersions ["7.10.3" "8.0.2" "8.2.2"]))
-    ["--prefer-oldest" ""];
+      }) (filterGhcVersions ["7.10.3" "8.0.2" "8.2.2"])
+      ++ [
+        {
+          inherit bounds;
+          ghc = "9.2.2";
+          os = "ubuntu-24.04-arm";
+        }
+      ])
+    ["" "--prefer-oldest"];
   };
   services.nix-ci = {
     ## TODO: Remove this once projects have switched to Cabal.nix generation.

@@ -206,6 +206,17 @@ in {
           in
             lib.concatStringsSep " " (cfg.extraCabalArgs ++ bounds) + " \${{ matrix.bounds }}";
           steps = [
+            ## Workaround for
+            ## https://stackoverflow.com/questions/37948715/why-executables-built-with-ghc-7-10-2-have-dependencies-with-both-librt-and-libc
+            {
+              "if" = "\${{ matrix.ghc == '7.10.3' && matrix.os == 'ubuntu-22.04' }}";
+              run = ''
+                sudo ln -s /lib/x86_64-linux-gnu/libdl.so.2 /usr/lib/x86_64-linux-gnu/libdl.so
+                sudo ln -s /lib/x86_64-linux-gnu/libpthread.so.0 /usr/lib/x86_64-linux-gnu/libpthread.so
+                sudo ln -s /lib/x86_64-linux-gnu/librt.so.1 /usr/lib/x86_64-linux-gnu/librt.so
+                sudo ln -s /lib/x86_64-linux-gnu/libutil.so.1 /usr/lib/x86_64-linux-gnu/libutil.so
+              '';
+            }
             {uses = "actions/checkout@v6";}
             (setUpHaskell "\${{ matrix.ghc }}")
             {run = "cabal v2-freeze $CONFIG";}
