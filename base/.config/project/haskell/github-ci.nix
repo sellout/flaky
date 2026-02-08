@@ -170,12 +170,14 @@ in {
         ];
       };
       jobs = let
-        setUpHaskell = ghc: {
-          uses = "haskell/ghcup-setup@v1";
+        ## NB: This uses haskell-actions/setup instead of haskell/ghcup-setup
+        ##     primarily because of haskell/ghcup-setup#18.
+        setUpHaskell = ghc-version: {
+          uses = "haskell-actions/setup@v2";
           id = "setup-haskell-cabal";
           "with" = {
-            inherit ghc;
-            cabal = pkgs.cabal-install.version;
+            inherit ghc-version;
+            cabal-version = pkgs.cabal-install.version;
           };
         };
       in {
