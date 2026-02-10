@@ -7,8 +7,8 @@ final: prev: hfinal: hprev:
 {
   ghc-compat-plugin = hfinal.callHackageDirect {
     pkg = "ghc-compat-plugin";
-    ver = "0.0.2.0";
-    sha256 = "xQ+v0G6ZYjRjSIS2I9DaXRXnLsJ/gOq7F7oXtHHaaNo=";
+    ver = "0.1.0.1";
+    sha256 = "T4f8SJNQyrZER6om6+ns5FiXXYUDJp3FJ6T13+xHRBg=";
   } {};
 }
 // (
