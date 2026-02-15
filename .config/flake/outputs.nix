@@ -46,6 +46,23 @@ in
         haskellPackages =
           prev.haskellPackages.extend
           (self.overlays.haskellDependencies final prev);
+
+        ## TODO: Remove this once NixOS/nixpkgs#488689 is fixed.
+        inetutils = let
+          orig = prev.inetutils;
+        in
+          if final.hostPlatform.isDarwin
+          then
+            orig.overrideAttrs (old: let
+              version = "2.6";
+            in {
+              inherit version;
+              src = final.fetchurl {
+                url = "mirror://gnu/${old.pname}/${old.pname}-${version}.tar.xz";
+                hash = "sha256-aL7b/q9z99hr4qfZm8+9QJPYKfUncIk5Ga4XTAsjV8o=";
+              };
+            })
+          else orig;
       };
 
       haskellDependencies = import ../../nix/haskell-dependencies.nix;
