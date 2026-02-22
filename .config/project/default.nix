@@ -14,15 +14,28 @@
       ## This is a personal repository.
       formatSettings."*"."Microsoft.FirstPerson" = "NO";
       vocab.${config.project.name}.accept = [
+        "APIs"
+        "conditionalize"
         "Dhall"
+        "Doctest"
         "EditorConfig"
         ## Separated because “Editorconfig” and “editorConfig” aren’t valid.
         "editorconfig"
         "Eldev"
         "envrc"
-        "fmt"
+        "Flakestry"
+        "formatters"
+        "Hackage"
+        "henforcer"
+        "Hspec"
+        "pragmas"
         "Probot"
+        "QuickCheck"
         "shfmt"
+        "sublibraries"
+        "sublibrary"
+        "unformatted"
+        "widenings"
       ];
     };
   };
