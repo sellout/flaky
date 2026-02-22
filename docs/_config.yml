@@ -1,0 +1,5 @@
+title: Documentation for Flaky-based projects
+description: Shared documents that apply to all projects.
+plugins:
+- jekyll-remote-theme
+remote_theme: pages-themes/modernist@v0.2.0
