@@ -22,6 +22,21 @@ Open anything on the forge you’re viewing the code on (most likely GitHub).
 
 All contributions are welcome, we love improvements to docs and tests.
 
+### terminology
+
+| generic    | Haskell       | Nix        | Rust      | versioned |
+|------------|---------------|------------|-----------|-----------|
+| repository |               |            |           | ✔         |
+| project    | Cabal project | flake      | workspace |           |
+| package    | Cabal package | derivation | crate     | ✔         |
+| component  | Cabal stanza  |            |           |           |
+
+There is usually one project per repository, but sometimes a project may be split across multiple repositories. It’s unlikely that more than one project would be in the same repository.
+
+In some languages, there is a notion of a “component”. Components all share a single version. In general, we put multiple components into separate packages – for example, in Haskell, a library and an executable each represent a component, but in order to allow them to be versioned independently, they’re separated. However, test suites for a library are separate components, but kept in the same package as the library[^1], because there’s no benefit to versioning them separately.
+
+[^1]: There’s actually a common problem that sometimes makes its difficult to keep some test suites in the same component, where you want a separately-versioned _testing_ library, and so your test suites move into the testing library’s package instead of the tested library’s package.
+
 ## building
 
 Especially if you are unfamiliar with the particular language ecosystem, there is a Nix build (both with and without a flake). If you are unfamiliar with Nix, [Nix adjacent](...) can help you get things working in the shortest time and least effort possible.
@@ -62,7 +77,7 @@ If you do need to bulk re-format (e.g., you have a long series of commits, and t
 
 Breaking changes should be made in separate PRs from backward compatible changes as much as possible.
 
-For example, if you are adding a new API that replaces an existing one, there should first be a PR that adds the new API alongside the old one, then a second PR that removes the old API. If there are name conflicts, defer them until the breaking change, making the work to adjust to the breaking change minimal. E.g.,
+For example, if you are adding a new API that replaces an existing one, there should first be a PR that adds the new API alongside the old one, then a second PR that removes the old API. If there are name conflicts, defer them until the breaking change, making the work to adjust to the breaking change minimal. For example,
 
 You have original code like:
 
@@ -97,3 +112,25 @@ then in the breaking change, you remove `Foo.MyAPI`, rename `Foo.MyAPI'` to `Foo
 If there are no conflicts in the changes, simply adding and removing, then there is no need for the third (future) PR. The initial two PRs will suffice.
 
 See [the README](./README.md#versioning) for more specific information on what kind of changes are considered “breaking”.
+
+#### security fixes are an exception to semantic versioning
+
+To help ensure security fixes are propagated quickly, they should
+
+1. ideally be handled as no more than a compatible (minor) change;
+2. be immediately backported to any major version chain where the latest release contains the security issue; and
+3. deprecate any releases that contain the security issue.
+
+If it’s not possible to fix the security issue without breaking the API, it should _still_ be released as a compatible change. This is an unfortunate situation, but it ensures that anyone who uses that functionality downstream faces breakage instead of insecure behavior.
+
+### documentation
+
+#### _correct_ is important, _pretty_ is nice
+
+Feel free to submit changes to documentation that include assumptions, etc. that may not be correct. That’s just more evidence that additional documentation is necessary. We’ll get to correct during code review.
+
+However, while we might mention style issues in code review, fixing that is almost never a blocker for merging a change[^2].
+
+[^2]: There _are_ cases where formatting can block a merge. For example, if ASCII art isn’t in a code block, the rendering as re-flowed text could make it wrong or misleading. That would be a blocker.
+
+The style is mostly adapted from, [The Elements of Typographic Style](https://en.wikipedia.org/wiki/The_Elements_of_Typographic_Style), translated to low-fidelity tools (like Markdown). But you don’t need to be familiar with that to submit acceptable docs.
