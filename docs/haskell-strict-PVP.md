@@ -40,7 +40,13 @@ With this in mind, we want version numbers to communicate compatibility _conserv
 
 This largely follows the [Haskell Package Versioning Policy](https://pvp.haskell.org/) (PVP), but is more strict in some ways.
 
-The package version (PVP) always has four components, `A.B.C.D`. The first three correspond to those required by PVP, while the fourth matches the “patch” component from [Semantic Versioning](https://semver.org/).
+The package version (PVP) always has four components, `A.B.C.D`[^1]. The first three correspond to those required by PVP, while the fourth matches the “patch” component from [Semantic Versioning](https://semver.org/).
+
+[^1]: A mnemonic for the version components:
+    - bumping `A` affects __A__ll dependencies,
+    - bumping `B` __B__reaks something,
+    - bumping `C` is a __C__ompatible change, and
+    - bumping `D` only changes __D__ocumentation (and other non-behavioral things).
 
 Here is a breakdown of some of the constraints:
 
@@ -72,9 +78,9 @@ Because of the transitivity of instances, orphans make you sensitive to your dep
 
 > _suggestion_: Cross-reference orphans in the Cabal package files. Collect the class names and relevant types for any orphans you define. Add a comment above the relevant dependencies in the Cabal package file listing which classes and types come from each.
 
-__NB__: Alternatively, adding _any_ instance[^1] could be considered a transitively-breaking change. Then orphans wouldn’t need to trigger API sensitivity. On the one hand, that seems easier to manage and orphans are often unavoidable. However, it seems odd to penalize definers of non-orphan instances because of orphans, and relegating orphans to their own packages mitigates API sensitivity better than it mitigates transitively-breaking changes.
+__NB__: Alternatively, adding _any_ instance[^2] could be considered a transitively-breaking change. Then orphans wouldn’t need to trigger API sensitivity. On the one hand, that seems easier to manage and orphans are often unavoidable. However, it seems odd to penalize definers of non-orphan instances because of orphans, and relegating orphans to their own packages mitigates API sensitivity better than it mitigates transitively-breaking changes.
 
-[^1]: Adding an instance at the same time as its class or a relevant type would always be a minor change, since there’s no way for an orphan to exist before that point.
+[^2]: Adding an instance at the same time as its class or a relevant type would always be a minor change, since there’s no way for an orphan to exist before that point.
 
 ### transitively breaking changes (bumps `A`)
 
@@ -209,9 +215,9 @@ A security fix __SHOULD__ be made without breaking the API. However, if that’s
 
 A security fix, even if breaking, __MUST__ not include any other breaking changes. A security fix __SHOULD__ not include any unrelated changes at all. Even trivial changes can impede analysis, and my have some subtle effect that undermines the release.
 
-Whatever mechanisms are available __SHOULD__ be used to deprecate[^2] the affected releases even before the fix is available. Once a fix is available, affected versions __SHOULD__ be made unavailable.
+Whatever mechanisms are available __SHOULD__ be used to deprecate[^3] the affected releases even before the fix is available. Once a fix is available, affected versions __SHOULD__ be made unavailable.
 
-[^2]: In this case, “deprecate” refers to something like the Hackage mechanism, where a deprecated release is only used if no other compatible release is available. This means that users will be downgraded where possible before a fix is even available.
+[^3]: In this case, “deprecate” refers to something like the Hackage mechanism, where a deprecated release is only used if no other compatible release is available. This means that users will be downgraded where possible before a fix is even available.
 
 This helps ensure that security fixes are propagated quickly, even if it means introducing breakages that need to be repaired.
 
