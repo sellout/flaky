@@ -1,5 +1,7 @@
 title: Documentation for Flaky-based projects
 description: Shared documents that apply to all projects.
+kramdown:
+  toc_levels: 2..6
 mermaid:
   # Pick an available version from https://cdn.jsdelivr.net/npm/mermaid/
   version: "11.14.0"
