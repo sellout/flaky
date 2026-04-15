@@ -86,8 +86,9 @@ __NB__: Alternatively, adding _any_ instance[^2] could be considered a transitiv
 
 There are “leaky” changes in most programming languages, where given a dependency graph like
 
-```
-bottom --> middle --> top
+```mermaid
+graph LR
+  bottom --> middle --> top
 ```
 
 a change to `top` can break `bottom` (even if `middle` happens to be unaffected).
