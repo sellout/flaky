@@ -169,6 +169,10 @@ in {
           "synchronize"
         ];
       };
+      concurrency = {
+        group = "\${{ github.workflow }}-\${{ github.ref || github.run_id }}";
+        cancel-in-progress = true;
+      };
       jobs = let
         ## NB: This uses haskell-actions/setup instead of haskell/ghcup-setup
         ##     primarily because of haskell/ghcup-setup#18.
