@@ -43,17 +43,75 @@ With this in mind, we want version numbers to communicate compatibility _conserv
 
 This largely follows the [Haskell Package Versioning Policy](https://pvp.haskell.org/) (PVP), but is more strict in some ways.
 
-The package version (PVP) always has four components, `A.B.C.D`[^1]. The first three correspond to those required by PVP, while the fourth matches the “patch” component from [Semantic Versioning](https://semver.org/).
+The package version always has four components, `A.B.C.D`[^1]. The first three correspond to those required by PVP, while the fourth matches the “patch” component from [Semantic Versioning](https://semver.org/).
 
-[^1]: A mnemonic for the version components:
-    - bumping `A` affects __A__ll dependencies,
-    - bumping `B` __B__reaks something,
-    - bumping `C` is a __C__ompatible change, and
-    - bumping `D` only changes __D__ocumentation (and other non-behavioral things).
+[^1]: A mnemonic for the version components in strict PVP:
+    - bumping `A` affects **A**ll dependencies,
+    - bumping `B` **B**reaks something,
+    - bumping `C` is a **C**ompatible change, and
+    - bumping `D` only changes **D**ocumentation (and other non-behavioral things).
 
 Here is a breakdown of some of the constraints:
 
 __FIXME__: Be clearer about “adding” and “removing”, etc. being about _the API_ – adding definitions that aren’t exported has no impact on the API.
+
+#### summary (non-normative)
+
+Each of these cases is covered in the following sections with justifications, but this tries to give a quick rundown.
+
+- “add” and “remove” refers to exports – internal changes generally don’t affect the interface (but be conscious of instances & term behavior)
+- “changed” generally means the previous was “removed” and the new one was “added”, so use the more significant of the two columns
+- a “persisting” type or class means that the type or class existed in a release prior to the addition, or continues to exist in the release containing the removal
+
+|                   | add     | remove  | note                                                   |
+|------------------:|---------|---------|--------------------------------------------------------|
+| `-fpackage-trust` | `A`     | `D`     |                                                        |
+|             class | `C`     | `B`     | changing type parameter order counts as replacing type |
+|       constructor | `B`     | `B`     | only when applied to persisting type                   |
+|          comments | `D`     | `D`     |                                                        |
+|        dependency | `A`     | `D`     |                                                        |
+|      `DEPRECATED` | `D`     | `D`     |                                                        |
+|             field | `B`     | `B`     | only when applied to persisting type                   |
+|           Haddock | `D`     | `D`     |                                                        |
+|          instance | `A`     | `A`     | only when applied to persisting types & classes        |
+|            module | `C`     | `A`/`B` | `B` when the removed module had _zero_ imports         |
+|              term | `C`     | `B`     | **NB**: changing is treated specially for terms        |
+|         `pattern` | `C`     | `B`     | **NB**: changing is treated specially for patterns     |
+|              type | `C`     | `B`     | changing type parameter order counts as replacing type |
+|            method | `B`/`C` | `B`     | `C` when added with unconstrained `default`            |
+|  method `default` | `D`     | `B`     |                                                        |
+
+|                   | tighten | weaken  | note                                                                                     |
+|------------------:|---------|---------|------------------------------------------------------------------------------------------|
+|    compiler bound | `B`/`D` | `D`     | `D` when “guarded” by a corresponding non-reinstallable dependency tightening            |
+|  dependency bound | `D`     | `A`/`D` | `A` when new `A` or non-strict `B` version is supported, and for certain other libraries |
+|        constraint | `B`     | `D`     | **TODO**: type variable defaulting may be an issue here                                  |
+|           license | `A`     | `D`     |                                                                                          |
+| Safe Haskell mode | `D`     | `B`     | “inferred” should be treated as between `Trustworthy` and `Unsafe`                       |
+|       `type role` | `B`     | `D`     | “inferred” should be treated as between `representational` and `phantom`                 |
+
+##### changing term & pattern definitions (including internal ones)
+
+By default, _any_ change to a term or pattern definition (even an internal one) is considered an `A` change. This may sound severe, but a change in behavior can change the behavior of downstream referents, and cascade into their downstream consumers. __TODO__: Can we make this a `B` change by claiming that consumers are responsible for ensuring that they have sufficient testing to prevent changes in upstream behavior from slipping through their tests unnoticed?
+
+For this reason, we recommend that any non-refactoring definition changes (that is, changes that affect behavior at all) be handled by removing the old identifier and adding a new one in its place. However, we understand that this isn’t always practical or ergonomic, so we make the following concessions.
+
+This is the most subtle aspect of versioning. Let’s break it down into o few cases.
+
+First, types are almost never truly incompatible (type parameters can allow wildly different types to be used in the same context). For this reason, we can’t rely on the type being different to ensure that changed behavior will be communicated sufficiently.
+
+Now, if the change is a refactoring (🤞), that’s a `D` change.
+
+If there’s an intentional change in behavior, that’s most safely a `A` change – even for internal definitions, because existing referents’ behavior may consequently change, and then the referents of those referents may change transitively. So, we strongly recommend you instead use a new term or pattern identifier, removing the old (making this a `B` change).
+
+There are two ways to further restrict the version bump via auditing. They can be used independently or together.
+
+1. Analyze _how_ the behavior changed
+   – if it’s a clear bug (for example, correcting `decrement = (+ 1)` to `(- 1)` when `increment = (+ 1)` already exists, so no one is intentionally using the broken `decrement` to get around the functionality that isn’t available otherwise), then it’s a `D` change
+   - if it improves handling of some cases (for example, it used to throw an exception in one case, but now handles it correctly), it’s a `D` change
+   - if it re-categorizes things it’s an `A` change (because a consumer may have been relying on that particular grouping of results)
+
+2. For an internal definition that has been determined to not be a `D` change, audit all its referents to see how _their_ behaviors have changed, at which point, you can ignore the internal definition’s change significance in favor of the audited definitions’ change significance. **NB**: this may add new internal functions to the set of changed definitions, so you can iterate on this step to ignore those.
 
 #### sensitivity to additions to the API
 
@@ -109,6 +167,8 @@ This is what makes tracking transitively-breaking changes useful. If you follow 
 
 Unfortunately, PVP itself considers transitively-breaking changes to be simply breaking changes, and so unless a dependency declares itself as adhering to “strict PVP”, adding support for _any_ new breaking dependency versions is a transitively-breaking change.
 
+**NB**: Some libraries (notably `ghc`) are known to not follow PVP. These shouldn’t use `^>=` ranges, and require more explicit versioning. Any change to these dependencies is an `A` bump.
+
 ##### adding an orphan type class instance
 
 Conflicting instances only cause a problem at resolution time, not import time, so `middle` can inherit an orphan instance from `top` and another instance from elsewhere, but not exhibit a conflict because the instance is never used.
@@ -124,6 +184,12 @@ Type class instances are imported transitively, and thus changing them can impac
 ##### restricting the license in any way
 
 Making a license more restrictive may prevent clients from being able to continue using the package. The solver won’t take this into account, and transitive dependencies are responsible for the licensing of all their dependencies.
+
+##### removing a module
+
+In the rare case that the module had _zero_ imports, this is a `B` change (because this also implies that if there were any instances in the module, their types and classes were also self-contained and thus removed).
+
+If there were imports, there may have been instances inherited, and those may now no longer be available to transitive consumers.
 
 #### breaking changes (bumps `B`)
 
@@ -145,15 +211,9 @@ This can happen due to syntactic changes that don’t otherwise affect the API (
 
 ##### removing support for a compiler version
 
-__TODO__: Can this be constrained at all? For example., can changing from supporting GHC 9.10.1(+) to 9.10.2(+) be considered a patch change?
+The Cabal solver doesn’t look at compiler versions, so unlike with dependency bounds, we can’t make this a patch change. However, if there’s a corresponding tightening of a non-reinstallable dependency (like the `ghc` library), then the solver _does_ handle this for us, and it can be `D`.
 
-##### restricting an existing dependency’s version range in any way
-
-Consumers have to contend not only with our version bounds, but also with those of other libraries. It’s possible that some dependency overlapped in a very narrow way, and even just restricting a particular patch version of a dependency could make it impossible to find a dependency solution.
-
-__TODO__: Determine if this is actually a lesser change. For example, can we get the solver to always fall back to a previous version (even if deprecated) if this version’s dependencies don’t intersect? If so, this is a patch change.
-
-##### removing a module
+**NB**: Even a minor restriction, like changing from supporting GHC 9.10.1(+) to 9.10.2(+) must be considered a breaking change, because some libraries included with GHC (like the `ghc` library) may have breaking changes even in a minor version bump. This means if a consumer has a dependency on the `ghc` library, it may be a breaking change for them to support 9.10.2.
 
 ##### adding a dependency
 
@@ -194,6 +254,10 @@ The most common cases of this are
 1. adding support for a new major (`B`-bumped) version of a dependency that follows Strict PVP;
 2. reducing the `C` bound on a dependency (for example, changing from `text ^>= {2.2.3}` to `text ^>= {2.2.1}`); or
 3. changes to non `^>=` bounds (for example, re-allowing a previously excluded version).
+
+##### restricting an existing dependency’s version range in any way
+
+This one is extremely counterintuitive, but the Cabal solver won’t select a version if its dependencies can’t be satisfied. So tightening a dependency’s bounds will only cause the previous version to be selected when the tighter bounds can’t be satisfied.
 
 ##### removing a dependency
 
