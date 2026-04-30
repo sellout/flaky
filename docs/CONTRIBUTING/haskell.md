@@ -179,7 +179,7 @@ The first two require [Nix](https://nixos.org/), but have the benefit of formatt
 
 ## versioning
 
-Packages follow [Strict PVP](../haskell-strict-PVP.md), which is compatible with [PVP](https://pvp.haskell.org/), but provides additional guarantees. That is, if your package follows PVP, you can treat our versions the same as any other PVP version, but if your package follows Strict PVP itself, it can take advantage of the additional guarantees provided here.
+Packages follow [Strict PVP](../haskell/strict-PVP.md), which is compatible with [PVP](https://pvp.haskell.org/), but provides additional guarantees. That is, if your package follows PVP, you can treat our versions the same as any other PVP version, but if your package follows Strict PVP itself, it can take advantage of the additional guarantees provided here.
 
 Note that repositories have distinct versions from the packages they contain. Repository versions always follow [SemVer](https://semver.org/). There are a few reasons for this.
 
