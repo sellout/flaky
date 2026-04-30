@@ -8,6 +8,7 @@
 ### All available options for this file are listed in
 ### https://sellout.github.io/project-manager/options.xhtml
 {
+  config,
   lib,
   pkgs,
   ...
@@ -79,7 +80,9 @@
 
   ## CI
   services.garnix.enable = true;
-  services.nix-ci.enable = true;
+  services.nix-ci.enable =
+    ## NOTE: There’s a subscription fee for using with private repos.
+    !config.services.github.settings.repository.private;
 
   ## publishing
   services = {
