@@ -15,6 +15,7 @@
       formatSettings."*"."Microsoft.FirstPerson" = "NO";
       vocab.${config.project.name}.accept = [
         "APIs"
+        "callout"
         "conditionalize"
         "Dhall"
         "Doctest"
@@ -28,6 +29,7 @@
         "Hackage"
         "henforcer"
         "Hspec"
+        "pragma"
         "pragmas"
         "Probot"
         "QuickCheck"

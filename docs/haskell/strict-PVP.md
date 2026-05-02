@@ -2,10 +2,10 @@
 
 This is a versioning system that’s compatible with [the Haskell Package Versioning Policy](https://pvp.haskell.org/), but tries to prevent more issues with dependencies.
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
 1. TOC
-{:toc}
+   {:toc}
 
 ## terminology
 
@@ -39,6 +39,35 @@ Fine-grained API tracking uses tooling to produce more precise version numbers. 
 
 **NB**: Actually, any newly added import can trigger this kind of breakage … I’m beginning to think that Strict PVP can _only_ be done with this kind of tooling.
 
+### examples
+
+**TODO**: Change everything to use a single reference dependency graph (and examples will implement the same thing)
+
+There are a large number of examples in this repository, which help ensure that the recommendations are correct. They all use the following package structure:
+
+```mermaid
+graph BT
+  transitive(transitive) --> direct(direct) --> current([current])
+  below --> beside --> above
+  transitive --> below
+  direct --> beside
+  current --> above
+```
+
+- “current” is the package we’re modifying
+- “direct” and “transitive” are the packages we’re impacting
+- “above”, “beside”, and “below” are additional packages that help illustrate how multi-package interaction can contribute to failures in dependencies
+
+1. If we can create an example where a change causes a failure in a `test-suite` of “direct”, then it’s an `A'`[^00] change.
+1. If we can otherwise create an example where a change causes either a compilation failure of “transitive”, then it’s an `A` change.
+1. If we can otherwise create an example where a change causes a compilation failure of “direct”, then it’s a `B` change.
+1. If the change otherwise affects the interface file[^0], then it’s a `C` change.
+1. Otherwise, it’s a `D` change.
+
+[^00]: For the purposes of PVP-compatibility, `A'` gets folded into `A`, but I think behavioral changes (those that can’t be caught at compile time) deserve to be handled specially, and so I make the distinction here, even if it disappears for PVP in particular. In a dynamically-typed language, there isn’t much that can be an `A` or `B` change, so it makes sense that 3-component versions are pretty dominant, but with a good type system, we _can_ distinguish the significance of these changes.
+
+[^0]: There are a few other things that can trigger a `C` change, such as weakening the license. And I’m not sure if there are some interface-file changes that should be considered only `D` changes.
+
 ### version numbers
 
 Version numbers serve multiple purposes
@@ -54,6 +83,7 @@ This largely follows the [Haskell Package Versioning Policy](https://pvp.haskell
 The package version always has four components, `A.B.C.D`[^1]. The first three correspond to those required by PVP, while the fourth matches the “patch” component from [Semantic Versioning](https://semver.org/).
 
 [^1]: A mnemonic for the version components in strict PVP:
+
     - bumping `A` affects **A**ll dependencies,
     - bumping `B` **B**reaks something,
     - bumping `C` is a **C**ompatible change, and
@@ -61,21 +91,14 @@ The package version always has four components, `A.B.C.D`[^1]. The first three c
 
 #### transitively breaking changes (bumps `A`)
 
-There are “leaky” changes in most programming languages, where given a dependency graph like
-
-```mermaid
-graph LR
-  bottom --> middle --> top
-```
-
-a change to `top` can break `bottom` (even if `middle` happens to be unaffected).
+There are “leaky” changes in most programming languages, where given a dependency graph like in [the examples section](#examples], a change to “current” can break “transitive” (even if “direct” happens to be unaffected).
 
 SemVer in general doesn’t offer a good way to manage this, but Haskell’s PVP (accidentally) does.
 
 1. PVP (like SemVer) allows for more significant bumps than is required (for example, if you just add a bunch of documentation, which would normally be a revision, you’re allowed to release it as a new major version instead); and
 2. PVP makes no distinction between bumping the `A` or `B` component of a version.
 
-Given these constraints, we can require that making a transitively-leaking change requires bumping the `A` component. This works because of the first transitively-leaking change below:
+Given these constraints, we can require that making a transitively-leaking change requires bumping the `A` component. And correspondingly require (as we do below), that adding a new `A` version to a dependency range forces a bump in your own `A` component.
 
 #### breaking changes (bumps `B`)
 
@@ -115,49 +138,46 @@ Each of these cases is covered in the following sections with justifications, bu
 - “changed” generally means the previous was “removed” and the new one was “added”, so use the more significant of the two columns
 - a “persisting” type or class means that the type or class existed in a release prior to the addition, or continues to exist in the release containing the removal
 
-|                                          | add         | remove  | syntax-only[^2] | note                                                                                                       |
-|-----------------------------------------:|-------------|---------|-----------------|------------------------------------------------------------------------------------------------------------|
-|                     [`import`](#imports) | `A`/`C`/`D` | `A`/`D` | ✔               | `C` when it’s part of a new module, `D` when there is persisting import for the same module                |
-|                 [`instance`](#instances) | `A`/`C`     | `A`     |                 | only when applied to persisting types & classes, `C` when it’s part of a new module                        |
-|                     [`module`](#modules) | `C`         | `A`/`B` | ✔               | `B` when the removed module had _zero_ imports                                                             |
-|                                `-Werror` | `A`*        | `D`     |                 | **NB**: If you use `-Werror`, any change to the package is an `A` change                                   |
-|                        `-fpackage-trust` | `A`         | `D`     |                 |                                                                                                            |
-|             [constructor](#constructors) | `B`/`C`     | `B`     |                 | only when applied to persisting type, `C` when there were previously no exported constructors for the type |
-|                                    field | `B`         | `B`     |                 | only when applied to persisting type                                                                       |
-|                                   method | `B`/`C`     | `B`     |                 | `C` when added with unconstrained `default`                                                                |
-|                               `COMPLETE` | `C`         | `B`     |                 |                                                                                                            |
-|                                  `class` | `C`         | `B`     |                 | changing type parameter order counts as replacing class                                                    |
-|                         method `default` | `C`         | `B`     |                 |                                                                                                            |
-|                                `pattern` | `C`         | `B`     |                 | **NB**: changing is treated specially for patterns                                                         |
-|                           [term](#terms) | `C`         | `B`     |                 | **NB**: changing is treated specially for terms                                                            |
-| [type](#types) (`data`/`newtype`/`type`) | `C`         | `B`     |                 | changing type parameter order counts as replacing type                                                     |
-|                                 comments | `D`         | `D`     |                 |                                                                                                            |
-|              [dependency](#dependencies) | `D`         | `D`     |                 |                                                                                                            |
-|      [`DEPRECATED`](#deprecated-pragmas) | `D`         | `D`     |                 |                                                                                                            |
-|                                  Haddock | `D`         | `D`     |                 |                                                                                                            |
+|                                                 | add         | remove  | trans? | syntax[^2] | note                                                                                                       |
+| ----------------------------------------------: | ----------- | ------- | ------ | ---------- | ---------------------------------------------------------------------------------------------------------- |
+| `INLINABLE`/`INLINE`/`NOINLINE`/`UNIQUE` pragma | `A'`        | `A'`    | ✔     |            | only when applied to persisting terms                                                                      |
+|                                  `RULES` pragma | `A'`        | `A'`    | ✔     |            | only when all involved terms are persisting, **NB**: changing is treated specially for rewrite rules       |
+|            [class `instance`](#class-instances) | `A`/`C`     | `A`     | ✔     |            | only when applied to persisting types & classes, `C` when it’s part of a new module                        |
+|                `data`/`newtype`/`type instance` | `A`/`B`     | `A`     | ✔     |            | only when applied to persisting type family, `B` when non-orphan                                           |
+|                            [`import`](#imports) | `A`/`C`/`D` | `A`/`D` | ✔     | ✔         | `C` when it’s part of a new module, `D` when there is persisting import for the same module                |
+|                            [`module`](#modules) | `C`         | `A`/`B` | ✔     | ✔         | `B` when the removed module had _zero_ imports                                                             |
+|                                       `-Werror` | `A`\*       | `D`     | ✔     |            | **NB**: If you use `-Werror`, any change to the package is an `A` change                                   |
+|                               `-fpackage-trust` | `A`\*       | `D`     | ✔     |            |                                                                                                            |
+|                    [constructor](#constructors) | `B`/`C`     | `B`     |        |            | only when applied to persisting type, `C` when there were previously no exported constructors for the type |
+|                                           field | `B`         | `B`     |        |            | only when applied to persisting type                                                                       |
+|                              [method](#methods) | `B`/`C`     | `B`     |        |            | only when applied to persisting class, `C` when added with unconstrained `default`                         |
+|                               `COMPLETE` pragma | `C`         | `B`     |        |            |                                                                                                            |
+|                                         `class` | `C`         | `B`     |        |            | changing type parameter order counts as replacing class                                                    |
+|            [method `default`](#method-defaults) | `C`         | `B`     |        |            | **NB**: changing is treated specially for method defaults                                                  |
+|                                       `pattern` | `C`         | `B`     |        |            | **NB**: changing is treated specially for patterns                                                         |
+|                                  [term](#terms) | `C`         | `B`     |        |            | **NB**: changing is treated specially for terms                                                            |
+|        [type](#types) (`data`/`newtype`/`type`) | `C`         | `B`     |        |            | changing type parameter order counts as replacing type                                                     |
+|                 [`type family`](#type-families) | `C`         | `B`     |        |            | changing type parameter order counts as replacing type                                                     |
+|                                        comments | `D`         | `D`     |        |            |                                                                                                            |
+|                     [dependency](#dependencies) | `D`         | `D`     |        |            |                                                                                                            |
+|      [`DEPRECATED` pragma](#deprecated-pragmas) | `D`         | `D`     |        |            |                                                                                                            |
+|                                         Haddock | `D`         | `D`     |        |            |                                                                                                            |
+|   `NOUNPACK`/`SCC`/`SPECIALISE`/`UNPACK` pragma | `D`         | `D`     |        |            |                                                                                                            |
 
-|                                    | tighten | weaken  | syntax-only[^2] | note                                                                                     |
-|-----------------------------------:|---------|---------|-----------------|------------------------------------------------------------------------------------------|
-|                            license | `A`     | `C`     |                 |                                                                                          |
-|  [dependency bound](#dependencies) | `D`     | `A`/`D` | ✔               | `A` when new `A` or non-strict `B` version is supported, and for certain other libraries |
-| [compiler bound](#compiler-bounds) | `B`/`D` | `D`     |                 | `D` when “guarded” by a corresponding non-reinstallable dependency tightening            |
-|         [constraint](#constraints) | `B`     | `D`     |                 | **TODO**: type variable defaulting may be an issue here                                  |
-|                        `type role` | `B`     | `D`     | ?               | “inferred” should be treated as between `representational` and `phantom`                 |
-|                  Safe Haskell mode | `D`     | `B`     | ?               | “inferred” should be treated as between `Trustworthy` and `Unsafe`                       |
+|                                    | tighten | weaken  | trans? | syntax[^2] | note                                                                                                                                   |
+| ---------------------------------: | ------- | ------- | ------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+|         [constraint](#constraints) | `B`     | `A`/`D` | ✔     |            | `D` when [type defaulting](https://downloads.haskell.org/ghc/latest/docs/users_guide/exts/type_defaulting.html) doesn’t come into play |
+|                            license | `A`     | `C`     | ✔     |            |                                                                                                                                        |
+|  [dependency bound](#dependencies) | `D`     | `A`/`D` | ✔     | ✔         | `A` when new `A` or non-strict `B` version is supported, and for certain other libraries                                               |
+| [compiler bound](#compiler-bounds) | `B`/`D` | `D`     |        |            | `D` when “guarded” by a corresponding non-reinstallable dependency tightening                                                          |
+|                        `type role` | `B`     | `D`     |        | ?          | “inferred” should be treated as between `representational` and `phantom`                                                               |
+|                  Safe Haskell mode | `D`     | `B`     |        | ?          | “inferred” should be treated as between `Trustworthy` and `Unsafe`                                                                     |
 
 [^2]: “Syntax-only” means that this can be ignored (that is, it’s always a `D` change) when using fine-grained API versioning. If it’s a “?”, that means that “inferred” doesn’t apply for fine-grained API versioning, but otherwise the bumps stay the same.
 
-#### `import`s
+#### class `instance`s
 
-##### adding or removing an `import` (even to an internal module)
-
-This only applies if there isn’t another import for the same module.
-
-This one is very frustrating. Because adding or removing an import can change the set of instances that are exposed by the module that’s importing them. This also applies to non-`exposed` modules, because they’re imported by `exposed-modules`, and thus propagate those instances.
-
-#### `instance`s
-
-Conflicting instances only cause a problem at resolution time, not import time, so `middle` can inherit an orphan instance from `top` and another instance from elsewhere, but not exhibit a conflict because the instance is never used.
+Conflicting instances only cause a problem at resolution time, not import time, so “direct” can inherit an orphan instance from “current” and another instance from “beside”, but not exhibit a conflict because the instance is never used.
 
 Orphans also make you [sensitive to some dependencies’ APIs](#avoid_orphans), but that only protects you from conflicts with non-orphan instances. The transitively-breaking restriction protects you from conflicts with orphans in other modules.
 
@@ -177,6 +197,18 @@ Because of the transitivity of instances, orphans make you sensitive to your dep
 
 [^3]: Adding an instance at the same time as its class or a relevant type would always be a minor change, since there’s no way for an orphan to exist before that point.
 
+#### type `instance`s (`data`, `newtype`, and `type`)
+
+Open type families can have new instances added by other modules. If “above” defines an open type family, and “beside” defines an instance for it,
+
+#### `import`s
+
+##### adding or removing an `import` (even to an internal module)
+
+This only applies if there isn’t another import for the same module.
+
+This one is very frustrating. Because adding or removing an import can change the set of instances that are exposed by the module that’s importing them. This also applies to non-`exposed` modules, because they’re imported by `exposed-modules`, and thus propagate those instances.
+
 #### `module`s
 
 Like PVP we recommend a `C` bump when adding a module. However, unlike in PVP, this is because we recommend that package-qualified imports be used on all imports.
@@ -188,6 +220,14 @@ If there were imports, there may have been instances inherited, and those may no
 #### constructors
 
 Because patterns are exported along with constructors, these must be invariant – any change is a breaking change. But you can export constructors if there were previously _no_ constructors available for the type, making it only a `C` change.
+
+#### methods
+
+Adding a new method is `B`, because downstream instances of that class will now fail to compile. But if you add an unconstrained `default` along with it, it’s only a `C`, because it will allow all existing instances to compile, and no users of the instance will yet be able to reference that method, so it can’t change behavior.
+
+#### method `defaults`
+
+Adding one (regardless of constraints) is a `C` change, because nothing could be depending on it yet. Removing one is a `B` change, because if it was referenced downstream, that code will break during compilation.
 
 #### terms
 
@@ -286,7 +326,7 @@ Haskell does type resolution independently of constraints. It then sees if the t
 
 This is a good example of the difference between “additions to the API” and “non-breaking changes to the API”. This makes a function applicable in more situations, but doesn’t add anything to the API.
 
-**FIXME**: I think this might not be true with [type variable defaulting](https://downloads.haskell.org/ghc/latest/docs/users_guide/exts/type_defaulting.html). For example, if you weaken a constraint from `RealFloat` to `Num`, and a consumer is using `default (Natural, Double)`, the switch from resolving `Double` to resolving `Natural` can then introduce a runtime failure when they call `negate`. There are mechanisms to disable defaulting, like  `default ()` or requiring `-Werror=type-defaults`, but those must be applied in the consumer, not the definer.
+**FIXME**: I think this might not be true with [type variable defaulting](https://downloads.haskell.org/ghc/latest/docs/users_guide/exts/type_defaulting.html). For example, if you weaken a constraint from `RealFloat` to `Num`, and a consumer is using `default (Natural, Double)`, the switch from resolving `Double` to resolving `Natural` can then introduce a runtime failure when they call `negate`. There are mechanisms to disable defaulting, like `default ()` or requiring `-Werror=type-defaults`, but those must be applied in the consumer, not the definer.
 
 ## incompatible extensions
 
