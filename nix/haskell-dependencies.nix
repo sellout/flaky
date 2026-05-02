@@ -12,8 +12,32 @@ final: prev: hfinal: hprev:
   } {};
 }
 // (
-  ## TODO: Various packages fail their tests on i686-linux. Should probably fix
-  ##       them at some point.
+  if
+    final.stdenv.hostPlatform.system
+    == "aarch64-darwin"
+    && final.lib.versionAtLeast hprev.ghc.version "9.8"
+    && final.lib.versionOlder hprev.ghc.version "9.10"
+  then {
+    ## There’s an issue with stylish-haskell in the GHC 9.8 package sets for
+    ## Linux in Nixpkgs 25.11. This just disable all the non-Ormolu
+    ## formatters.
+    ##
+    ## NB: This is fine for using the HLS binary, but is probably not what
+    ##     you want if you have it as a library dependency.
+    haskell-language-server =
+      final.lib.foldr final.haskell.lib.compose.disableCabalFlag
+      hprev.haskell-language-server
+      [
+        "floskell"
+        "fourmolu"
+        "stylishhaskell"
+      ];
+  }
+  else {}
+)
+## TODO: Various packages fail their tests on i686-linux. Should probably fix
+##       them at some point.
+// (
   if final.stdenv.hostPlatform.system == "i686-linux"
   then
     {
