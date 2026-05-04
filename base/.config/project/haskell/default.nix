@@ -60,8 +60,8 @@ in {
 
   programs = {
     git.ignores = [
-      # Cabal build
-      "dist-newstyle"
+      "/cabal.project.local" # local project overrides
+      "dist-newstyle" # Cabal build outputs
     ];
     treefmt = {
       programs.ormolu.enable = true;
