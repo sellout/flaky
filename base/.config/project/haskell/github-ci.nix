@@ -311,8 +311,6 @@ in {
               "with" = {
                 repository = "\${{ github.event.pull_request.head.repo.full_name }}";
                 ref = "\${{ github.event.pull_request.head.ref }}";
-                ## TODO: I don’t know why we can’t push without this token.
-                token = "\${{ secrets.PROJECT_MANAGER_TOKEN }}";
               };
             }
             (setUpHaskell cfg.defaultGhcVersion)
@@ -363,7 +361,7 @@ in {
               uses = "EndBug/add-and-commit@v10";
               "with" = {
                 add = "*/docs/license-report.md";
-                default_author = "github_actions";
+                default_author = "github_actor";
                 message = "Update license reports";
                 push = "origin --no-verify --set-upstream";
               };
