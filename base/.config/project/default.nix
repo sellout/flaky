@@ -86,8 +86,8 @@
 
   ## publishing
   services = {
-    flakehub.enable = true;
-    flakestry.enable = true;
+    flakehub.enable = !config.services.github.settings.repository.private;
+    flakestry.enable = !config.services.github.settings.repository.private;
     github.enable = true;
   };
 }
