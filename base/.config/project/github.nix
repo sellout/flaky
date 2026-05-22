@@ -5,6 +5,13 @@
   supportedSystems,
   ...
 }: {
+  assertions = [
+    {
+      assertion = config.services.github.settings.repository ? private;
+      message = "the project configuration needs to set `services.github.settings.repository.private`";
+    }
+  ];
+
   services.github = {
     settings = {
       ## These settings are synced to GitHub by
@@ -16,7 +23,6 @@
         name = config.project.name;
         description = config.project.summary;
         # homepage = "https://example.github.io/";
-        private = false;
         has_issues = true;
         has_projects = true;
         has_wiki = true;

@@ -28,10 +28,13 @@
   };
 
   services = {
-    github.settings.repository.topics = [
-      "development"
-      "nix-flakes"
-    ];
+    github.settings.repository = {
+      private = false;
+      topics = [
+        "development"
+        "nix-flakes"
+      ];
+    };
     ## Only run Renovate monthly (on the 15th). This reduces the amount of
     ## cascading Nixpkgs updates, which makes it more likely that checked out
     ## repos are on the same revision.
