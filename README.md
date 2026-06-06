@@ -1,7 +1,9 @@
 # Flaky templates & `devShells`
 
+[![Astrolabe](https://img.shields.io/badge/Astrolabe-ready-%2300cc33?labelColor=%230033cc)](https://astrolabe.technomadic.org/)
 [![built with garnix](https://img.shields.io/endpoint?url=https%3A%2F%2Fgarnix.io%2Fapi%2Fbadges%2Fsellout%2Fflaky)](https://garnix.io/repo/sellout/flaky)
 [![Nix CI](https://nix-ci.com/badge/gh:sellout:flaky)](https://nix-ci.com/gh:sellout:flaky)
+[![Project Manager](https://img.shields.io/badge/%20-Project%20Manager-%235277C3?logo=nixos&labelColor=%23cccccc)](https://sellout.github.io/project-manager/)
 
 Sellout’s very opinionated personal project configuration.
 

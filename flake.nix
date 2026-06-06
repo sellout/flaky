@@ -19,6 +19,8 @@
   outputs = inputs: import .config/flake/outputs.nix inputs;
 
   inputs = {
+    astrolabe-hook.url = "github:sellout/astrolabe-nix-hook";
+
     bash-strict-mode = {
       inputs.flaky.follows = "";
       url = "github:sellout/bash-strict-mode";
