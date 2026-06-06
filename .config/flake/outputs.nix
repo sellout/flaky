@@ -1,4 +1,5 @@
 {
+  astrolabe-hook,
   bash-strict-mode,
   flake-utils,
   garnix-systems,
@@ -34,6 +35,7 @@ in
         project-manager.overlays.local
         self.overlays.dependencies
         self.overlays.local
+        astrolabe-hook.overlays.default
       ];
 
       local = final: prev:
