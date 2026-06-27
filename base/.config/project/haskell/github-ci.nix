@@ -223,7 +223,7 @@ in {
                 sudo ln -s /lib/x86_64-linux-gnu/libutil.so.1 /usr/lib/x86_64-linux-gnu/libutil.so
               '';
             }
-            {uses = "actions/checkout@v6";}
+            {uses = "actions/checkout@v7";}
             (setUpHaskell "\${{ matrix.ghc }}")
             {run = "cabal v2-freeze $CONFIG";}
             (cache
@@ -253,7 +253,7 @@ in {
           "if" = "\${{ !cancelled() }}";
           needs = ["build"];
           steps = [
-            {uses = "actions/checkout@v6";}
+            {uses = "actions/checkout@v7";}
             (setUpHaskell cfg.defaultGhcVersion)
             (cache runs-on cfg.defaultGhcVersion "cabal-plan-bounds" [])
             {run = "cabal install cabal-plan-bounds";}
@@ -302,11 +302,11 @@ in {
           needs = ["build"];
           steps = [
             {
-              uses = "actions/checkout@v6";
+              uses = "actions/checkout@v7";
               "if" = "github.event_name != 'pull_request'";
             }
             {
-              uses = "actions/checkout@v6";
+              uses = "actions/checkout@v7";
               "if" = "github.event_name == 'pull_request'";
               "with" = {
                 repository = "\${{ github.event.pull_request.head.repo.full_name }}";
