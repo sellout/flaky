@@ -9,7 +9,7 @@
       ## (https://github.com/google/keep-sorted#readme)
       keep-sorted.enable = true;
       ## Web/JSON/Markdown/TypeScript/YAML formatter
-      ## TODO: This is broken on i686-linux in Nixpkgs 25.11.
+      ## TODO: This is broken on i686-linux in Nixpkgs 26.05.
       prettier.enable = pkgs.stdenv.hostPlatform.system != "i686-linux";
       ## Shell formatter
       ## NB: These settings are required to allow the .editorconfig settings to

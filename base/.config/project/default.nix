@@ -18,18 +18,11 @@
     license = lib.mkDefault "AGPL-3.0-or-later";
 
     ## Packages to install in the devShells that reference projectConfiguration.
-    devPackages =
-      [
-        ## language servers
-        pkgs.nil # Nix
-      ]
-      ++ (
-        ## NB: pnpm (a dependency of bash-language-server) fails to build on
-        ##     i686-linux.
-        if pkgs.stdenv.hostPlatform.system == "i686-linux"
-        then []
-        else [pkgs.nodePackages.bash-language-server]
-      );
+    devPackages = [
+      ## language servers
+      pkgs.bash-language-server
+      pkgs.nil # Nix
+    ];
 
     ## NB: This allows non-Nix users to contribute to the project.
     commit-by-default = lib.mkDefault true;
