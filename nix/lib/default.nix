@@ -41,7 +41,7 @@ in {
           {
             # These attributes are simply required by home-manager.
             home = {
-              homeDirectory = /tmp/example;
+              homeDirectory = "/tmp/example";
               stateVersion = "24.05";
               username = "example-user";
             };
