@@ -1,4 +1,8 @@
-{lib, ...}: {
+{
+  config,
+  lib,
+  ...
+}: {
   services.garnix.builds."*" = {
     exclude = [
       ## TODO: Remove once garnix-io/issues#16 is fixed.
@@ -12,4 +16,8 @@
     ##     be a NOP.
     include = lib.mkDefault ["*.*" "*.*.*"];
   };
+
+  ## https://docs.github.com/en/rest/branches/branch-protection?apiVersion=2022-11-28#update-branch-protection
+  services.github.settings.branches.${config.services.github.settings.repository.default_branch}.protection.required_status_checks =
+    lib.mkIf config.services.garnix.enable {contexts = ["All Garnix checks"];};
 }
