@@ -72,7 +72,7 @@
   };
 
   ## CI
-  services.garnix.enable = true;
+  services.garnix.enable = false; # This service is now dead, but may rise again
   services.nix-ci.enable =
     ## NOTE: There’s a subscription fee for using with private repos.
     !config.services.github.settings.repository.private;

@@ -5,9 +5,9 @@
     ## NB: This is a consequence of using `self.pkgsLib.runEmptyCommand`, which
     ##     allows us to sandbox derivations that otherwise can’t be.
     allow-import-from-derivation = true;
-    extra-substituters = ["https://cache.garnix.io"];
+    extra-substituters = ["https://sellout.cachix.org"];
     extra-trusted-public-keys = [
-      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
+      "sellout.cachix.org-1:v37cTpWBEycnYxSPAgSQ57Wiqd3wjljni2aC0Xry1DE="
     ];
     ## WAIT: This should be `"fatal"`, but Nixpkgs itself violates it.
     lint-absolute-path-literals = "warn";
