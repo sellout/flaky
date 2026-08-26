@@ -2,7 +2,6 @@
   astrolabe-hook,
   bash-strict-mode,
   flake-utils,
-  garnix-systems,
   home-manager,
   nixpkgs,
   project-manager,
@@ -72,7 +71,6 @@ in
 
     lib = import ../../nix/lib {
       inherit
-        garnix-systems
         home-manager
         nixpkgs
         project-manager

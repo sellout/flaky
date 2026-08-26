@@ -39,7 +39,6 @@
     ./vale.nix
     ## services
     ./flakehub.nix
-    ./garnix.nix
     ./github.nix
     ./nix-ci.nix
     ./renovate.nix

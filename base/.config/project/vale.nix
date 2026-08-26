@@ -73,12 +73,10 @@
       "./.gitattributes"
       "./.gitignore"
       "./.vale.ini"
-      "./garnix.yaml"
     ];
     vocab.${config.project.name}.accept = [
       "direnv"
       "formatter"
-      "garnix"
       "[Nn]ix"
       "Pfeil"
       "ShellCheck"
