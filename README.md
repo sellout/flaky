@@ -5,16 +5,16 @@
 [![Nix CI](https://nix-ci.com/badge/gh:sellout:flaky)](https://nix-ci.com/gh:sellout:flaky)
 [![Project Manager](https://img.shields.io/badge/%20-Project%20Manager-%235277C3?logo=nixos&labelColor=%23cccccc)](https://sellout.github.io/project-manager/)
 
-Sellout’s very opinionated personal project configuration.
+Sellout’s opinionated personal project configuration.
 
 ## development environment
 
-We recommend the following steps to make working in this repository as easy as possible.
+We recommend the following steps to make working in this repository easier.
 
 ### `direnv allow`
 
-This command ensures that any work you do within this repository happens within a consistent reproducible environment. That environment provides various debugging tools, etc. When you leave this directory, you will leave that environment behind, so it doesn’t impact anything else on your system.
+This command ensures that any work you do within this repository happens within a consistent reproducible environment. That environment provides debugging tools, etc. When you leave this directory, you’ll leave that environment behind, so it doesn’t impact anything else on your system.
 
 ### `git config --local include.path ../.config/git/config`
 
-This will apply our repository-specific Git configuration to `git` commands run against this repository. It’s lightweight (you should definitely look at it before applying this command) – it does things like telling `git blame` to ignore formatting-only commits.
+This applies our repository-specific Git configuration to `git` commands run against this repository. It’s lightweight (you should definitely look at it before applying this command) – it does things like telling `git blame` to ignore formatting-only commits.
