@@ -1,15 +1,12 @@
 {
   configModules,
-  garnix-systems,
   home-manager,
   lib,
   nixpkgs,
   project-manager,
   self,
   supportedSystems,
-}: let
-  garnixSystems = import garnix-systems;
-in {
+}: {
   devShells.default = system: self: nativeBuildInputs: shellHook:
     self.projectConfigurations.${system}.devShells.project-manager.overrideAttrs
     (old: {
@@ -71,14 +68,6 @@ in {
       );
   in
     lib.genAttrs configModules (name: base self.projectModules.${name});
-
-  ## Converts a list of values parameterized by  a system (generally flake
-  ## attributes like `sys: "packages.${sys}.foo"`) and replicates each of them
-  ## for each of the systems supported by both garnix and `supportedSystems`.
-  ##
-  ## Type: [string] -> (string -> [a]) -> [a]
-  forGarnixSystems = supportedSystems:
-    lib.flip lib.concatMap (lib.intersectLists garnixSystems supportedSystems);
 
   ## Accepts separate configurations for nix-darwin, Home Manager, NixOS, and
   ## Project Manager, returning the correct one for whichever configuration is

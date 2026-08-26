@@ -85,21 +85,6 @@
         "type": "github"
       }
     },
-    "garnix-systems": {
-      "locked": {
-        "lastModified": 1723225755,
-        "narHash": "sha256-y17fVgb4LJheN4VDsHCmZRHrOJwKj8oUPvXk2FqUOnI=",
-        "owner": "garnix-io",
-        "repo": "nix-systems",
-        "rev": "c2466c5c1d3591933b4389868902e2f47a47fadb",
-        "type": "github"
-      },
-      "original": {
-        "owner": "garnix-io",
-        "repo": "nix-systems",
-        "type": "github"
-      }
-    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -313,7 +298,6 @@
         "astrolabe-hook": "astrolabe-hook",
         "bash-strict-mode": "bash-strict-mode",
         "flake-utils": "flake-utils",
-        "garnix-systems": "garnix-systems",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
         "project-manager": "project-manager",

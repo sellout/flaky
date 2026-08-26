@@ -33,8 +33,6 @@
       url = "github:numtide/flake-utils";
     };
 
-    garnix-systems.url = "github:garnix-io/nix-systems";
-
     home-manager = {
       inputs.nixpkgs.follows = "nixpkgs";
       url = "github:nix-community/home-manager/release-26.05";
