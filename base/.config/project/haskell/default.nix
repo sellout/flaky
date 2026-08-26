@@ -90,6 +90,7 @@ in {
         "formatter"
         "functor"
         "GADT"
+        "Hackage"
         "inline"
         "Kleisli"
         "Kmett"
