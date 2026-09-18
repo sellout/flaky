@@ -56,7 +56,7 @@
       ## `maintainer_can_modify` is apparently only ever `true` on forks, so
       ## first check whether the PR is from the same repo.
       "if" = "\${{ github.event.pull_request.head.repo.full_name == github.repository || github.event.pull_request.maintainer_can_modify }}";
-      runs-on = "ubuntu-24.04";
+      runs-on = config.services.github.runners.latest.linux-x64;
       steps = [
         {
           uses = "actions/checkout@v7";

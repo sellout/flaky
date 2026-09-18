@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   self,
@@ -17,7 +18,7 @@ in {
       };
     };
     jobs.hackage-publish = {
-      runs-on = "ubuntu-24.04";
+      runs-on = config.services.github.runners.latest.linux-x64;
       permissions = {
         id-token = "write";
         contents = "read";

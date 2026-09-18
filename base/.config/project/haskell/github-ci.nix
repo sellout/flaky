@@ -12,14 +12,17 @@ in {
       lib.mkEnableOption "Haskell CI on GitHub"
       // {default = config.services.github.enable;};
 
-    ## TODO: Map `systems` and `exclude` from Nixier values – perhaps flake-utils
-    ##       systems, and a bool for `--prefer-oldest`?
+    ## TODO: Map `systems` and `exclude` from Nixier values – perhaps
+    ##       flake-utils systems, and a bool for `--prefer-oldest`?
     systems = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       description = ''
         A list of GitHub system names to run CI against.
       '';
-      example = ["macos-14" "ubuntu-24.04"];
+      example = with config.services.github.runners.latest; [
+        linux-x64
+        macos-arm64
+      ];
     };
 
     ghcVersions = lib.mkOption {
@@ -145,7 +148,7 @@ in {
   };
   config = lib.mkIf cfg.enable (let
     planName = "plan-\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
-    runs-on = "ubuntu-24.04";
+    runs-on = config.services.github.runners.latest.linux-x64;
     cache = os: ghc: suffix: extra-restore-keys: {
       uses = "actions/cache@v4";
       "with" = {
