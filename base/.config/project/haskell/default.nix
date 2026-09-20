@@ -104,7 +104,7 @@ in {
   # NB: Can’t use IFD on FlakeHub (see DeterminateSystems/flakehub-push#69), so
   #     this is disabled until we have a way to build Haskell without IFD.
   services.flakehub.enable = lib.mkForce false;
-  services.haskell-ci = let
+  services.haskell-ci = with config.services.github.runners.latest; let
     filterGhcVersions =
       lib.intersectLists config.services.haskell-ci.ghcVersions;
   in {
@@ -123,28 +123,25 @@ in {
     ## https://docs.github.com/en/actions/reference/runners/github-hosted-runners#standard-github-hosted-runners-for-public-repositories
     ## for the current list of available runners.
     systems = [
-      "macos-15" #         aarch64-darwin
-      ## NB: This is the final x86_64-darwin image that GitHub will provide, and
-      ##     it will be available through August 2027. See
-      ##     actions/runner-images#13045 for details.
-      "macos-15-intel" #   x86_64-darwin
-      "ubuntu-24.04" #     x86_64-linux
-      "ubuntu-24.04-arm" # aarch64-linux
+      linux-arm64
+      linux-x64
+      macos-arm64
+      macos-intel
       ## TODO: GHCup doesn’t install on this platform at all.
-      # "windows-11-arm" #   aarch64-windows
-      "windows-2025" #     x86_64-windows
+      # windows-arm64
+      windows-x64
     ];
     exclude =
       ## GHCup needs an older Ubuntu for these versions..
       map (ghc: {
         inherit ghc;
-        os = "ubuntu-24.04";
+        os = linux-x64;
       }) (filterGhcVersions ["7.10.3" "8.0.2" "8.2.2"])
       ## GitHub can’t install GHC older than 9.2 on ARM systems.
       ++ lib.concatMap (ghc:
         map (os: {
           inherit ghc os;
-        }) ["macos-15" "ubuntu-24.04-arm"])
+        }) [linux-arm64 macos-arm64])
       (builtins.filter (ghc: lib.versionOlder ghc "9.2")
         config.services.haskell-ci.ghcVersions)
       ++ [
@@ -152,19 +149,19 @@ in {
         ## https://gitlab.haskell.org/ghc/ghc/-/merge_requests/7357
         {
           ghc = "9.2.1";
-          os = "ubuntu-24.04-arm";
+          os = linux-arm64;
         }
       ];
     include = lib.concatMap (bounds:
       map (ghc: {
         inherit bounds ghc;
-        os = "ubuntu-22.04";
+        os = linux-x64;
       }) (filterGhcVersions ["7.10.3" "8.0.2" "8.2.2"])
       ++ [
         {
           inherit bounds;
           ghc = "9.2.2";
-          os = "ubuntu-24.04-arm";
+          os = linux-arm64;
         }
       ])
     ["" "--prefer-oldest"];
