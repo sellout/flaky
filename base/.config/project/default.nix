@@ -49,6 +49,10 @@
     ./hacktoberfest.nix
   ];
 
+  ## WAIT: In 2026, Hacktoberfest became a slopfest. Check back in 2027 to see
+  ## if things have recovered.
+  community.hacktoberfest.enable = false;
+
   programs.project-manager.enable = true;
 
   ## dependency management
