@@ -80,7 +80,13 @@
       ## https://docs.github.com/en/rest/branches/branch-protection?apiVersion=2022-11-28#update-branch-protection
       branches.${config.services.github.settings.repository.default_branch}.protection = {
         required_pull_request_reviews = null;
-        required_status_checks.strict = false;
+        required_status_checks = {
+          contexts =
+            ## NOTE: Explicit `== true` because this value can be `null`.
+            lib.optional (config.services.nix-ci.enable == true) "NixCI"
+            ++ lib.optional config.services.garnix.enable "All Garnix checks";
+          strict = false;
+        };
         ## There’s still an extra step required to bypass protection settings,
         ## so we don’t need to completely block merging something that isn’t
         ## passing.

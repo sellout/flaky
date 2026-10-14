@@ -33,6 +33,10 @@
       url = "github:numtide/flake-utils";
     };
 
+    ## The systems Garnix builds for, which `lib.forGarnixSystems` intersects
+    ## with the ones a project supports.
+    garnix-systems.url = "github:garnix-io/nix-systems";
+
     home-manager = {
       inputs.nixpkgs.follows = "nixpkgs";
       url = "github:nix-community/home-manager/release-26.05";
