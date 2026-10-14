@@ -68,7 +68,20 @@
             token = "\${{ secrets.PROJECT_MANAGER_TOKEN }}";
           };
         }
-        {uses = "cachix/install-nix-action@v31";}
+        {
+          uses = "cachix/install-nix-action@v31";
+          "with" =
+            ## This taken allows us to read private repos (which may be used as
+            ## flake inputs). Since we shouldn’t have private inputs on public
+            ## repos, only add this to private repos.
+            if config.services.github.settings.repository.private
+            then {
+              extra_nix_config = ''
+                access-tokens = github.com=''${{ secrets.PROJECT_MANAGER_TOKEN }}
+              '';
+            }
+            else {};
+        }
         {
           run = ''
             nix develop .#project-manager \
