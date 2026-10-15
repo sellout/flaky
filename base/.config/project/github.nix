@@ -4,14 +4,17 @@
   lib,
   supportedSystems,
   ...
-}: {
-  assertions = [
-    {
-      assertion = config.services.github.settings.repository ? private;
-      message = "the project configuration needs to set `services.github.settings.repository.private`";
-    }
-  ];
-
+}: let
+  ## Private repositories on the “free” plan don’t have access to various GitHub
+  ## features. See `services.github.settings`.
+  ##
+  ## NOTE: Any `repository` setting gated on this has to be a _declared_ option
+  ##       in Project Manager, not a freeform one – see the note on
+  ##       `settings.repository.private` for why.
+  publicOrPaidFeatures =
+    !config.services.github.settings.repository.private
+    || config.services.github.plan != "free";
+in {
   services.github = {
     settings = {
       ## These settings are synced to GitHub by
@@ -25,7 +28,7 @@
         # homepage = "https://example.github.io/";
         has_issues = true;
         has_projects = true;
-        has_wiki = true;
+        has_wiki = publicOrPaidFeatures;
         has_downloads = false;
         default_branch = "main";
         allow_squash_merge = false;
@@ -78,22 +81,24 @@
       };
 
       ## https://docs.github.com/en/rest/branches/branch-protection?apiVersion=2022-11-28#update-branch-protection
-      branches.${config.services.github.settings.repository.default_branch}.protection = {
-        required_pull_request_reviews = null;
-        required_status_checks = {
-          contexts =
-            ## NOTE: Explicit `== true` because this value can be `null`.
-            lib.optional (config.services.nix-ci.enable == true) "NixCI"
-            ++ lib.optional config.services.garnix.enable "All Garnix checks";
-          strict = false;
+      branches = lib.optionalAttrs publicOrPaidFeatures {
+        ${config.services.github.settings.repository.default_branch}.protection = {
+          required_pull_request_reviews = null;
+          required_status_checks = {
+            contexts =
+              ## NOTE: Explicit `== true` because this value can be `null`.
+              lib.optional (config.services.nix-ci.enable == true) "NixCI"
+              ++ lib.optional config.services.garnix.enable "All Garnix checks";
+            strict = false;
+          };
+          ## There’s still an extra step required to bypass protection settings,
+          ## so we don’t need to completely block merging something that isn’t
+          ## passing.
+          enforce_admins = false;
+          required_linear_history = false;
+          allow_force_pushes = false;
+          restrictions = null;
         };
-        ## There’s still an extra step required to bypass protection settings,
-        ## so we don’t need to completely block merging something that isn’t
-        ## passing.
-        enforce_admins = false;
-        required_linear_history = false;
-        allow_force_pushes = false;
-        restrictions = null;
       };
 
       ## TODO: This doesn’t work yet, and breaks the entire config if enabled.
