@@ -30,15 +30,20 @@
       pkgs.lib.removeSuffix "\n" (exec [pkgs.nix] ''
         nix-hash --type ${outputHashAlgo} --base64 ${hashInput str}
       '');
+    ## The `.drv`, without the `outputHash`, gives us something consistent to
+    ## hash.
+    hashBasis =
+      builtins.unsafeDiscardStringContext
+      (runStrictCommand name attrs command).drvPath;
   in
     runStrictCommand name (attrs
       // {
         inherit outputHashAlgo;
-        outputHash = getHash command;
+        outputHash = getHash hashBasis;
         outputHashMode = "recursive";
       }) ''
       ${command}
-      cp ${hashInput command} "$out"
+      cp ${hashInput hashBasis} "$out"
     '';
 in {
   inherit runStrictCommand runEmptyCommand;
