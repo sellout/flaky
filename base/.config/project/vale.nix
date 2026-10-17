@@ -65,7 +65,6 @@
       "**/*.yml"
       "**/.dir-locals.el"
       "**/flake.lock"
-      "./.cache/*"
       "./.config/mustache.yaml"
       "./.github/renovate.json"
       "./.github/settings.yml"
