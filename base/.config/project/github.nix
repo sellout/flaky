@@ -85,10 +85,10 @@ in {
         ${config.services.github.settings.repository.default_branch}.protection = {
           required_pull_request_reviews = null;
           required_status_checks = {
-            contexts =
+            checks =
               ## NOTE: Explicit `== true` because this value can be `null`.
-              lib.optional (config.services.nix-ci.enable == true) "NixCI"
-              ++ lib.optional config.services.garnix.enable "All Garnix checks";
+              lib.optional (config.services.nix-ci.enable == true) {context = "NixCI";}
+              ++ lib.optional config.services.garnix.enable {context = "All Garnix checks";};
             strict = false;
           };
           ## There’s still an extra step required to bypass protection settings,
