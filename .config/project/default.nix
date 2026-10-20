@@ -1,6 +1,10 @@
 ### All available options for this file are listed in
 ### https://sellout.github.io/project-manager/options.xhtml
-{config, ...}: {
+{
+  config,
+  lib,
+  ...
+}: {
   project = {
     name = "flaky";
     summary = "Shared configuration for dev environments";
@@ -38,13 +42,7 @@
     ## Only run Renovate monthly (on the 15th). This reduces the amount of
     ## cascading Nixpkgs updates, which makes it more likely that checked out
     ## repos are on the same revision.
-    renovate.settings.lockFileMaintenance = {
-      ## FIXME: Should only need the `schedule` field here, but this doesn’t
-      ##        currently merge properly, so need to replicate the whole
-      ##        structure.
-      automerge = true;
-      enabled = true;
-      schedule = ["* 0-4 15 * *"];
-    };
+    renovate.settings.lockFileMaintenance.schedule =
+      lib.mkForce ["* 0-4 15 * *"];
   };
 }
