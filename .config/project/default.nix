@@ -43,6 +43,6 @@
     ## cascading Nixpkgs updates, which makes it more likely that checked out
     ## repos are on the same revision.
     renovate.settings.lockFileMaintenance.schedule =
-      lib.mkForce ["* 0-4 15 * *"];
+      lib.mkForce ["* 2-6 15 * *"];
   };
 }
