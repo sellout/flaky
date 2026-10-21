@@ -63,4 +63,4 @@
       nix flake check --print-build-logs
     )
   '')
-.overrideAttrs (_: {__noChroot = true;})
+.overrideAttrs (_: {requiredSystemFeatures = ["recursive-nix"];})
