@@ -1,26 +1,58 @@
 {
   config,
   lib,
+  self,
   ...
 }: {
   services.renovate.settings = let
     ## If all checks are expected to be run by CI, then we can allow automerge
     ## to happen after a successful CI run.
     automerge = config.project.unsandboxedChecks == {};
+
+    ## Sources that we either want to track closely or don’t change very often,
+    ## and thus shouldn’t restricte the lock file updates.
+    slowSources = [
+      {owner = "nix-systems";}
+      {
+        owner = "numtide";
+        repo = "flake-utils";
+      }
+      {owner = "sellout";}
+    ];
+
+    ## Whether an input matches one of our slow sources.
+    isSlow = original:
+      lib.any (source:
+        lib.all (attr: lib.toLower (original.${attr} or "") == source.${attr})
+        (lib.attrNames source))
+      slowSources;
+
+    ## The set of inputs that aren’t slow – Nixpkgs is the main one here, but
+    ## plenty of other things like Homebrew casks, etc. fall into this bucket.
+    fastInputs = let
+      lockFile = "${self}/flake.lock";
+      lock = lib.importJSON lockFile;
+    in
+      if builtins.pathExists lockFile
+      then
+        lib.attrNames (lib.filterAttrs (_: input:
+          lib.isString input && !isSlow lock.nodes.${input}.original or {})
+        lock.nodes.root.inputs or {})
+      else [];
   in {
     labels = ["automated"];
     lockFileMaintenance = {
       inherit automerge;
       enabled = true;
-      ## Run at any time. This might seem noisy, but all of these repos should
-      ## get their Nixpkgs via Flaky, which only runs `lockFileMaintenance`
-      ## monthly. So this ensures that packges stay very in-sync with Flaky and
-      ## other not-too-quick-to-update inputs while hopefully still not having
-      ## too many `lockFileMaintenance` PRs.
-      ##
-      ## If updates _are_ to frequent, this can be reduced here, or via
-      ## `mkForce` per-repo.
-      schedule = ["* * * * *"];
+      ## When there are no fast-changing inputs, we let Renovate update the lock
+      ## file as frequently as possible, so we stay in sync with latest
+      ## versions. When there are fast-changing inputs, we slow it down to
+      ## weekly.
+      schedule =
+        if fastInputs == []
+        then ["* * * * *"]
+        else ["* 2-6 * * 0"];
+      timezone = "America/Denver";
     };
     packageRules =
       if automerge
