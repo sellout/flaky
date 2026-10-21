@@ -11,22 +11,16 @@
   garnixSystems = import garnix-systems;
 in {
   devShells.default = system: self: nativeBuildInputs: shellHook:
-    self.projectConfigurations.${system}.devShells.project-manager.overrideAttrs
-    (old: {
+    nixpkgs.legacyPackages.${system}.mkShell {
       inputsFrom =
-        old.inputsFrom
-        or []
-        ++ builtins.attrValues
-        ## FIXME: See sellout/project-manager#61
-        (removeAttrs
-          self.projectConfigurations.${system}.sandboxedChecks or {}
-          ["formatter"])
+        [self.projectConfigurations.${system}.devShells.project-manager]
+        ## `unwrapped` avoids forcing the IFD in `runEmptyCommand` checks.
+        ++ map (drv: drv.unwrapped or drv) (builtins.attrValues
+          self.projectConfigurations.${system}.sandboxedChecks or {})
         ++ builtins.attrValues self.packages.${system} or {};
 
-      nativeBuildInputs = old.nativeBuildInputs ++ nativeBuildInputs;
-
-      shellHook = old.shellHook + shellHook;
-    });
+      inherit nativeBuildInputs shellHook;
+    };
 
   elisp = import ./elisp.nix;
 

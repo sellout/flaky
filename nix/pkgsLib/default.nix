@@ -30,17 +30,20 @@
       pkgs.lib.removeSuffix "\n" (exec [pkgs.nix] ''
         nix-hash --type ${outputHashAlgo} --base64 ${hashInput str}
       '');
+    ## The derivation as written, before we make it fixed-output.
+    unwrapped = runStrictCommand name attrs command;
     ## The `.drv`, without the `outputHash`, gives us something consistent to
     ## hash.
-    hashBasis =
-      builtins.unsafeDiscardStringContext
-      (runStrictCommand name attrs command).drvPath;
+    hashBasis = builtins.unsafeDiscardStringContext unwrapped.drvPath;
   in
     runStrictCommand name (attrs
       // {
         inherit outputHashAlgo;
         outputHash = getHash hashBasis;
         outputHashMode = "recursive";
+        ## Lets consumers that only want the inputs (e.g., a devShell’s
+        ## `inputsFrom`) avoid forcing `outputHash`, which is IFD.
+        passthru = attrs.passthru or {} // {inherit unwrapped;};
       }) ''
       ${command}
       cp ${hashInput hashBasis} "$out"
