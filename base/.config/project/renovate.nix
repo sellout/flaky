@@ -7,7 +7,22 @@
   services.renovate.settings = let
     ## If all checks are expected to be run by CI, then we can allow automerge
     ## to happen after a successful CI run.
-    automerge = config.project.unsandboxedChecks == {};
+    automerge = let
+      ## For each enabled CI service, the checks it can’t build.
+      ## NOTE: Explicit `== true` because this value can be `null`.
+      unbuildable =
+        lib.optional (config.services.nix-ci.enable == true)
+        config.services.nix-ci.unbuildableChecks
+        ++ lib.optional config.services.garnix.enable
+        config.services.garnix.unbuildableChecks;
+      ## The checks that no enabled CI service builds (which is all of them if
+      ## no CI service is enabled).
+      unbuilt =
+        lib.foldl' (acc: checks: builtins.intersectAttrs checks acc)
+        config.project.checks
+        unbuildable;
+    in
+      unbuilt == {};
 
     ## Sources that we either want to track closely or don’t change very often,
     ## and thus shouldn’t restricte the lock file updates.
