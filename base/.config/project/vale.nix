@@ -66,12 +66,6 @@
       "**/.dir-locals.el"
       "**/flake.lock"
       "./.config/mustache.yaml"
-      "./.github/renovate.json"
-      "./.github/settings.yml"
-      "./.github/workflows/*.yml"
-      "./.gitattributes"
-      "./.gitignore"
-      "./.vale.ini"
     ];
     vocab.${config.project.name}.accept = [
       "direnv"
