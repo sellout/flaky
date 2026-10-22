@@ -8,9 +8,10 @@
   ## that wouldn’t otherwise be sandboxable.
   simple = name: src: nativeBuildInputs:
     runEmptyCommand name {inherit nativeBuildInputs src;};
-in {
-  inherit simple;
-
-  validate-template =
+  validate-template-with =
     pkgs.callPackage ../checks/validate-template.nix {inherit self simple;};
+in {
+  inherit simple validate-template-with;
+
+  validate-template = validate-template-with {};
 }
