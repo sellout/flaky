@@ -2,19 +2,12 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: {
   programs.vale = {
     coreSettings = {
       MinAlertLevel = "suggestion";
-      Packages = lib.concatStringsSep ", " [
-        "alex"
-        "Google"
-        "Microsoft"
-        "proselint"
-        "https://github.com/vale-cli/readability/releases/download/v0.1.1/Readability.zip"
-        "write-good"
-      ];
       Vocab = config.project.name;
     };
     formatSettings = let
@@ -67,6 +60,12 @@
       "**/flake.lock"
       "./.config/mustache.yaml"
     ];
+    styles = {
+      inherit (pkgs.valeStyles) alex proselint write-good;
+      Google = pkgs.valeStyles.google;
+      Microsoft = pkgs.valeStyles.microsoft;
+      Readability = pkgs.valeStyles.readability;
+    };
     vocab.${config.project.name}.accept = [
       "direnv"
       "formatter"
