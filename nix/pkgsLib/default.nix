@@ -51,7 +51,7 @@
 in {
   inherit runStrictCommand runEmptyCommand;
 
-  checks = import ./checks {inherit pkgs runEmptyCommand self;};
+  checks = import ./checks {inherit pkgs runEmptyCommand runStrictCommand self;};
 
   elisp = import ./elisp {inherit pkgs;};
 }
