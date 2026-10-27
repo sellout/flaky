@@ -4,11 +4,7 @@
   ...
 }: {
   services.nix-ci = {
-    ## WAIT: I would ideally have this inherit it from the flake’s `nixConfig`,
-    ##       but that isn’t accesiible or abstractable. Unfortunately, all of
-    ##       our projects currently need it on anyway, to avoid cases that would
-    ##       otherwise require `__noChroot`.
-    allow-import-from-derivation = true;
+    allow-import-from-derivation = false;
     ## Wouldn’t it be nice to not have to duplicate this between here and flake
     ## inputs? (See NixOS/nix#4945)
     cachix = {
