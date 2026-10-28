@@ -226,6 +226,21 @@ in {
                 sudo ln -s /lib/x86_64-linux-gnu/libutil.so.1 /usr/lib/x86_64-linux-gnu/libutil.so
               '';
             }
+            ## GHC 9.4–9.8 link with `-fuse-ld=gold`, but Ubuntu 26.04 no longer
+            ## installs gold by default.
+            {
+              name = "install ld.gold";
+              "if" = lib.concatStringsSep " " [
+                "\${{ runner.os == 'Linux'"
+                "&& (startsWith(matrix.ghc, '9.4.')"
+                "|| startsWith(matrix.ghc, '9.6.')"
+                "|| startsWith(matrix.ghc, '9.8.')) }}"
+              ];
+              run = ''
+                sudo apt-get update
+                sudo apt-get install --yes binutils-gold
+              '';
+            }
             {uses = "actions/checkout@v7";}
             (setUpHaskell "\${{ matrix.ghc }}")
             {run = "cabal v2-freeze $CONFIG";}
