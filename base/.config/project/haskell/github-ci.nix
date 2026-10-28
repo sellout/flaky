@@ -241,6 +241,13 @@ in {
                 sudo apt-get install --yes binutils-gold
               '';
             }
+            ## WAIT: Work around the broken macOS runner.
+            ##       (actions/runner-images#14940).
+            {
+              name = "use the Command Line Tools linker";
+              "if" = "\${{ runner.os == 'macOS' && runner.arch == 'ARM64' }}";
+              run = "sudo xcode-select -s /Library/Developer/CommandLineTools";
+            }
             {uses = "actions/checkout@v7";}
             (setUpHaskell "\${{ matrix.ghc }}")
             {run = "cabal v2-freeze $CONFIG";}
