@@ -155,7 +155,8 @@ in {
     include = lib.concatMap (bounds:
       map (ghc: {
         inherit bounds ghc;
-        os = linux-x64;
+        ## NOTE: Not `linux-x64`, because these need an older Ubuntu.
+        os = "ubuntu-22.04";
       }) (filterGhcVersions ["7.10.3" "8.0.2" "8.2.2"])
       ## This stands in for the GHC 9.2.1 build that’s excluded above.
       ++ lib.optional (builtins.elem "9.2.1" config.services.haskell-ci.ghcVersions) {
