@@ -149,19 +149,47 @@ in {
   config = lib.mkIf cfg.enable (let
     planName = "plan-\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
     runs-on = config.services.github.runners.latest.linux-x64;
-    cache = os: ghc: suffix: extra-restore-keys: {
-      uses = "actions/cache@v4";
-      "with" = {
-        path = ''
-          ''${{ steps.setup-haskell-cabal.outputs.cabal-store }}
-          dist-newstyle
-        '';
-        key = "${os}-${ghc}-${suffix}";
-        restore-keys =
-          lib.concatLines
-          (extra-restore-keys ++ ["${os}-${ghc}"]);
+    ## Caches only the Cabal store. `actions/checkout` resets mtimes, so caching
+    ## `dist-newstyle` isn’t worth it.
+    ##
+    ## This doesn’t save from PRs, to prevent them crowding out more stable
+    ## versions.
+    cache = {
+      key,
+      restore-keys ? [],
+    }: let
+      id = "restore-cabal-store";
+      path = "\${{ steps.setup-haskell-cabal.outputs.cabal-store }}";
+    in {
+      restore = {
+        inherit id;
+        uses = "actions/cache/restore@v6";
+        "with" =
+          {inherit key path;}
+          // lib.optionalAttrs (restore-keys != []) {
+            restore-keys = lib.concatLines restore-keys;
+          };
+      };
+      save = {
+        uses = "actions/cache/save@v6";
+        "if" = lib.concatStringsSep " " [
+          "\${{ !cancelled()"
+          "&& github.event_name != 'pull_request'"
+          "&& steps.${id}.outcome == 'success'"
+          "&& steps.${id}.outputs.cache-hit != 'true' }}"
+        ];
+        "with" = {
+          inherit path;
+          key = "\${{ steps.${id}.outputs.cache-primary-key }}";
+        };
       };
     };
+    buildCachePrefix = "\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}-build-";
+    buildCache = cache {
+      key = "${buildCachePrefix}\${{ hashFiles('cabal.project.freeze') }}";
+      restore-keys = [buildCachePrefix];
+    };
+    toolCache = tool: cache {key = "${runs-on}-${cfg.defaultGhcVersion}-${tool}";};
   in {
     services.github.workflow."build.yml".text = lib.pm.generators.toYAML {} {
       name = "CI";
@@ -253,15 +281,12 @@ in {
             {uses = "actions/checkout@v7";}
             (setUpHaskell "\${{ matrix.ghc }}")
             {run = "cabal v2-freeze $CONFIG";}
-            (cache
-              "\${{ matrix.os }}"
-              "\${{ matrix.ghc }}"
-              "build-\${{ hashFiles('cabal.project.freeze') }}"
-              ["\${{ matrix.os }}-\${{ matrix.ghc }}-build"])
+            buildCache.restore
             ## NB: The `doctests` suites don’t seem to get built without
             ##     explicitly doing so before running the tests.
             {run = "cabal v2-build all $CONFIG";}
             {run = "cabal v2-test all $CONFIG";}
+            buildCache.save
             {run = "mv dist-newstyle/cache/plan.json ${planName}.json";}
             {
               name = "Upload build plan as artifact";
@@ -282,8 +307,9 @@ in {
           steps = [
             {uses = "actions/checkout@v7";}
             (setUpHaskell cfg.defaultGhcVersion)
-            (cache runs-on cfg.defaultGhcVersion "cabal-plan-bounds" [])
+            (toolCache "cabal-plan-bounds").restore
             {run = "cabal install cabal-plan-bounds";}
+            (toolCache "cabal-plan-bounds").save
             {
               name = "download Cabal plans";
               uses = "actions/download-artifact@v4";
@@ -343,7 +369,7 @@ in {
               };
             }
             (setUpHaskell cfg.defaultGhcVersion)
-            (cache runs-on cfg.defaultGhcVersion "cabal-plan" [])
+            (toolCache "cabal-plan").restore
             {
               run = ''
                 cabal install cabal-plan \
@@ -351,6 +377,7 @@ in {
                   --ghc-options='-Wwarn'
               '';
             }
+            (toolCache "cabal-plan").save
             {
               name = "download Cabal plans";
               uses = "actions/download-artifact@v4";
