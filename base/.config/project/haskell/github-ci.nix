@@ -199,6 +199,8 @@ in {
             };
           };
           runs-on = "\${{ matrix.os }}";
+          ## Windows defaults to PowerShell, where `$CONFIG` doesn’t work.
+          defaults.run.shell = "bash";
           env.CONFIG = let
             packages = lib.concatStringsSep "," (map (name: "${name}:all") (lib.attrNames cfg.cabalPackages));
             bounds =
