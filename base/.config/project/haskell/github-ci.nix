@@ -149,18 +149,14 @@ in {
   config = lib.mkIf cfg.enable (let
     planName = "plan-\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
     runs-on = config.services.github.runners.latest.linux-x64;
-    ## Caches only the Cabal store. `actions/checkout` resets mtimes, so caching
-    ## `dist-newstyle` isn’t worth it.
-    ##
     ## This doesn’t save from PRs, to prevent them crowding out more stable
     ## versions.
     cache = {
+      id,
       key,
+      path,
       restore-keys ? [],
-    }: let
-      id = "restore-cabal-store";
-      path = "\${{ steps.setup-haskell-cabal.outputs.cabal-store }}";
-    in {
+    }: {
       restore = {
         inherit id;
         uses = "actions/cache/restore@v6";
@@ -184,12 +180,27 @@ in {
         };
       };
     };
+    ## Installing GHC can take minutes, against seconds loading from a cache.
+    ## But each GHC is 200+ MiB of our 10 GiB cache, so use it cautiously.
+    ghcCache = cache {
+      id = "restore-ghc";
+      key = "\${{ matrix.os }}-ghc-\${{ matrix.ghc }}";
+      path = "~/.ghcup/ghc/\${{ matrix.ghc }}";
+    };
+    ## Caches only the Cabal store. `actions/checkout` resets mtimes, so caching
+    ## `dist-newstyle` isn’t worth it.
+    storeCache = args:
+      cache ({
+          id = "restore-cabal-store";
+          path = "\${{ steps.setup-haskell-cabal.outputs.cabal-store }}";
+        }
+        // args);
     buildCachePrefix = "\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}-build-";
-    buildCache = cache {
+    buildCache = storeCache {
       key = "${buildCachePrefix}\${{ hashFiles('cabal.project.freeze') }}";
       restore-keys = [buildCachePrefix];
     };
-    toolCache = tool: cache {key = "${runs-on}-${cfg.defaultGhcVersion}-${tool}";};
+    toolCache = tool: storeCache {key = "${runs-on}-${cfg.defaultGhcVersion}-${tool}";};
   in {
     services.github.workflow."build.yml".text = lib.pm.generators.toYAML {} {
       name = "CI";
@@ -279,7 +290,19 @@ in {
               run = "sudo xcode-select -s /Library/Developer/CommandLineTools";
             }
             {uses = "actions/checkout@v7";}
+            ## Installing GHC on macOS takes 4–10 minutes and costs 10× what
+            ## Linux minutes do on non-free builds, so don’t waste time
+            ## installing GHC there.
+            (ghcCache.restore // {"if" = "\${{ runner.os == 'macOS' }}";})
+            ## haskell-actions/setup only treats a GHC as installed when
+            ## ~/.ghcup/bin/ exists, so create it.
+            {
+              name = "use the restored GHC";
+              "if" = "\${{ steps.restore-ghc.outputs.cache-hit == 'true' }}";
+              run = "mkdir -p ~/.ghcup/bin";
+            }
             (setUpHaskell "\${{ matrix.ghc }}")
+            ghcCache.save
             {run = "cabal v2-freeze $CONFIG";}
             buildCache.restore
             ## NB: The `doctests` suites don’t seem to get built without
