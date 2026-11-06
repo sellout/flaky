@@ -290,7 +290,7 @@ in {
             {run = "mv dist-newstyle/cache/plan.json ${planName}.json";}
             {
               name = "Upload build plan as artifact";
-              uses = "actions/upload-artifact@v4";
+              uses = "actions/upload-artifact@v7";
               "with" = {
                 name = planName;
                 path = "${planName}.json";
@@ -312,7 +312,7 @@ in {
             (toolCache "cabal-plan-bounds").save
             {
               name = "download Cabal plans";
-              uses = "actions/download-artifact@v4";
+              uses = "actions/download-artifact@v8";
               "with" = {
                 path = "plans";
                 pattern = "plan-*";
@@ -380,7 +380,7 @@ in {
             (toolCache "cabal-plan").save
             {
               name = "download Cabal plans";
-              uses = "actions/download-artifact@v4";
+              uses = "actions/download-artifact@v8";
               "with" = {
                 path = "plans";
                 pattern = "plan-*";
