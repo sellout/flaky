@@ -180,11 +180,16 @@ in {
         };
       };
     };
+    ## We trim GHC down as much as possible for caching.
+    keepProfiling =
+      lib.any (arg: lib.elem arg cfg.extraCabalArgs)
+      ["--enable-profiling" "--enable-library-profiling"];
+    ghcTrimmings = "no-docs" + lib.optionalString (!keepProfiling) "-or-profiling";
     ## Installing GHC can take minutes, against seconds loading from a cache.
     ## But each GHC is 200+ MiB of our 10 GiB cache, so use it cautiously.
     ghcCache = cache {
       id = "restore-ghc";
-      key = "\${{ matrix.os }}-ghc-\${{ matrix.ghc }}";
+      key = "\${{ matrix.os }}-ghc-\${{ matrix.ghc }}-${ghcTrimmings}";
       path = "~/.ghcup/ghc/\${{ matrix.ghc }}";
     };
     ## Caches only the Cabal store. `actions/checkout` resets mtimes, so caching
@@ -304,6 +309,27 @@ in {
               run = "mkdir -p ~/.ghcup/bin";
             }
             (setUpHaskell "\${{ matrix.ghc }}")
+            ## This also runs on PRs, even though they don’t save, just so every
+            ## job builds with the same GHC.
+            {
+              name = "trim GHC (${ghcTrimmings})";
+              "if" = lib.concatStringsSep " " [
+                "\${{ steps.restore-ghc.outcome == 'success'"
+                "&& steps.restore-ghc.outputs.cache-hit != 'true' }}"
+              ];
+              run =
+                ''
+                  ghc_dir=~/.ghcup/ghc/''${{ matrix.ghc }}
+                  du -sh "$ghc_dir"
+                  rm -rf "$ghc_dir/share/doc"
+                ''
+                + lib.optionalString (!keepProfiling) ''
+                  find "$ghc_dir" \( -name '*.p_hi' -o -name '*_p.a' -o -name '*.p_o' \) -delete
+                ''
+                + ''
+                  du -sh "$ghc_dir"
+                '';
+            }
             ghcCache.save
             buildCache.restore
             ## NB: The `doctests` suites don’t seem to get built without
