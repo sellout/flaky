@@ -6,6 +6,28 @@
   ...
 }: let
   cfg = config.services.haskell-ci;
+
+  ## I’m not sure if this is actually GB or GiB – assuming GiB for now.
+  githubCacheSize = 10240; # MiB
+
+  ## Whether we can fit Windows’ GHCs into GitHub’s 10 GiB cache alongside
+  ## everything else we keep there. We count each job’s store twice, because we
+  ## need to keep the previous ones until they’ve all been loaded.
+  windowsGhcsFit = let
+    ghcEntries = prefix:
+      lib.length (lib.filter (lib.hasPrefix prefix) cfg.systems)
+      * lib.length cfg.ghcVersions;
+    jobs =
+      lib.length cfg.systems
+      * lib.length cfg.ghcVersions
+      * 2
+      + lib.length cfg.include;
+  in
+    250
+    * ghcEntries "macos"
+    + 450 * ghcEntries "windows"
+    + 2 * jobs * cfg.cache.storeSize
+    <= 0.8 * githubCacheSize;
 in {
   options.services.haskell-ci = {
     enable =
@@ -124,6 +146,27 @@ in {
       example = ["--enable-benchmarks" "--enable-tests"];
     };
 
+    cache = {
+      storeSize = lib.mkOption {
+        type = lib.types.ints.positive;
+        default = 50;
+        description = ''
+          An estimate of one build job’s cached Cabal store, in MiB. It decides
+          the default for `cache.windowsGhcs`.
+        '';
+      };
+
+      windowsGhcs = lib.mkOption {
+        type = lib.types.bool;
+        default = windowsGhcsFit;
+        defaultText = lib.literalMD "whether the estimated cache use fits";
+        description = ''
+          Whether to cache installed GHCs on Windows. GHCs are always cached on
+          macOS, because GitHub charges 10× for macOS minutes.
+        '';
+      };
+    };
+
     checkBounds = {
       enable = lib.mkEnableOption "checking of dependency bounds";
 
@@ -149,19 +192,66 @@ in {
   config = lib.mkIf cfg.enable (let
     planName = "plan-\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
     runs-on = config.services.github.runners.latest.linux-x64;
-    cache = os: ghc: suffix: extra-restore-keys: {
-      uses = "actions/cache@v4";
-      "with" = {
-        path = ''
-          ''${{ steps.setup-haskell-cabal.outputs.cabal-store }}
-          dist-newstyle
-        '';
-        key = "${os}-${ghc}-${suffix}";
-        restore-keys =
-          lib.concatLines
-          (extra-restore-keys ++ ["${os}-${ghc}"]);
+    ## This doesn’t save from PRs, to prevent them crowding out more stable
+    ## versions.
+    cache = {
+      id,
+      key,
+      path,
+      restore-keys ? [],
+    }: {
+      restore = {
+        inherit id;
+        uses = "actions/cache/restore@v6";
+        "with" =
+          {inherit key path;}
+          // lib.optionalAttrs (restore-keys != []) {
+            restore-keys = lib.concatLines restore-keys;
+          };
+      };
+      save = {
+        uses = "actions/cache/save@v6";
+        "if" = lib.concatStringsSep " " [
+          "\${{ !cancelled()"
+          "&& github.event_name != 'pull_request'"
+          "&& steps.${id}.outcome == 'success'"
+          "&& steps.${id}.outputs.cache-hit != 'true' }}"
+        ];
+        "with" = {
+          inherit path;
+          key = "\${{ steps.${id}.outputs.cache-primary-key }}";
+        };
       };
     };
+    ## We trim GHC down as much as possible for caching.
+    keepProfiling =
+      lib.any (arg: lib.elem arg cfg.extraCabalArgs)
+      ["--enable-profiling" "--enable-library-profiling"];
+    ghcTrimmings = "no-docs" + lib.optionalString (!keepProfiling) "-or-profiling";
+    ghcupDir = "\${{ runner.os == 'Windows' && 'C:/ghcup' || '~/.ghcup' }}";
+    ## Installing GHC can take minutes, against seconds loading from a cache.
+    ## But each GHC is 150–400 MiB of our 10 GB cache, so use it cautiously.
+    ghcCache = cache {
+      id = "restore-ghc";
+      key = "\${{ matrix.os }}-ghc-\${{ matrix.ghc }}-${ghcTrimmings}";
+      path = "${ghcupDir}/ghc/\${{ matrix.ghc }}";
+    };
+    ## Caches only the Cabal store. `actions/checkout` resets mtimes, so caching
+    ## `dist-newstyle` isn’t worth it.
+    storeCache = args:
+      cache ({
+          id = "restore-cabal-store";
+          path = "\${{ steps.setup-haskell-cabal.outputs.cabal-store }}";
+        }
+        // args);
+    ## The Cabal index changes on nearly every run, so each run saves a fresh
+    ## entry, restored by prefix.
+    buildCachePrefix = "\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}-build-";
+    buildCache = storeCache {
+      key = "${buildCachePrefix}\${{ github.run_id }}";
+      restore-keys = [buildCachePrefix];
+    };
+    toolCache = tool: storeCache {key = "${runs-on}-${cfg.defaultGhcVersion}-${tool}";};
   in {
     services.github.workflow."build.yml".text = lib.pm.generators.toYAML {} {
       name = "CI";
@@ -216,7 +306,8 @@ in {
               );
           in
             lib.concatStringsSep " " (cfg.extraCabalArgs ++ bounds) + " \${{ matrix.bounds }}";
-          steps = [
+          ## `{}` marks a step this configuration doesn’t use.
+          steps = lib.filter (step: step != {}) [
             ## Workaround for
             ## https://stackoverflow.com/questions/37948715/why-executables-built-with-ghc-7-10-2-have-dependencies-with-both-librt-and-libc
             {
@@ -251,21 +342,74 @@ in {
               run = "sudo xcode-select -s /Library/Developer/CommandLineTools";
             }
             {uses = "actions/checkout@v7";}
+            (lib.optionalAttrs cfg.cache.windowsGhcs {
+              ## Don’t spend cache on GHCs the runner image already has.
+              name = "check for a preinstalled GHC";
+              id = "preinstalled-ghc";
+              "if" = "\${{ runner.os == 'Windows' }}";
+              run = ''
+                if [[ -d C:/ghcup/ghc/''${{ matrix.ghc }} ]]; then
+                  echo found=true >>"$GITHUB_OUTPUT"
+                fi
+              '';
+            })
+            ## Installing GHC takes minutes – 4–10 on macOS, which costs 10×
+            ## what Linux does on non-free builds.
+            (ghcCache.restore
+              // {
+                "if" =
+                  if cfg.cache.windowsGhcs
+                  then
+                    lib.concatStringsSep " " [
+                      "\${{ runner.os == 'macOS'"
+                      "|| (runner.os == 'Windows'"
+                      "&& steps.preinstalled-ghc.outputs.found != 'true') }}"
+                    ]
+                  else "\${{ runner.os == 'macOS' }}";
+              })
+            ## haskell-actions/setup only treats a GHC as installed when
+            ## ~/.ghcup/bin/ exists, so create it. (Windows runners have ghcup.)
+            {
+              name = "use the restored GHC";
+              "if" = lib.concatStringsSep " " [
+                "\${{ runner.os == 'macOS'"
+                "&& steps.restore-ghc.outputs.cache-hit == 'true' }}"
+              ];
+              run = "mkdir -p ~/.ghcup/bin";
+            }
             (setUpHaskell "\${{ matrix.ghc }}")
-            {run = "cabal v2-freeze $CONFIG";}
-            (cache
-              "\${{ matrix.os }}"
-              "\${{ matrix.ghc }}"
-              "build-\${{ hashFiles('cabal.project.freeze') }}"
-              ["\${{ matrix.os }}-\${{ matrix.ghc }}-build"])
+            ## This also runs on PRs, even though they don’t save, just so every
+            ## job builds with the same GHC.
+            {
+              name = "trim GHC (${ghcTrimmings})";
+              "if" = lib.concatStringsSep " " [
+                "\${{ steps.restore-ghc.outcome == 'success'"
+                "&& steps.restore-ghc.outputs.cache-hit != 'true' }}"
+              ];
+              run =
+                ''
+                  ghc_dir=${ghcupDir}/ghc/''${{ matrix.ghc }}
+                  du -sh "$ghc_dir"
+                  rm -rf "$ghc_dir/share/doc" "$ghc_dir/doc"
+                ''
+                + lib.optionalString (!keepProfiling) ''
+                  find "$ghc_dir" \( -name '*.p_hi' -o -name '*_p.a' -o -name '*.p_o' \) -delete
+                ''
+                + ''
+                  du -sh "$ghc_dir"
+                '';
+            }
+            ghcCache.save
+            buildCache.restore
             ## NB: The `doctests` suites don’t seem to get built without
             ##     explicitly doing so before running the tests.
             {run = "cabal v2-build all $CONFIG";}
             {run = "cabal v2-test all $CONFIG";}
+            buildCache.save
             {run = "mv dist-newstyle/cache/plan.json ${planName}.json";}
             {
               name = "Upload build plan as artifact";
-              uses = "actions/upload-artifact@v4";
+              uses = "actions/upload-artifact@v7";
               "with" = {
                 name = planName;
                 path = "${planName}.json";
@@ -282,11 +426,12 @@ in {
           steps = [
             {uses = "actions/checkout@v7";}
             (setUpHaskell cfg.defaultGhcVersion)
-            (cache runs-on cfg.defaultGhcVersion "cabal-plan-bounds" [])
+            (toolCache "cabal-plan-bounds").restore
             {run = "cabal install cabal-plan-bounds";}
+            (toolCache "cabal-plan-bounds").save
             {
               name = "download Cabal plans";
-              uses = "actions/download-artifact@v4";
+              uses = "actions/download-artifact@v8";
               "with" = {
                 path = "plans";
                 pattern = "plan-*";
@@ -343,7 +488,7 @@ in {
               };
             }
             (setUpHaskell cfg.defaultGhcVersion)
-            (cache runs-on cfg.defaultGhcVersion "cabal-plan" [])
+            (toolCache "cabal-plan").restore
             {
               run = ''
                 cabal install cabal-plan \
@@ -351,9 +496,10 @@ in {
                   --ghc-options='-Wwarn'
               '';
             }
+            (toolCache "cabal-plan").save
             {
               name = "download Cabal plans";
-              uses = "actions/download-artifact@v4";
+              uses = "actions/download-artifact@v8";
               "with" = {
                 path = "plans";
                 pattern = "plan-*";
