@@ -6,6 +6,28 @@
   ...
 }: let
   cfg = config.services.haskell-ci;
+
+  ## I’m not sure if this is actually GB or GiB – assuming GiB for now.
+  githubCacheSize = 10240; # MiB
+
+  ## Whether we can fit Windows’ GHCs into GitHub’s 10 GiB cache alongside
+  ## everything else we keep there. We count each job’s store twice, because we
+  ## need to keep the previous ones until they’ve all been loaded.
+  windowsGhcsFit = let
+    ghcEntries = prefix:
+      lib.length (lib.filter (lib.hasPrefix prefix) cfg.systems)
+      * lib.length cfg.ghcVersions;
+    jobs =
+      lib.length cfg.systems
+      * lib.length cfg.ghcVersions
+      * 2
+      + lib.length cfg.include;
+  in
+    250
+    * ghcEntries "macos"
+    + 450 * ghcEntries "windows"
+    + 2 * jobs * cfg.cache.storeSize
+    <= 0.8 * githubCacheSize;
 in {
   options.services.haskell-ci = {
     enable =
@@ -124,6 +146,27 @@ in {
       example = ["--enable-benchmarks" "--enable-tests"];
     };
 
+    cache = {
+      storeSize = lib.mkOption {
+        type = lib.types.ints.positive;
+        default = 50;
+        description = ''
+          An estimate of one build job’s cached Cabal store, in MiB. It decides
+          the default for `cache.windowsGhcs`.
+        '';
+      };
+
+      windowsGhcs = lib.mkOption {
+        type = lib.types.bool;
+        default = windowsGhcsFit;
+        defaultText = lib.literalMD "whether the estimated cache use fits";
+        description = ''
+          Whether to cache installed GHCs on Windows. GHCs are always cached on
+          macOS, because GitHub charges 10× for macOS minutes.
+        '';
+      };
+    };
+
     checkBounds = {
       enable = lib.mkEnableOption "checking of dependency bounds";
 
@@ -185,12 +228,13 @@ in {
       lib.any (arg: lib.elem arg cfg.extraCabalArgs)
       ["--enable-profiling" "--enable-library-profiling"];
     ghcTrimmings = "no-docs" + lib.optionalString (!keepProfiling) "-or-profiling";
+    ghcupDir = "\${{ runner.os == 'Windows' && 'C:/ghcup' || '~/.ghcup' }}";
     ## Installing GHC can take minutes, against seconds loading from a cache.
-    ## But each GHC is 200+ MiB of our 10 GiB cache, so use it cautiously.
+    ## But each GHC is 150–400 MiB of our 10 GB cache, so use it cautiously.
     ghcCache = cache {
       id = "restore-ghc";
       key = "\${{ matrix.os }}-ghc-\${{ matrix.ghc }}-${ghcTrimmings}";
-      path = "~/.ghcup/ghc/\${{ matrix.ghc }}";
+      path = "${ghcupDir}/ghc/\${{ matrix.ghc }}";
     };
     ## Caches only the Cabal store. `actions/checkout` resets mtimes, so caching
     ## `dist-newstyle` isn’t worth it.
@@ -262,7 +306,8 @@ in {
               );
           in
             lib.concatStringsSep " " (cfg.extraCabalArgs ++ bounds) + " \${{ matrix.bounds }}";
-          steps = [
+          ## `{}` marks a step this configuration doesn’t use.
+          steps = lib.filter (step: step != {}) [
             ## Workaround for
             ## https://stackoverflow.com/questions/37948715/why-executables-built-with-ghc-7-10-2-have-dependencies-with-both-librt-and-libc
             {
@@ -297,15 +342,39 @@ in {
               run = "sudo xcode-select -s /Library/Developer/CommandLineTools";
             }
             {uses = "actions/checkout@v7";}
-            ## Installing GHC on macOS takes 4–10 minutes and costs 10× what
-            ## Linux minutes do on non-free builds, so don’t waste time
-            ## installing GHC there.
-            (ghcCache.restore // {"if" = "\${{ runner.os == 'macOS' }}";})
+            (lib.optionalAttrs cfg.cache.windowsGhcs {
+              ## Don’t spend cache on GHCs the runner image already has.
+              name = "check for a preinstalled GHC";
+              id = "preinstalled-ghc";
+              "if" = "\${{ runner.os == 'Windows' }}";
+              run = ''
+                if [[ -d C:/ghcup/ghc/''${{ matrix.ghc }} ]]; then
+                  echo found=true >>"$GITHUB_OUTPUT"
+                fi
+              '';
+            })
+            ## Installing GHC takes minutes – 4–10 on macOS, which costs 10×
+            ## what Linux does on non-free builds.
+            (ghcCache.restore
+              // {
+                "if" =
+                  if cfg.cache.windowsGhcs
+                  then
+                    lib.concatStringsSep " " [
+                      "\${{ runner.os == 'macOS'"
+                      "|| (runner.os == 'Windows'"
+                      "&& steps.preinstalled-ghc.outputs.found != 'true') }}"
+                    ]
+                  else "\${{ runner.os == 'macOS' }}";
+              })
             ## haskell-actions/setup only treats a GHC as installed when
-            ## ~/.ghcup/bin/ exists, so create it.
+            ## ~/.ghcup/bin/ exists, so create it. (Windows runners have ghcup.)
             {
               name = "use the restored GHC";
-              "if" = "\${{ steps.restore-ghc.outputs.cache-hit == 'true' }}";
+              "if" = lib.concatStringsSep " " [
+                "\${{ runner.os == 'macOS'"
+                "&& steps.restore-ghc.outputs.cache-hit == 'true' }}"
+              ];
               run = "mkdir -p ~/.ghcup/bin";
             }
             (setUpHaskell "\${{ matrix.ghc }}")
@@ -319,9 +388,9 @@ in {
               ];
               run =
                 ''
-                  ghc_dir=~/.ghcup/ghc/''${{ matrix.ghc }}
+                  ghc_dir=${ghcupDir}/ghc/''${{ matrix.ghc }}
                   du -sh "$ghc_dir"
-                  rm -rf "$ghc_dir/share/doc"
+                  rm -rf "$ghc_dir/share/doc" "$ghc_dir/doc"
                 ''
                 + lib.optionalString (!keepProfiling) ''
                   find "$ghc_dir" \( -name '*.p_hi' -o -name '*_p.a' -o -name '*.p_o' \) -delete
