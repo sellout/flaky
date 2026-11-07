@@ -195,9 +195,11 @@ in {
           path = "\${{ steps.setup-haskell-cabal.outputs.cabal-store }}";
         }
         // args);
+    ## The Cabal index changes on nearly every run, so each run saves a fresh
+    ## entry, restored by prefix.
     buildCachePrefix = "\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}-build-";
     buildCache = storeCache {
-      key = "${buildCachePrefix}\${{ hashFiles('cabal.project.freeze') }}";
+      key = "${buildCachePrefix}\${{ github.run_id }}";
       restore-keys = [buildCachePrefix];
     };
     toolCache = tool: storeCache {key = "${runs-on}-${cfg.defaultGhcVersion}-${tool}";};
@@ -303,7 +305,6 @@ in {
             }
             (setUpHaskell "\${{ matrix.ghc }}")
             ghcCache.save
-            {run = "cabal v2-freeze $CONFIG";}
             buildCache.restore
             ## NB: The `doctests` suites don’t seem to get built without
             ##     explicitly doing so before running the tests.
