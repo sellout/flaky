@@ -193,6 +193,7 @@ in {
   config = lib.mkIf cfg.enable (let
     planName = "plan-\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
     runs-on = config.services.github.runners.latest.linux-x64;
+    sameRepo = "github.event.pull_request.head.repo.full_name == github.repository";
     ## Every key is determined by what the cache holds, so a save only happens
     ## when nothing with the same content is visible. A PR can’t share its
     ## entries with `main` or other PRs, but it only saves what it actually
@@ -486,6 +487,7 @@ in {
           ## jobs from the matrix, we run it regardless of build failures.
           "if" = "\${{ !cancelled() }}";
           needs = ["build"];
+          permissions.contents = "write";
           steps = [
             {
               uses = "actions/checkout@v7";
@@ -497,8 +499,7 @@ in {
               "with" = {
                 repository = "\${{ github.event.pull_request.head.repo.full_name }}";
                 ref = "\${{ github.event.pull_request.head.ref }}";
-                ## TODO: I don’t know why we can’t push without this token.
-                token = "\${{ secrets.PROJECT_MANAGER_TOKEN }}";
+                token = "\${{ github.token }}";
               };
             }
             (setUpHaskell cfg.defaultGhcVersion)
@@ -539,14 +540,16 @@ in {
                 done
               '';
             }
+            ## On a fork or outside of a PR, we just fail if the license report
+            ## is out of date.
             {
               name = "check changes";
-              "if" = "github.event_name != 'pull_request'";
+              "if" = "!(github.event_name == 'pull_request' && ${sameRepo})";
               run = "git diff --exit-code */docs/license-report.md";
             }
             {
               name = "commit changes";
-              "if" = "github.event_name == 'pull_request'";
+              "if" = "github.event_name == 'pull_request' && ${sameRepo}";
               uses = "EndBug/add-and-commit@v10";
               "with" = {
                 add = "*/docs/license-report.md";
