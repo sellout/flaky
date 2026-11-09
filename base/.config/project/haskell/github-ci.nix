@@ -12,7 +12,8 @@
 
   ## Whether we can fit Windows’ GHCs into GitHub’s 10 GiB cache alongside
   ## everything else we keep there. We count each job’s store twice, because we
-  ## need to keep the previous ones until they’ve all been loaded.
+  ## need to keep the previous ones until they’ve all been loaded. Entries saved
+  ## by open PRs come out of the remaining 20%, since they’re deleted on close.
   windowsGhcsFit = let
     ghcEntries = prefix:
       lib.length (lib.filter (lib.hasPrefix prefix) cfg.systems)
@@ -192,8 +193,10 @@ in {
   config = lib.mkIf cfg.enable (let
     planName = "plan-\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}";
     runs-on = config.services.github.runners.latest.linux-x64;
-    ## This doesn’t save from PRs, to prevent them crowding out more stable
-    ## versions.
+    ## Every key is determined by what the cache holds, so a save only happens
+    ## when nothing with the same content is visible. A PR can’t share its
+    ## entries with `main` or other PRs, but it only saves what it actually
+    ## changed, and `cache-cleanup.yml` deletes those entries when it closes.
     cache = {
       id,
       key,
@@ -213,7 +216,6 @@ in {
         uses = "actions/cache/save@v6";
         "if" = lib.concatStringsSep " " [
           "\${{ !cancelled()"
-          "&& github.event_name != 'pull_request'"
           "&& steps.${id}.outcome == 'success'"
           "&& steps.${id}.outputs.cache-hit != 'true' }}"
         ];
@@ -244,11 +246,13 @@ in {
           path = "\${{ steps.setup-haskell-cabal.outputs.cabal-store }}";
         }
         // args);
-    ## The Cabal index changes on nearly every run, so each run saves a fresh
-    ## entry, restored by prefix.
+    ## The store holds exactly the plan’s non-local units, so their ids
+    ## determine it. A new entry is saved only when the solved plan changes,
+    ## and a store for an older plan is restored by prefix to seed the build.
+    storeUnits = "dist-newstyle/store-units.txt";
     buildCachePrefix = "\${{ matrix.os }}-\${{ matrix.ghc }}\${{ matrix.bounds }}-build-";
     buildCache = storeCache {
-      key = "${buildCachePrefix}\${{ github.run_id }}";
+      key = "${buildCachePrefix}\${{ hashFiles('${storeUnits}') }}";
       restore-keys = [buildCachePrefix];
     };
     toolCache = tool: storeCache {key = "${runs-on}-${cfg.defaultGhcVersion}-${tool}";};
@@ -378,8 +382,6 @@ in {
               run = "mkdir -p ~/.ghcup/bin";
             }
             (setUpHaskell "\${{ matrix.ghc }}")
-            ## This also runs on PRs, even though they don’t save, just so every
-            ## job builds with the same GHC.
             {
               name = "trim GHC (${ghcTrimmings})";
               "if" = lib.concatStringsSep " " [
@@ -400,6 +402,18 @@ in {
                 '';
             }
             ghcCache.save
+            ## This figures out the subset of non-local packages we actually
+            ## need, which gives us a much more consistent result than a freeze
+            ## file, which captures the whole index.
+            {
+              name = "list the units the store needs";
+              run = ''
+                cabal v2-build all $CONFIG --dry-run
+                jq -r '."install-plan"[] | select(.style != "local") | .id' \
+                  dist-newstyle/cache/plan.json \
+                  | sort >${storeUnits}
+              '';
+            }
             buildCache.restore
             ## NB: The `doctests` suites don’t seem to get built without
             ##     explicitly doing so before running the tests.
@@ -543,6 +557,32 @@ in {
             }
           ];
         };
+      };
+    };
+    ## Once a PR closes, its caches are dead, and leaving them around can
+    ## potentially lead to the default branch’s caches being evicted, so we
+    ## remove ’em.
+    services.github.workflow."cache-cleanup.yml".text = lib.pm.generators.toYAML {} {
+      name = "cache cleanup";
+      on.pull_request_target.types = ["closed"];
+      permissions.actions = "write";
+      jobs.cleanup = {
+        inherit runs-on;
+        steps = [
+          {
+            name = "delete the closed PR’s caches";
+            env = {
+              GH_REPO = "\${{ github.repository }}";
+              GH_TOKEN = "\${{ github.token }}";
+            };
+            run = ''
+              gh cache delete \
+                --all \
+                --ref refs/pull/''${{ github.event.pull_request.number }}/merge \
+                --succeed-on-no-caches
+            '';
+          }
+        ];
       };
     };
   });
