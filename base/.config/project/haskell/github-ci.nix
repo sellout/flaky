@@ -258,6 +258,31 @@ in {
     };
     toolCache = tool: storeCache {key = "${runs-on}-${cfg.defaultGhcVersion}-${tool}";};
   in {
+    ## NOTE: This is gated the same way as the branch protection in github.nix.
+    services.github.settings.branches =
+      lib.optionalAttrs
+      (!config.services.github.settings.repository.private
+        || config.services.github.plan != "free") {
+        ${config.services.github.settings.repository.default_branch}.protection.required_status_checks.checks = let
+          checkName = entry:
+            if entry.bounds or "" == ""
+            then "build (${entry.ghc}, ${entry.os})"
+            else "build (${entry.bounds}, ${entry.ghc}, ${entry.os})";
+        in
+          map (context: {inherit context;})
+          ([
+              "check-bounds"
+              "check-licenses"
+            ]
+            ++ map checkName
+            (lib.filter (entry: !lib.any (ex: lib.matchAttrs ex entry) cfg.exclude)
+              (lib.cartesianProduct {
+                bounds = ["" "--prefer-oldest"];
+                ghc = cfg.ghcVersions;
+                os = cfg.systems;
+              })
+              ++ cfg.include));
+      };
     services.github.workflow."build.yml".text = lib.pm.generators.toYAML {} {
       name = "CI";
       on = {
