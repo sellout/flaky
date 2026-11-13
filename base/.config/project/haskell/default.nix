@@ -10,8 +10,9 @@
   ...
 }: let
   nixBuildsFor = sys:
-    [
-      "checks.${sys}.*"
+    map (name: "checks.${sys}.${name}")
+    (lib.attrNames (self.checks.${sys} or {}))
+    ++ [
       "devShells.${sys}.default"
       "packages.${sys}.default"
     ]

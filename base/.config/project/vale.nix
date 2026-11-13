@@ -27,6 +27,7 @@
         "Microsoft.Quotes" = "NO"; # Punctuation inside quotes is an abomination.
         "Microsoft.Vocab" = "NO"; # Not consistent enough.
         "Microsoft.We" = "NO"; # I _like_ first-person plural.
+        "proselint.Annotations" = "NO"; # Callouts in prose are good.
       };
       commonStyles = [
         "alex"
