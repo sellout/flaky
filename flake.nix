@@ -40,7 +40,14 @@
       url = "github:nix-community/home-manager/release-26.05";
     };
 
-    nixpkgs.url = "github:NixOS/nixpkgs/release-26.05";
+    ## Unfortunately, there’s no channel that’s cached for both Darwin & Linux.
+    ## Both `nixos-<version>` and `nixpkgs-<version>-darwin` track the
+    ## `release-<version>` branch, which means the caches will generally
+    ## coincide. Neither one consistently lags the other, so we bias for Darwin,
+    ## because it’s typically faster & cheaper to build Linux derivations. A
+    ## repo that doesn’t support Darwin might replace this with
+    ## `nixos-<version>` for slightly better cache hits.
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
 
     project-manager = {
       inputs.flaky.follows = "";
