@@ -60,6 +60,7 @@
       "**/.dir-locals.el"
       "**/flake.lock"
       "./.config/mustache.yaml"
+      "./.local/state/sync-template/history"
     ];
     styles = {
       inherit (pkgs.valeStyles) alex proselint write-good;
